@@ -36,11 +36,11 @@ Shulkers drop **two shells** with the listed pack. No extra player command is re
 
 ## Dragon drops
 
-The Ender Dragon drops a **dragon egg and an elytra** when it dies with this pack active. These are the documented additions; this page does not invent a server event schedule or dragon-fight policy.
+The Ender Dragon drops a **dragon egg and an elytra** when it dies with this pack active.
 
 ## Ender chest always drops
 
-The listed pack allows an ender chest to drop without Silk Touch. The author's description concerns accidentally using the wrong pickaxe; it is not a promise about every possible way to destroy the block.
+The listed pack allows an ender chest to drop without Silk Touch.
 
 ## Sources
 
