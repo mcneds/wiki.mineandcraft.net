@@ -18,7 +18,7 @@ npm run build
 npm run preview
 ```
 
-The build checks Astro/TypeScript, renders pages, creates the search index, then validates all internal links, anchors, and image paths.
+The build refreshes Astro's content cache, checks Astro/TypeScript, renders pages, creates the search index, then validates all internal links, anchors, and image paths. Refreshing the cache ensures recipe-renderer and recipe-data changes appear in generated articles.
 
 ## Edit the wiki
 

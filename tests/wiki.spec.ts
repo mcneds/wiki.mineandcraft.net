@@ -78,7 +78,7 @@ test('recipe grids show ingredient positions, outputs, and furnace processing', 
   await expect(apple.locator('.crafting-grid .recipe-slot').nth(4).getByRole('img')).toHaveAttribute('alt', 'Apple');
   const furnace = page.locator('[data-recipe-id="rotten_flesh_to_leather:leather"]');
   await expect(furnace.locator('.crafting-grid')).toHaveCount(0);
-  await expect(furnace.locator('.recipe-method')).toHaveText('Furnace');
+  await expect(furnace).toHaveAccessibleName(/^Furnace:/);
   await expect(furnace.locator('.recipe-output img')).toHaveAttribute('alt', 'Leather');
   await page.locator('.recipe-item').evaluateAll(images => images.forEach(image => (image as HTMLImageElement).loading = 'eager'));
   await expect.poll(() => page.locator('.recipe-item').evaluateAll(images => images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBeTruthy();
@@ -90,7 +90,7 @@ test('recipe grids show ingredient positions, outputs, and furnace processing', 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   await page.goto('/wiki/building/');
   await expect(page.locator('[data-recipe-id="conversion:cauldron-concrete"] .crafting-grid')).toHaveCount(0);
-  await expect(page.locator('[data-recipe-id="conversion:cauldron-concrete"] .recipe-method')).toHaveText('Drop into a water cauldron');
+  await expect(page.locator('[data-recipe-id="conversion:cauldron-concrete"]')).toHaveAccessibleName(/^Drop into a water cauldron:/);
   await page.goto('/wiki/chunk-loaders/');
-  await expect(page.locator('[data-recipe-id="conversion:loadstone"] .recipe-method')).toHaveText('Drop a nether star above a placed lodestone');
+  await expect(page.locator('[data-recipe-id="conversion:loadstone"]')).toHaveAccessibleName(/^Drop a nether star above a placed lodestone:/);
 });

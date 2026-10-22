@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev --host 127.0.0.1",
-    "build": "astro check && astro build && pagefind --site dist && node scripts/check-links.mjs",
+    "build": "astro sync --force && astro check && astro build && pagefind --site dist && node scripts/check-links.mjs",
     "preview": "astro preview --host 127.0.0.1",
     "deploy": "npm run build && wrangler deploy",
     "test": "playwright test"

@@ -25,15 +25,12 @@ function renderRecipe(id) {
     body = `<div class="recipe-process-inputs">${recipe.inputs.map(i => slot(i)).join('')}<span class="recipe-plus" aria-hidden="true">+</span>${slot(recipe.station)}</div>${arrow}${output}`;
   } else if (recipe.type === 'smelting') {
     method = 'Furnace';
-    body = `<div class="recipe-furnace-input"><span class="recipe-input-label">Input</span>${slot(recipe.slots[0])}<span class="recipe-fuel" aria-label="Requires furnace fuel">Fuel</span></div><span class="recipe-station" title="Furnace">${icon({ item: 'minecraft:furnace', name: 'Furnace' })}</span>${arrow}${output}`;
+    body = `<div class="recipe-furnace-input">${slot(recipe.slots[0])}</div><span class="recipe-station" title="Furnace">${icon({ item: 'minecraft:furnace', name: 'Furnace' })}</span>${arrow}${output}`;
   } else {
     method = recipe.type === 'crafting_shapeless' ? 'Crafting · Shapeless' : 'Crafting';
     body = `<div class="crafting-grid" role="group" aria-label="3 by 3 crafting grid">${recipe.slots.map(i => slot(i)).join('')}</div>${arrow}${output}`;
   }
-  const timing = recipe.type === 'smelting' ? `<span class="recipe-timing">${recipe.cookingtime / 20} seconds · ${recipe.experience} XP</span>` : '';
-  const tags = [...new Set((recipe.slots ?? []).filter(Boolean).filter(i => i.tag).map(i => i.name))];
-  const note = tags.length ? `<span class="recipe-note">Accepts: ${tags.map(escape).join('; ')}</span>` : '';
-  return `<figure class="recipe-card ${recipe.type === 'conversion' ? 'conversion-card' : ''}" data-recipe-id="${escape(id)}" aria-label="${escape(recipe.summary)}"><div class="recipe-method">${escape(method)}</div><div class="recipe-interface">${body}</div><figcaption>${escape(recipe.summary)}</figcaption>${timing}${note}</figure>`;
+  return `<figure class="recipe-card ${recipe.type === 'conversion' ? 'conversion-card' : ''}" data-recipe-id="${escape(id)}" aria-label="${escape(method + ': ' + recipe.summary)}"><div class="recipe-interface">${body}</div><figcaption class="sr-only">${escape(recipe.summary)}</figcaption></figure>`;
 }
 
 export default function recipeBlocks() {
