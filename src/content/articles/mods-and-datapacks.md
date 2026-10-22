@@ -18,6 +18,9 @@ This list is for reference. You don't need to install these mods or datapacks to
 | Infinite Trading, Better Than Mending, NetherPortalFix, Unlock All Recipes | [Trading, repairs & portals](/wiki/trading-and-repairs/) |
 | The crafting-tweaks bundle | [Crafting tweaks](/wiki/crafting-tweaks/) |
 
+<details class="reference-list" id="reference-lists">
+<summary><span class="reference-show">Show reference lists</span><span class="reference-hide">Hide reference lists</span></summary>
+
 ## Datapack inventory
 
 All listed ZIPs target Minecraft **26.3**.
@@ -88,3 +91,5 @@ These entries are recorded for reference. They do not add a player command descr
 | `ForgeConfigAPIPort-v26.3.1-mc26.3.x-Fabric.jar` |
 | `polymer-bundled-0.18.4+26.3.jar` |
 | `puzzleslib-v26.3.15-mc26.3.x+fabric.jar` |
+
+</details>

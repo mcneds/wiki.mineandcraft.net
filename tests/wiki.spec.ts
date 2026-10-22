@@ -41,6 +41,24 @@ test('theme preference persists', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 });
 
+test('inventory references expand on demand and follow contents links', async ({ page }) => {
+  await page.goto('/wiki/mods-and-datapacks/');
+  await expect(page.getByRole('heading', { name: 'Player features', exact: true })).toBeVisible();
+  await expect(page.locator('#datapack-inventory')).toBeHidden();
+  await page.getByText('Show reference lists', { exact: true }).click();
+  await expect(page.locator('#datapack-inventory')).toBeVisible();
+  await expect(page.getByText('fabric-api-0.163.0+26.3.jar', { exact: true })).toBeVisible();
+  const toggle = page.locator('.reference-list > summary');
+  await toggle.focus();
+  await toggle.press('Enter');
+  await expect(page.locator('#datapack-inventory')).toBeHidden();
+  await page.locator('.contents').getByRole('link', { name: 'Datapack inventory', exact: true }).click();
+  await expect(page.locator('#datapack-inventory')).toBeVisible();
+  await page.goto('/wiki/mods-and-datapacks/#libraries-and-dependencies');
+  await expect(page.locator('#libraries-and-dependencies')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+});
+
 test('article contents, readable source, and empty Lore are honest', async ({ page }) => {
   await page.goto('/wiki/travel/');
   await page.locator('.contents').getByRole('link', { name: 'Set a home', exact: true }).click();
