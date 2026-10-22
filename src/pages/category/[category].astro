@@ -1,0 +1,12 @@
+---
+import WikiLayout from '../../layouts/WikiLayout.astro';
+import { getArticles, categories, articleUrl } from '../../lib/wiki';
+export function getStaticPaths() { return categories.map(category => ({ params: { category: category.toLowerCase() }, props: { category } })); }
+const { category } = Astro.props;
+const articles = (await getArticles()).filter(a => a.data.category === category);
+---
+<WikiLayout title={`Category: ${category}`} description={`Browse ${category.toLowerCase()} articles on mineandcraft.net.`} section={category === 'Guides' ? 'Player guides' : category}>
+  <header class="page-heading"><span class="page-kicker">WIKI CATEGORIES</span><h1>{category}</h1><p>{articles.length} {articles.length === 1 ? 'article' : 'articles'} in this category.</p></header>
+  <nav class="category-pills" aria-label="Browse categories">{categories.map(c => <a href={`/category/${c.toLowerCase()}/`} aria-current={c === category ? 'page' : undefined}>{c}</a>)}</nav>
+  {articles.length ? <ul class="alphabet-list">{articles.map(article => <li><a href={articleUrl(article.id)}>{article.data.title}</a><p>{article.data.description}</p></li>)}</ul> : <div class="notice">No articles here yet. {category === 'Lore' && <a href="/lore/">Visit Lore →</a>}</div>}
+</WikiLayout>

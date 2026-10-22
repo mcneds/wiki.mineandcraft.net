@@ -1,0 +1,40 @@
+---
+import WikiLayout from '../layouts/WikiLayout.astro';
+---
+<WikiLayout title="Search" description="Search the mineandcraft.net wiki for guides, players, recipes, and lore.">
+  <header class="page-heading"><h1>Search the wiki</h1><p>Find a guide, a familiar face, or the recipe you were looking for.</p></header>
+  <form class="search-form" id="wiki-search" role="search"><label for="search-query" class="sr-only">Search articles</label><input id="search-query" name="q" type="search" placeholder="Try homes, leather, or a player's name…" /><button type="submit">Search</button></form>
+  <p class="search-status" role="status" aria-live="polite">Enter a word or phrase to search.</p><ul class="search-results"></ul>
+  <noscript><p>Search needs JavaScript. You can also <a href="/all-pages/">browse all pages</a>.</p></noscript>
+  <script is:inline type="module">
+    const form = document.querySelector('#wiki-search');
+    const input = document.querySelector('#search-query');
+    const status = document.querySelector('.search-status');
+    const list = document.querySelector('.search-results');
+    let generation = 0;
+    let searchModule;
+    async function search(query) {
+      const current = ++generation;
+      list.replaceChildren();
+      if (!query.trim()) { status.textContent = 'Enter a word or phrase to search.'; return; }
+      status.textContent = 'Searching…';
+      try {
+        searchModule ??= import('/pagefind/pagefind.js');
+        const pagefind = await searchModule;
+        const result = await pagefind.search(query);
+        const pages = await Promise.all(result.results.slice(0, 30).map(r => r.data()));
+        if (current !== generation) return;
+        status.textContent = result.results.length ? `${result.results.length} ${result.results.length === 1 ? 'result' : 'results'} for “${query}”${result.results.length > 30 ? ' (showing the first 30)' : ''}.` : `No results for “${query}”. Try another word or browse All pages.`;
+        for (const page of pages) {
+          const li = document.createElement('li');
+          const a = document.createElement('a'); a.href = page.url; a.textContent = page.meta.title || page.url;
+          const p = document.createElement('p'); p.textContent = new DOMParser().parseFromString(page.excerpt, 'text/html').body.textContent;
+          li.append(a,p); list.append(li);
+        }
+      } catch { if (current === generation) status.textContent = 'Search is unavailable right now. Use All pages to browse, or try again shortly.'; }
+    }
+    const initial = new URL(location.href).searchParams.get('q') || '';
+    input.value = initial; search(initial);
+    form.addEventListener('submit', event => { event.preventDefault(); const q = input.value.trim(); const url = new URL(location.href); url.searchParams.set('q', q); history.replaceState({}, '', url); search(q); });
+  </script>
+</WikiLayout>

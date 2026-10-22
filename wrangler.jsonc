@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mineandcraft-wiki",
+  "compatibility_date": "2026-10-22",
+  "workers_dev": true,
+  "routes": [{ "pattern": "wiki.mineandcraft.net", "custom_domain": true }],
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  }
+}

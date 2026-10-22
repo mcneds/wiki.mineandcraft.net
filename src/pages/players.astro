@@ -1,0 +1,10 @@
+---
+import WikiLayout from '../layouts/WikiLayout.astro';
+import { getArticles, articleUrl } from '../lib/wiki';
+const players = (await getArticles()).filter(a => a.data.category === 'Players');
+---
+<WikiLayout title="Players" description="Meet the players of mineandcraft.net. Their heads, builds, and stories." section="Players">
+  <header class="page-heading"><span class="page-kicker">THE COMMUNITY</span><h1>Players</h1><p>The people behind the blocks.</p></header>
+  <p class="directory-intro">A world is only as interesting as the people who share it. Meet the {players.length} players of mineandcraft.net, and follow the builds and stories they leave behind.</p>
+  <div class="directory-grid">{players.map(player => <a class="player-card" href={articleUrl(player.id)}><img src={player.data.image} alt={`${player.data.title}'s Minecraft head`} width="110" height="110" loading="lazy" /><strong>{player.data.title}</strong><span>mineandcraft.net player</span><small>Read player page →</small></a>)}</div>
+</WikiLayout>

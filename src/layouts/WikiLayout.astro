@@ -1,0 +1,101 @@
+---
+import '../styles/wiki.css';
+import { getArticles } from '../lib/wiki';
+interface Props {
+  title: string;
+  description: string;
+  section?: string;
+  source?: string;
+  home?: boolean;
+}
+const { title, description, section = '', source, home = false } = Astro.props;
+const articles = await getArticles();
+const path = Astro.url.pathname === '/404/' ? '/404.html' : Astro.url.pathname;
+const nav = [
+  { label: 'Main page', href: '/', icon: '⌂' },
+  { label: 'Getting started', href: '/wiki/getting-started/', icon: '↗' },
+  { label: 'Server rules', href: '/wiki/rules/', icon: '§' },
+];
+const explore = [
+  { label: 'Player guides', href: '/category/guides/' },
+  { label: 'Crafting tweaks', href: '/wiki/crafting-tweaks/' },
+  { label: 'Mods & datapacks', href: '/wiki/mods-and-datapacks/' },
+  { label: 'Players', href: '/players/' },
+  { label: 'Lore', href: '/lore/' },
+];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f6f6f2" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={new URL(path, Astro.site)} />
+    <meta property="og:title" content={home ? 'mineandcraft.net' : `${title} — mineandcraft.net`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <title>{home ? 'mineandcraft.net — The server wiki' : `${title} — mineandcraft.net`}</title>
+    <script is:inline>
+      try { const saved = localStorage.getItem('mac-theme'); if (saved === 'dark') document.documentElement.dataset.theme = 'dark'; } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="topbar">
+      <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="site-sidebar">☰</button>
+      <a class="site-brand" href="/" aria-label="mineandcraft.net home">
+        <img src="/favicon.svg" alt="" width="34" height="34" />
+        <span>mineandcraft<span class="brand-dot">.net</span><small>THE SERVER WIKI</small></span>
+      </a>
+      <form class="header-search" action="/search/" role="search">
+        <label class="sr-only" for="header-query">Search the wiki</label>
+        <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
+        <input id="header-query" name="q" placeholder="Search mineandcraft.net" autocomplete="off" />
+        <button type="submit" aria-label="Search">↵</button>
+      </form>
+      <div class="topbar-right"><span class="community-label">A little world, a shared story.</span><button class="theme-toggle" type="button" aria-label="Switch to dark appearance" title="Change appearance">◐</button></div>
+    </header>
+    <div class="site-frame">
+      <aside class="sidebar" id="site-sidebar" aria-label="Wiki navigation">
+        <div class="sidebar-group"><p class="sidebar-heading">NAVIGATION</p>{nav.map(item => <a class:list={['nav-link', { active: path === item.href }]} href={item.href} aria-current={path === item.href ? 'page' : undefined}><span class="nav-icon" aria-hidden="true">{item.icon}</span>{item.label}</a>)}</div>
+        <div class="sidebar-group"><p class="sidebar-heading">EXPLORE THE WIKI</p>{explore.map(item => <a class:list={['nav-link', { active: path === item.href || section === item.label }]} href={item.href} aria-current={path === item.href ? 'page' : undefined}>{item.label}</a>)}</div>
+        <div class="sidebar-group"><p class="sidebar-heading">WIKI TOOLS</p><a class="nav-link" href="/all-pages/">All pages <span class="nav-count">{articles.length}</span></a><a class="nav-link" href="/wiki/about/">About this wiki</a><button class="nav-link random-page" type="button" data-pages={JSON.stringify(articles.map(a => `/wiki/${a.id}/`))}>Random article <span aria-hidden="true">↗</span></button></div>
+        <div class="sidebar-server"><span class="eyebrow">OUR SERVER</span><strong>mineandcraft.net</strong><span>Java & Bedrock · Invite only</span><a href="/wiki/getting-started/">How to join <span aria-hidden="true">→</span></a></div>
+        <p class="sidebar-foot">Built by blocks.<br />Remembered in stories.</p>
+      </aside>
+      <div class="page-column">
+        <nav class="article-tabs" aria-label="Page tools"><div><a class="selected" href={path}>{home ? 'Main page' : title === 'Lore' ? 'Lore' : 'Article'}</a><a href="/all-pages/">All pages</a></div><div>{source && <a href={source}>View source</a>}<button class="print-page" type="button">Print <span aria-hidden="true">↗</span></button></div></nav>
+        <main id="main-content" tabindex="-1"><slot /></main>
+        <footer class="site-footer"><div><a href="/">mineandcraft.net</a><span>The community's field guide and memory book.</span></div><div><a href="/wiki/about/">About</a><a href="/wiki/rules/">Be civil.</a><span>Unofficial Minecraft community wiki.</span></div></footer>
+      </div>
+    </div>
+    <script>
+      const menu = document.querySelector<HTMLButtonElement>('.menu-toggle');
+      menu?.addEventListener('click', () => {
+        const open = menu.getAttribute('aria-expanded') !== 'true';
+        menu.setAttribute('aria-expanded', String(open));
+        document.body.classList.toggle('nav-open', open);
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') { document.body.classList.remove('nav-open'); menu?.setAttribute('aria-expanded', 'false'); }
+        if (event.key === '/' && !(event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || (event.target instanceof HTMLElement && event.target.isContentEditable))) {
+          event.preventDefault(); document.querySelector<HTMLInputElement>('#header-query')?.focus();
+        }
+      });
+      const theme = document.querySelector<HTMLButtonElement>('.theme-toggle');
+      const setThemeLabel = () => theme?.setAttribute('aria-label', `Switch to ${document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'} appearance`);
+      setThemeLabel();
+      theme?.addEventListener('click', () => {
+        const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = next;
+        try { localStorage.setItem('mac-theme', next); } catch {}
+        setThemeLabel();
+      });
+      document.querySelector('.print-page')?.addEventListener('click', () => window.print());
+      const random = document.querySelector<HTMLButtonElement>('.random-page');
+      random?.addEventListener('click', () => { const pages: string[] = JSON.parse(random.dataset.pages || '[]'); if (pages.length) window.location.assign(pages[Math.floor(Math.random() * pages.length)]); });
+    </script>
+  </body>
+</html>

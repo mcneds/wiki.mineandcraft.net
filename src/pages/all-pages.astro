@@ -1,0 +1,10 @@
+---
+import WikiLayout from '../layouts/WikiLayout.astro';
+import { getArticles, categories, articleUrl } from '../lib/wiki';
+const articles = await getArticles();
+---
+<WikiLayout title="All pages" description="Browse every article in the mineandcraft.net wiki.">
+  <header class="page-heading"><h1>All pages</h1><p>{articles.length} articles in the mineandcraft.net wiki.</p></header>
+  <nav class="category-pills" aria-label="Browse categories">{categories.map(c => <a href={`/category/${c.toLowerCase()}/`}>{c}</a>)}</nav>
+  <ul class="alphabet-list">{articles.map(article => <li><a href={articleUrl(article.id)}>{article.data.title}</a><p>{article.data.description}</p></li>)}</ul>
+</WikiLayout>
