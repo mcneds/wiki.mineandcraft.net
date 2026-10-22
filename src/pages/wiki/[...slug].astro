@@ -7,7 +7,7 @@ export async function getStaticPaths() {
 }
 const { article } = Astro.props;
 const { Content, headings } = await render(article);
-const section = article.data.category === 'Players' ? 'Players' : article.data.category === 'Lore' ? 'Lore' : article.data.category === 'Guides' ? 'Player guides' : '';
+const section = article.data.category === 'Players' ? 'Players' : article.data.category === 'Guides' ? 'Player guides' : '';
 ---
 <WikiLayout title={article.data.title} description={article.data.description} source={`/source/${article.id}.txt`} section={section}>
   <article data-pagefind-body>

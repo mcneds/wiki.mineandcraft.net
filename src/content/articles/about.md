@@ -1,10 +1,10 @@
 ---
 title: "About this wiki"
-description: "A field guide and memory book for the mineandcraft.net community."
+description: "Guides and player information for mineandcraft.net."
 category: "Server"
 updated: "2026-10-22"
 ---
-**mineandcraft.net** is the community's field guide and memory book: practical help for playing on the server, a directory of its players, and a place to record [Lore](/lore/).
+**mineandcraft.net** contains guides for playing on the server and a directory of its players.
 
 ## Reading and contributing
 

@@ -59,16 +59,22 @@ test('inventory references expand on demand and follow contents links', async ({
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
 });
 
-test('article contents, readable source, and empty Lore are honest', async ({ page }) => {
+test('article contents, readable source, and missing pages work', async ({ page }) => {
   await page.goto('/wiki/travel/');
   await page.locator('.contents').getByRole('link', { name: 'Set a home', exact: true }).click();
   await expect(page).toHaveURL(/#set-a-home$/);
   const source = await page.request.get('/source/travel.txt');
   expect(source.ok()).toBeTruthy();
   expect(await source.text()).toContain('/trigger sethome');
-  await page.goto('/lore/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Lore');
-  await expect(page.locator('.empty-chronicle')).toContainText('No events or stories');
+  await expect(page.locator('a[href="/lore/"]')).toHaveCount(0);
+  await page.goto('/all-pages/');
+  await expect(page.locator('a[href="/category/lore/"]')).toHaveCount(0);
+  await page.goto('/wiki/players/uaiden/');
+  await expect(page.locator('.article-body')).not.toContainText('Lore');
+  for (const path of ['/lore/', '/category/lore/']) {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(404);
+  }
   await page.goto('/this-page-does-not-exist/');
   await expect(page.getByRole('heading', { level: 1 })).toContainText("There isn't a page here");
 });

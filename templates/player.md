@@ -17,7 +17,3 @@ Add confirmed details here.
 ## Builds & projects
 
 Add builds and links here.
-
-## Lore
-
-Link related events here.

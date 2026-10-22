@@ -24,10 +24,9 @@ The build refreshes Astro's content cache, checks Astro/TypeScript, renders page
 
 Articles live in `src/content/articles`. Edit them locally or through your own GitHub account, then rebuild and publish. Public visitors have no editing endpoint. The repository owner's account controls changes; do not grant repository write access to anyone you do not want editing the wiki.
 
-Each article starts with title, description, category, and an ISO `updated` date. Categories are `Server`, `Guides`, `Crafting`, `Players`, `Lore`, and `Reference`. Set `draft: true` to exclude unfinished pages from routes, indexes, source views, and search.
+Each article starts with title, description, category, and an ISO `updated` date. Categories are `Server`, `Guides`, `Crafting`, `Players`, and `Reference`. Set `draft: true` to exclude unfinished pages from routes, indexes, source views, and search.
 
 - Edit a player biography in `src/content/articles/players/IGN.md`. Preserve the exact IGN and image filename. Put additional player heads under `public/images/players`.
-- Copy `templates/lore.md` into `src/content/articles/lore/your-story.md`, write the story, and remove `draft: true` when ready. The optional `date` controls the Lore timeline; undated stories get their own section. Lore entries appear automatically on the home page and Lore index.
 - Copy `templates/player.md` for a new player. The Players directory and home-page roster update automatically.
 - Upload images into `public/images` and link them as `/images/...`. Use descriptive alt text and add captions/credits.
 - Use links such as `[Homes](/wiki/travel/)`. The build fails on broken internal links.

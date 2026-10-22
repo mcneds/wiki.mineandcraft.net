@@ -7,7 +7,7 @@ const articles = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string(),
-    category: z.enum(['Server', 'Guides', 'Crafting', 'Players', 'Lore', 'Reference']),
+    category: z.enum(['Server', 'Guides', 'Crafting', 'Players', 'Reference']),
     updated: z.string(),
     image: z.string().optional(),
     facts: z.array(z.object({ label: z.string(), value: z.string() })).default([]),

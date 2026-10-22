@@ -1,7 +1,7 @@
 ---
 import WikiLayout from '../layouts/WikiLayout.astro';
 ---
-<WikiLayout title="Search" description="Search the mineandcraft.net wiki for guides, players, recipes, and lore.">
+<WikiLayout title="Search" description="Search the mineandcraft.net wiki for guides, players, and recipes.">
   <header class="page-heading"><h1>Search the wiki</h1><p>Find a guide, a familiar face, or the recipe you were looking for.</p></header>
   <form class="search-form" id="wiki-search" role="search"><label for="search-query" class="sr-only">Search articles</label><input id="search-query" name="q" type="search" placeholder="Try homes, leather, or a player's name…" /><button type="submit">Search</button></form>
   <p class="search-status" role="status" aria-live="polite">Enter a word or phrase to search.</p><ul class="search-results"></ul>

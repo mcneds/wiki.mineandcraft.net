@@ -22,7 +22,6 @@ const explore = [
   { label: 'Crafting tweaks', href: '/wiki/crafting-tweaks/' },
   { label: 'Mods & datapacks', href: '/wiki/mods-and-datapacks/' },
   { label: 'Players', href: '/players/' },
-  { label: 'Lore', href: '/lore/' },
 ];
 ---
 <!doctype html>
@@ -65,7 +64,7 @@ const explore = [
         <div class="sidebar-group"><p class="sidebar-heading">WIKI TOOLS</p><a class="nav-link" href="/all-pages/">All pages <span class="nav-count">{articles.length}</span></a><a class="nav-link" href="/wiki/about/">About this wiki</a><button class="nav-link random-page" type="button" data-pages={JSON.stringify(articles.map(a => `/wiki/${a.id}/`))}>Random article <span aria-hidden="true">↗</span></button></div>
       </aside>
       <div class="page-column">
-        <nav class="article-tabs" aria-label="Page tools"><div><a class="selected" href={path}>{home ? 'Main page' : title === 'Lore' ? 'Lore' : 'Article'}</a><a href="/all-pages/">All pages</a></div><div>{source && <a href={source}>View source</a>}</div></nav>
+        <nav class="article-tabs" aria-label="Page tools"><div><a class="selected" href={path}>{home ? 'Main page' : 'Article'}</a><a href="/all-pages/">All pages</a></div><div>{source && <a href={source}>View source</a>}</div></nav>
         <main id="main-content" tabindex="-1"><slot /></main>
         <footer class="site-footer"><div><a href="/">mineandcraft.net</a></div><div><a href="/wiki/about/">About</a><a href="/wiki/rules/">Be civil.</a></div></footer>
       </div>

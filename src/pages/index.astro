@@ -3,8 +3,6 @@ import WikiLayout from '../layouts/WikiLayout.astro';
 import { getArticles, articleUrl } from '../lib/wiki';
 const articles = await getArticles();
 const players = articles.filter(a => a.data.category === 'Players');
-const stories = articles.filter(a => a.data.category === 'Lore').sort((a, b) => (b.data.date ?? '').localeCompare(a.data.date ?? ''));
-const newestStory = stories[0];
 const guides = [
   { n: '01', title: 'Set a home & teleport', id: 'travel', text: 'Save a location with /trigger sethome, then return with /trigger home.' },
   { n: '02', title: 'Chop trees & convert materials', id: 'building', text: 'Chop a tree with an axe. Drop concrete powder or dirt into a water cauldron to make concrete or mud.' },
@@ -14,17 +12,10 @@ const guides = [
   { n: '06', title: 'Repair Mending equipment', id: 'trading-and-repairs', text: 'Sneak-right-click a Mending item to repair it using experience you already have.' },
 ];
 ---
-<WikiLayout title="mineandcraft.net" description="Guides, recipes, players, and lore for mineandcraft.net." home>
+<WikiLayout title="mineandcraft.net" description="Guides, recipes, and players for mineandcraft.net." home>
   <h1 class="sr-only">mineandcraft.net</h1>
-  <nav class="quick-nav" aria-label="Popular wiki sections"><a href="/category/guides/"><span class="quick-symbol" aria-hidden="true">⌘</span><span><strong>Player guides</strong><small>Make yourself at home</small></span></a><a href="/wiki/crafting-tweaks/"><span class="quick-symbol" aria-hidden="true">▦</span><span><strong>Crafting tweaks</strong><small>A few useful changes</small></span></a><a href="/players/"><span class="quick-symbol" aria-hidden="true">♙</span><span><strong>Our players</strong><small>The people behind the blocks</small></span></a><a href="/lore/"><span class="quick-symbol" aria-hidden="true">❧</span><span><strong>Lore</strong><small>Every world has a story</small></span></a></nav>
-  <div class="home-columns">
-    <div>
-      <section class="panel"><div class="panel-title"><h2>What's different</h2><a href="/category/guides/">All guides →</a></div><div class="panel-body guide-list">{guides.map(g => <div class="guide-item"><span class="guide-number">{g.n}</span><div><a href={articleUrl(g.id)}>{g.title}</a><p>{g.text}</p></div></div>)}</div></section>
-    </div>
-    <div>
-      <section class="panel"><div class="panel-title sand"><h2>Lore</h2><a href="/lore/">Explore Lore →</a></div><div class="panel-body"><p class="lore-lead">The world is made of blocks.<br />The rest is us.</p><p class="lore-copy">Great builds, unexpected adventures, and the moments that become server history. This is where we keep them.</p>{newestStory ? <div class="lore-mini"><strong><a href={articleUrl(newestStory.id)}>{newestStory.data.title}</a></strong><p>{newestStory.data.description}</p></div> : <div class="lore-mini"><strong>The story is still being written.</strong><p>No events recorded yet. There is plenty of room for a first chapter.</p></div>}<a class="text-link" href="/players/">Start with the people behind the stories →</a></div></section>
-    </div>
-  </div>
+  <nav class="quick-nav" aria-label="Popular wiki sections"><a href="/category/guides/"><span class="quick-symbol" aria-hidden="true">⌘</span><span><strong>Player guides</strong><small>Make yourself at home</small></span></a><a href="/wiki/crafting-tweaks/"><span class="quick-symbol" aria-hidden="true">▦</span><span><strong>Crafting tweaks</strong><small>A few useful changes</small></span></a><a href="/players/"><span class="quick-symbol" aria-hidden="true">♙</span><span><strong>Our players</strong><small>The people behind the blocks</small></span></a></nav>
+  <section class="panel"><div class="panel-title"><h2>What's different</h2><a href="/category/guides/">All guides →</a></div><div class="panel-body guide-list">{guides.map(g => <div class="guide-item"><span class="guide-number">{g.n}</span><div><a href={articleUrl(g.id)}>{g.title}</a><p>{g.text}</p></div></div>)}</div></section>
   <section class="panel" aria-labelledby="member-list-title"><div class="panel-title"><h2 id="member-list-title">The people of mineandcraft.net</h2><a href="/players/">Meet everyone →</a></div><div class="panel-body"><p class="panel-intro">Every build starts with a player. Here are ours.</p><div class="profile-grid">{players.map(player => <a class="profile-tile" href={articleUrl(player.id)} title={player.data.title}><img src={player.data.image} width="56" height="56" alt={`${player.data.title}'s Minecraft head`} loading="lazy" /><span>{player.data.title}</span></a>)}</div></div></section>
   <aside class="rule-strip"><strong>Be civil.</strong><span>A shared world works best when we look out for each other.</span><a href="/wiki/rules/">Our one rule →</a></aside>
 </WikiLayout>

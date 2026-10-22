@@ -61,7 +61,7 @@ Datapacks run with the server world; you do not install the server's datapack ZI
 - Learn how to [set a home and travel](/wiki/travel/).
 - Find out how [graves](/wiki/graves/) work before your first unfortunate encounter.
 - Browse the [crafting tweaks](/wiki/crafting-tweaks/) before gathering supplies for a big build.
-- Meet the [players](/players/) and explore [Lore](/lore/).
+- Meet the [players](/players/).
 
 ## Sources
 

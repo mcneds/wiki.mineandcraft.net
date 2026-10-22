@@ -44,10 +44,6 @@ This player's story has not been recorded yet.
 
 No builds or projects have been documented here yet.
 
-## Lore
-
-No events have been linked to this player yet. Visit [Lore](/lore/) for the server's shared history.
-
 ## See also
 
 - [All players](/players/)
