@@ -31,7 +31,7 @@ Each article starts with title, description, category, and an ISO `updated` date
 - Copy `templates/player.md` for a new player. The Players directory and home-page roster update automatically.
 - Upload images into `public/images` and link them as `/images/...`. Use descriptive alt text and add captions/credits.
 - Use links such as `[Homes](/wiki/travel/)`. The build fails on broken internal links.
-- Change connection information in `getting-started.md`; the shared sidebar's server summary is in `src/layouts/WikiLayout.astro`.
+- Change connection information in `src/content/articles/getting-started.md`.
 
 No CMS, database, or web-editing credentials are required. Page source is public read-only Markdown; it contains article text, never environment variables or server configurations.
 

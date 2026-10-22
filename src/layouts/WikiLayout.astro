@@ -62,8 +62,6 @@ const explore = [
         <div class="sidebar-group"><p class="sidebar-heading">NAVIGATION</p>{nav.map(item => <a class:list={['nav-link', { active: path === item.href }]} href={item.href} aria-current={path === item.href ? 'page' : undefined}><span class="nav-icon" aria-hidden="true">{item.icon}</span>{item.label}</a>)}</div>
         <div class="sidebar-group"><p class="sidebar-heading">EXPLORE THE WIKI</p>{explore.map(item => <a class:list={['nav-link', { active: path === item.href || section === item.label }]} href={item.href} aria-current={path === item.href ? 'page' : undefined}>{item.label}</a>)}</div>
         <div class="sidebar-group"><p class="sidebar-heading">WIKI TOOLS</p><a class="nav-link" href="/all-pages/">All pages <span class="nav-count">{articles.length}</span></a><a class="nav-link" href="/wiki/about/">About this wiki</a><button class="nav-link random-page" type="button" data-pages={JSON.stringify(articles.map(a => `/wiki/${a.id}/`))}>Random article <span aria-hidden="true">↗</span></button></div>
-        <div class="sidebar-server"><span class="eyebrow">OUR SERVER</span><strong>mineandcraft.net</strong><span>Java & Bedrock · Invite only</span><a href="/wiki/getting-started/">How to join <span aria-hidden="true">→</span></a></div>
-        <p class="sidebar-foot">Built by blocks.<br />Remembered in stories.</p>
       </aside>
       <div class="page-column">
         <nav class="article-tabs" aria-label="Page tools"><div><a class="selected" href={path}>{home ? 'Main page' : title === 'Lore' ? 'Lore' : 'Article'}</a><a href="/all-pages/">All pages</a></div><div>{source && <a href={source}>View source</a>}<button class="print-page" type="button">Print <span aria-hidden="true">↗</span></button></div></nav>
