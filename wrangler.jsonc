@@ -6,6 +6,8 @@
   "workers_dev": true,
   "vars": { "SITE_ORIGIN": "https://wiki.mineandcraft.net" },
   "d1_databases": [{ "binding": "DB", "database_name": "mineandcraft-wiki", "database_id": "37fccdbe-ed65-47ee-bf85-47a5486380a6", "migrations_dir": "migrations" }],
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "mineandcraft-wiki-media" }],
+  "triggers": { "crons": ["17 * * * *"] },
   "routes": [{ "pattern": "wiki.mineandcraft.net", "custom_domain": true }],
   "assets": {
     "binding": "ASSETS",
