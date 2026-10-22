@@ -22,6 +22,15 @@ export function mediaReferences(source) {
   return [...ids];
 }
 
+function headingText(tokens) {
+  return tokens.map(token => {
+    if (token.children) return headingText(token.children);
+    if (token.type === 'text' || token.type === 'code_inline') return token.content;
+    if (token.type === 'softbreak' || token.type === 'hardbreak') return ' ';
+    return '';
+  }).join('');
+}
+
 export function render(source) {
   const tokens = markdown.parse(source, {});
   for (let i = 0; i < tokens.length - 2; i++) {
@@ -37,14 +46,15 @@ export function render(source) {
   const used = new Set();
   for (let i = 0; i < tokens.length; i++) {
     if (tokens[i].type !== 'heading_open') continue;
-    const text = tokens[i + 1].content;
-    const base = text.toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, '').trim().replace(/\s+/g, '-') || 'section';
+    const inline = tokens[i + 1];
+    // Keep existing anchors; contents labels use decoded, unformatted text.
+    const base = inline.content.toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, '').trim().replace(/\s+/g, '-') || 'section';
     let id = base;
     let suffix = 1;
     while (used.has(id)) id = `${base}-${suffix++}`;
     used.add(id);
     tokens[i].attrSet('id', id);
-    if (Number(tokens[i].tag.slice(1)) <= 3) headings.push({ id, text });
+    if (Number(tokens[i].tag.slice(1)) <= 3) headings.push({ id, text: headingText(inline.children || []) });
   }
   return { html: markdown.renderer.render(tokens, markdown.options, {}), headings };
 }

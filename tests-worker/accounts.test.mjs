@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
 import { createHandler } from '../worker/index.mjs';
-import { render } from '../worker/content.mjs';
+import { article, render } from '../worker/content.mjs';
 import { lookup } from '../worker/lookup.mjs';
 import { cleanupMedia } from '../worker/media.mjs';
 
@@ -206,6 +206,26 @@ test('Markdown preview escapes raw HTML, rejects executable links, and produces 
   assert.equal(result.html.includes('href="javascript:'), false);
   assert.equal(result.html.includes('src="data:'), false);
   assert.deepEqual(result.headings.map(heading => heading.id), ['build', 'build-1']);
+});
+
+test('contents labels decode entities and remove Markdown formatting while preserving existing anchors', () => {
+  const result = render('## Builds &amp; projects\n\n## Builds &amp; projects\n\n## **Builds** & projects\n\n## [Farms](https://example.com) and `bases`\n\n## ![Our *base*](/base.png) &#38; builds');
+  assert.deepEqual(result.headings, [
+    { id: 'builds-amp-projects', text: 'Builds & projects' },
+    { id: 'builds-amp-projects-1', text: 'Builds & projects' },
+    { id: 'builds-projects', text: 'Builds & projects' },
+    { id: 'farmshttpsexamplecom-and-bases', text: 'Farms and bases' },
+    { id: 'our-basebasepng-38-builds', text: 'Our base & builds' },
+  ]);
+  for (const heading of result.headings) assert.ok(result.html.includes(`id="${heading.id}"`));
+});
+
+test('article contents escape decoded labels once and preserve intentionally literal entities', () => {
+  const html = article({ name: 'Player', image: '/head.png', updated: '2026-10-23', markdown: '## Builds &amp; projects\n\n## Literal &amp;amp;\n\n## &lt;img src=x onerror=alert(1)&gt;' });
+  assert.ok(html.includes('<a href="#builds-amp-projects">Builds &amp; projects</a>'));
+  assert.ok(html.includes('>Literal &amp;amp;</a>'));
+  assert.ok(html.includes('>&lt;img src=x onerror=alert(1)&gt;</a>'));
+  assert.equal(html.includes('<img src=x'), false);
 });
 
 test('logout invalidates the stored session and missing configuration cannot enable editing', async t => {
