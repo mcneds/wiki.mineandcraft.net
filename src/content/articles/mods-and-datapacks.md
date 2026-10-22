@@ -88,7 +88,3 @@ These entries are recorded for reference. They do not add a player command descr
 | `ForgeConfigAPIPort-v26.3.1-mc26.3.x-Fabric.jar` |
 | `polymer-bundled-0.18.4+26.3.jar` |
 | `puzzleslib-v26.3.15-mc26.3.x+fabric.jar` |
-
-## Sources
-
-Owner-supplied inventory screenshots and the crafting-tweaks ZIP. Player-facing instructions are sourced individually in the linked guides. [Vanilla Tweaks' 26.3 catalog](https://vanillatweaks.net/assets/resources/json/26.3/dpcategories.json) confirms the listed datapack versions and their descriptions.
