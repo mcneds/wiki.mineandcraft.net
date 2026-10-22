@@ -3,10 +3,27 @@ import { HttpError } from './auth.mjs';
 async function json(fetcher, url) {
   let response;
   try { response = await fetcher(url, { signal: AbortSignal.timeout(10000) }); }
-  catch { throw new HttpError(503, 'Player lookup is unavailable. Please try again shortly.'); }
+  catch (error) { if (error instanceof HttpError) throw error; throw new HttpError(503, 'Player lookup is unavailable. Please try again shortly.'); }
   if (response.status === 404 || response.status === 204) throw new HttpError(404, 'Player not found. Check the name and edition.');
   if (!response.ok) throw new HttpError(503, 'Player lookup is unavailable. Please try again shortly.');
-  return response.json();
+  try { return await response.json(); }
+  catch { throw new HttpError(503, 'Player lookup returned an unreadable response. Please try again shortly.'); }
+}
+async function javaProfile(query, fetcher) {
+  try { return await json(fetcher, `https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(query)}`); }
+  catch (error) {
+    // Mojang's edge blocks some Cloudflare egress IPs with HTTP 403. Retain
+    // authoritative not-found results, but fall back on availability failures.
+    if (!(error instanceof HttpError) || error.status !== 503) throw error;
+    const cached = await json(async (url, options) => {
+      const response = await fetcher(url, { ...options, headers: { 'User-Agent': 'mineandcraft.net Wiki (https://wiki.mineandcraft.net)' } });
+      if (response.status === 400) throw new HttpError(404, 'Player not found. Check the name and edition.');
+      return response;
+    }, `https://playerdb.co/api/player/minecraft/${encodeURIComponent(query)}`);
+    const player = cached.success === true && cached.data?.player;
+    if (!player || typeof player.username !== 'string' || player.username.toLowerCase() !== query.toLowerCase()) throw new HttpError(503, 'The Java name could not be verified. Please try again shortly.');
+    return { name: player.username, id: player.raw_id || player.id?.replaceAll('-', '') };
+  }
 }
 export function png(bytes) {
   if (bytes.length < 24 || bytes.length > 262144 || ![137, 80, 78, 71, 13, 10, 26, 10].every((value, i) => bytes[i] === value)) throw new HttpError(400, 'Choose a PNG image smaller than 256 KB.');
@@ -22,7 +39,7 @@ export async function lookup(input, fetcher) {
   let name, id, headId;
   if (edition === 'java') {
     if (!/^[A-Za-z0-9_]{3,16}$/.test(query)) throw new HttpError(400, 'Enter a Java username with 3–16 letters, numbers, or underscores.');
-    const profile = await json(fetcher, `https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(query)}`);
+    const profile = await javaProfile(query, fetcher);
     if (!/^[A-Za-z0-9_]{3,16}$/.test(profile.name) || !/^[a-f0-9]{32}$/i.test(profile.id)) throw new HttpError(404, 'Player not found.');
     name = profile.name; id = profile.id.toLowerCase(); headId = id;
   } else if (edition === 'bedrock') {

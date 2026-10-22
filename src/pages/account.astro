@@ -1,5 +1,6 @@
 ---
 import WikiLayout from '../layouts/WikiLayout.astro';
+import '../styles/editor.css';
 ---
 <WikiLayout title="Edit player pages" description="Sign in with Discord to edit your player page.">
   <header class="page-heading"><h1>Edit player pages</h1></header>
@@ -14,8 +15,33 @@ import WikiLayout from '../layouts/WikiLayout.astro';
       <p id="no-pages" hidden>No editable pages yet. Add your player below using the IGN on your Discord role.</p>
       <form id="page-editor" hidden>
         <p><a id="view-player" href="/players/">View player page</a></p>
-        <label for="page-markdown">Page text (Markdown)</label>
-        <textarea id="page-markdown" rows="18" maxlength="30000" spellcheck="true"></textarea>
+        <div class="editor-modes" role="tablist" aria-label="Editor mode">
+          <button type="button" id="mode-visual" role="tab" aria-selected="true" aria-controls="visual-panel">Visual</button>
+          <button type="button" id="mode-markdown" role="tab" aria-selected="false" aria-controls="markdown-panel" tabindex="-1">Markdown</button>
+        </div>
+        <p id="editor-notice" role="status" hidden></p>
+        <div id="visual-panel" role="tabpanel" aria-labelledby="mode-visual">
+          <div id="visual-toolbar" class="visual-toolbar" role="toolbar" aria-label="Text formatting">
+            <label class="sr-only" for="block-format">Paragraph style</label>
+            <select id="block-format"><option value="paragraph">Paragraph</option><option value="2">Heading 2</option><option value="3">Heading 3</option><option value="4">Heading 4</option></select>
+            <button type="button" data-command="bold" aria-label="Bold" aria-pressed="false"><strong>B</strong></button>
+            <button type="button" data-command="italic" aria-label="Italic" aria-pressed="false"><em>I</em></button>
+            <button type="button" data-command="strike" aria-label="Strikethrough" aria-pressed="false"><s>S</s></button>
+            <button type="button" data-command="bulletList" aria-pressed="false">Bullets</button>
+            <button type="button" data-command="orderedList" aria-pressed="false">Numbered list</button>
+            <button type="button" id="edit-link">Link</button>
+            <button type="button" data-command="blockquote" aria-pressed="false">Quote</button>
+            <button type="button" data-command="code" aria-pressed="false">Code</button>
+            <button type="button" data-command="codeBlock" aria-pressed="false">Code block</button>
+            <button type="button" data-command="undo">Undo</button><button type="button" data-command="redo">Redo</button>
+          </div>
+          <div id="visual-editor"></div>
+        </div>
+        <div id="markdown-panel" role="tabpanel" aria-labelledby="mode-markdown" hidden>
+          <label for="page-markdown">Page text (Markdown)</label>
+          <textarea id="page-markdown" rows="18" maxlength="30000" spellcheck="true"></textarea>
+        </div>
+        <div class="editor-actions"><button type="button" id="edit-images">Images</button><button type="button" id="edit-video">Video</button></div>
         <div class="editor-actions"><button type="button" id="preview-page">Preview</button><button type="submit">Save changes</button></div>
         <div id="page-preview" class="article-body editor-preview" hidden></div>
       </form>
@@ -41,6 +67,25 @@ import WikiLayout from '../layouts/WikiLayout.astro';
       </form>
     </section>
   </div>
+  <dialog id="image-dialog" aria-labelledby="image-dialog-title">
+    <h2 id="image-dialog-title">Images</h2>
+    <p>PNG, JPEG, WebP, or GIF. Up to 5 MB each; 50 MB per player. Uploads are public.</p>
+    <p id="media-usage"></p><p id="media-status" role="status" aria-live="polite"></p>
+    <label for="image-alt">Alt text</label><input id="image-alt" maxlength="300" />
+    <div class="editor-actions"><button type="button" id="update-image" hidden>Update selected image</button></div>
+    <label for="image-upload">Upload an image</label><input id="image-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+    <form id="image-url-form"><label for="image-url">Or image URL</label><input id="image-url" type="url" placeholder="https://…" required /><button type="submit">Insert URL</button></form>
+    <h3>Your images</h3><ul id="image-library" class="image-library"></ul>
+    <button type="button" data-close="image-dialog">Close</button>
+  </dialog>
+  <dialog id="link-dialog" aria-labelledby="link-dialog-title">
+    <h2 id="link-dialog-title">Link</h2>
+    <form id="link-form"><label for="link-url">URL</label><input id="link-url" type="url" required placeholder="https://…" /><div class="editor-actions"><button type="submit">Apply link</button><button type="button" id="remove-link">Remove link</button><button type="button" data-close="link-dialog">Cancel</button></div></form>
+  </dialog>
+  <dialog id="video-dialog" aria-labelledby="video-dialog-title">
+    <h2 id="video-dialog-title">Embed video</h2>
+    <form id="video-form"><label for="video-url">YouTube or Vimeo URL</label><input id="video-url" type="url" required placeholder="https://…" /><p id="video-error" role="status"></p><div class="editor-actions"><button type="submit">Insert video</button><button type="button" data-close="video-dialog">Cancel</button></div></form>
+  </dialog>
   <noscript><p>The editor needs JavaScript. Reading the wiki does not require signing in.</p></noscript>
-  <script is:inline type="module" src="/account.js"></script>
+  <script>import '../scripts/account.js';</script>
 </WikiLayout>

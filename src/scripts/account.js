@@ -1,7 +1,9 @@
+import { createPageEditor } from './page-editor.js';
 const $ = selector => document.querySelector(selector);
 const accountStatus = $('#account-status');
 let account, player, lookupResult, changed = false, showAllPlayers = false;
 const message = text => { accountStatus.textContent = text; };
+const editor = createPageEditor({ api, context: () => ({ account, player }), dirty: () => { changed = true; }, message });
 async function api(path, method = 'GET', body) {
   const response = await fetch(path, {
     method, credentials: 'same-origin',
@@ -21,7 +23,10 @@ async function run(button, action) {
   try { await action(); } catch (error) { message(error.message || 'Please try again shortly.'); }
   finally { if (button) button.disabled = false; }
 }
-function discardChanges() { return !changed || confirm('Discard your unsaved page changes?'); }
+function discardChanges() {
+  if (editor.busy()) { message('Wait for the image upload to finish.'); return false; }
+  return !changed || confirm('Discard your unsaved page changes?');
+}
 async function history() {
   const result = await api(`/api/players/${player.slug}/history/`);
   const list = $('#revision-list'); list.replaceChildren();
@@ -46,7 +51,7 @@ async function loadPlayer(slug) {
   if (!slug) { $('#page-editor').hidden = true; $('#page-history').hidden = true; $('#owner-identity').hidden = true; player = null; return; }
   const result = await api(`/api/players/${slug}/`);
   player = result; changed = false;
-  $('#page-markdown').value = player.markdown;
+  await editor.load(player.markdown);
   $('#view-player').href = player.url;
   $('#page-editor').hidden = false; $('#page-history').hidden = false; $('#page-preview').hidden = true;
   $('#owner-identity').hidden = !account.user.owner;
@@ -86,17 +91,19 @@ $('#player-select').addEventListener('change', event => run(event.target, async 
   if (!discardChanges()) { event.target.value = player?.slug || ''; return; }
   await loadPlayer(event.target.value);
 }));
-$('#page-markdown').addEventListener('input', () => { changed = true; });
-window.addEventListener('beforeunload', event => { if (changed) { event.preventDefault(); } });
+window.addEventListener('beforeunload', event => { if (changed || editor.busy()) { event.preventDefault(); } });
 $('#page-editor').addEventListener('submit', event => {
   event.preventDefault();
   run(event.submitter, async () => {
-    const result = await api(`/api/players/${player.slug}/`, 'PUT', { markdown: $('#page-markdown').value, version: player.version });
-    player.version = result.version; changed = false; message('Changes saved.'); await history();
+    if (editor.busy()) throw new Error('Wait for the image upload to finish.');
+    const markdown = editor.source();
+    if (markdown === player.markdown) { changed = false; message('No changes to save.'); return; }
+    const result = await api(`/api/players/${player.slug}/`, 'PUT', { markdown, version: player.version });
+    player.version = result.version; player.markdown = markdown; changed = false; message('Changes saved.'); await history();
   });
 });
 $('#preview-page').addEventListener('click', event => run(event.target, async () => {
-  const preview = await api('/api/preview/', 'POST', { slug: player.slug, markdown: $('#page-markdown').value });
+  const preview = await api('/api/preview/', 'POST', { slug: player.slug, markdown: editor.source() });
   // HTML comes from the server's Markdown parser with raw HTML and unsafe links disabled.
   $('#page-preview').innerHTML = preview.html; $('#page-preview').hidden = false;
 }));

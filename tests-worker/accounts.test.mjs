@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { createHandler } from '../worker/index.mjs';
 import { render } from '../worker/content.mjs';
 import { lookup } from '../worker/lookup.mjs';
+import { cleanupMedia } from '../worker/media.mjs';
 
 const OWNER = '100000000000000001', MEMBER = '100000000000000002', OTHER = '100000000000000003';
 const GUILD = '200000000000000001', APP = '300000000000000001';
@@ -12,6 +13,7 @@ function fixture(t) {
   const sqlite = new DatabaseSync(':memory:');
   sqlite.exec(readFileSync('migrations/0001_accounts.sql', 'utf8'));
   sqlite.exec(readFileSync('migrations/0002_initial_players.sql', 'utf8'));
+  sqlite.exec(readFileSync('migrations/0003_media.sql', 'utf8'));
   t.after(() => sqlite.close());
   class Statement {
     constructor(sql, values = []) { this.sql = sql; this.values = values; }
@@ -29,6 +31,12 @@ function fixture(t) {
     },
   };
   const env = { DB, SITE_ORIGIN: 'https://wiki.test', DISCORD_CLIENT_ID: APP, DISCORD_CLIENT_SECRET: 'client-secret', DISCORD_BOT_TOKEN: 'bot-token', DISCORD_GUILD_ID: GUILD, DISCORD_OWNER_ID: OWNER, SESSION_KEY: 'a-long-test-key-that-is-not-used-in-production-1234' };
+  const objects = new Map();
+  env.MEDIA = {
+    async put(key, value) { objects.set(key, new Uint8Array(value)); },
+    async get(key) { const value = objects.get(key); return value ? { body: value, httpEtag: '"test-etag"' } : null; },
+    async delete(key) { objects.delete(key); },
+  };
   const memberships = new Map([[OWNER, ['role-uaiden']], [MEMBER, ['role-uaiden', 'role-notch']], [OTHER, ['role-apokefish']]]);
   let discordFailure = false, refreshed = 0;
   const mockFetch = async (address, options = {}) => {
@@ -78,7 +86,7 @@ function fixture(t) {
       },
     };
   }
-  return { env, sqlite, request, login, memberships, failDiscord: () => { discordFailure = true; }, refreshCount: () => refreshed };
+  return { env, sqlite, request, login, memberships, objects, failDiscord: () => { discordFailure = true; }, refreshCount: () => refreshed };
 }
 
 test('Discord sign-in uses single-use state, secure opaque cookies, and encrypted provider credentials', async t => {
@@ -219,4 +227,122 @@ test('Bedrock lookup uses the canonical Xbox name, XUID, and a stored Geyser ski
   const profile = await lookup({ edition: 'bedrock', name: 'poke fish' }, fetcher);
   assert.equal(profile.name, 'Poke Fish'); assert.equal(profile.minecraft_id, `bedrock:${xuid}`);
   await assert.rejects(lookup({ edition: 'bedrock', name: 'poke fish' }, async address => new URL(address).pathname.includes('/xuid/') ? Response.json({ xuid: Number(xuid) }) : Response.json({}, { status: 503 })), /lookup is unavailable/);
+});
+
+const gif = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
+test('Java lookup falls back when Mojang blocks Cloudflare, without trusting a mismatched name or hiding not-found', async () => {
+  let fallbackCalls = 0;
+  const fetcher = async (address, options) => {
+    const url = new URL(address);
+    if (url.hostname === 'api.mojang.com') return new Response('Forbidden', { status: 403 });
+    if (url.hostname === 'playerdb.co') {
+      fallbackCalls++; assert.match(options.headers['User-Agent'], /mineandcraft.net/);
+      return Response.json({ success: true, data: { player: { username: 'uAiden', raw_id: '78eac36d1de348e98ef0bd65d90953ef' } } });
+    }
+    return new Response(readFileSync('public/images/players/0480.png'), { headers: { 'Content-Type': 'image/png' } });
+  };
+  const profile = await lookup({ edition: 'java', name: 'uaiden' }, fetcher);
+  assert.equal(profile.name, 'uAiden'); assert.equal(profile.minecraft_id, 'java:78eac36d1de348e98ef0bd65d90953ef');
+  await assert.rejects(lookup({ edition: 'java', name: 'Notch' }, fetcher), /could not be verified/);
+  assert.equal(fallbackCalls, 2);
+  await assert.rejects(lookup({ edition: 'java', name: 'missing' }, async () => new Response(null, { status: 404 })), /Player not found/);
+  await assert.rejects(lookup({ edition: 'java', name: 'missing' }, async address => new Response(null, { status: new URL(address).hostname === 'api.mojang.com' ? 403 : 400 })), /Player not found/);
+});
+async function upload(f, user, bytes = gif, slug = 'uaiden', headers = {}, filename = 'Build.gif') {
+  const body = new FormData(); body.set('file', new File([bytes], filename, { type: 'image/gif' }));
+  return f.request(`/api/players/${slug}/images/`, { method: 'POST', body, headers: { Cookie: user.cookie, Origin: f.env.SITE_ORIGIN, 'X-CSRF-Token': user.csrf, ...headers } });
+}
+
+test('GIF uploads preserve bytes, reserve quota without revisions, and serve revalidated public images', async t => {
+  const f = fixture(t), user = await f.login();
+  const response = await upload(f, user); assert.equal(response.status, 201);
+  const { image, usage } = await response.json();
+  assert.equal(image.type, 'image/gif'); assert.equal(usage.used, gif.length);
+  assert.equal(f.sqlite.prepare("SELECT count(*) n FROM revisions WHERE slug='uaiden'").get().n, 1);
+  const list = await (await user.call('/api/players/uaiden/images/')).json();
+  assert.equal(list.images.length, 1); assert.equal(list.images[0].name, 'Build.gif');
+  const publicFile = await f.request(image.url);
+  assert.equal(publicFile.status, 200); assert.equal(publicFile.headers.get('Content-Type'), 'image/gif');
+  assert.equal(publicFile.headers.get('X-Content-Type-Options'), 'nosniff');
+  assert.match(publicFile.headers.get('Cache-Control'), /must-revalidate/);
+  assert.deepEqual(Buffer.from(await publicFile.arrayBuffer()), gif);
+  assert.equal((await f.request(image.url, { headers: { 'If-None-Match': '"test-etag"' } })).status, 304);
+});
+
+test('unchanged Markdown does not create a revision and still detects an outdated version', async t => {
+  const f = fixture(t), user = await f.login();
+  const player = await (await user.call('/api/players/uaiden/')).json();
+  assert.equal((await user.call('/api/players/uaiden/', 'PUT', { markdown: player.markdown, version: player.version })).status, 200);
+  assert.equal(f.sqlite.prepare("SELECT count(*) n FROM revisions WHERE slug='uaiden'").get().n, 1);
+  assert.equal((await user.call('/api/players/uaiden/', 'PUT', { markdown: player.markdown, version: player.version + 1 })).status, 409);
+});
+
+test('media permissions use fresh roles, owner scope, and CSRF on uploads and deletes', async t => {
+  const f = fixture(t), user = await f.login(), other = await f.login(OTHER), owner = await f.login(OWNER);
+  assert.equal((await f.request('/api/players/uaiden/images/')).status, 401);
+  assert.equal((await upload(f, other)).status, 403);
+  assert.equal((await other.call('/api/players/uaiden/images/')).status, 403);
+  assert.equal((await upload(f, user, gif, 'uaiden', { 'X-CSRF-Token': 'wrong' })).status, 403);
+  assert.equal((await upload(f, user, gif, 'uaiden', { Origin: 'https://attacker.test' })).status, 403);
+  const image = (await (await upload(f, user)).json()).image;
+  assert.equal((await other.call(`/api/players/apokefish/images/${image.id}/`, 'DELETE')).status, 404);
+  assert.equal((await other.call(`/api/players/uaiden/images/${image.id}/`, 'DELETE')).status, 403);
+  f.memberships.set(MEMBER, []);
+  assert.equal((await upload(f, user)).status, 403);
+  assert.equal((await user.call('/api/players/uaiden/images/')).status, 403);
+  assert.equal((await owner.call('/api/players/uaiden/images/')).status, 200);
+  assert.equal((await owner.call(`/api/players/uaiden/images/${image.id}/`, 'DELETE')).status, 200);
+});
+
+test('images reject spoofed raster content and oversized bodies before allocating storage', async t => {
+  const f = fixture(t), user = await f.login();
+  assert.equal((await upload(f, user, Buffer.from('<svg onload="alert(1)"></svg>'))).status, 415);
+  assert.equal((await upload(f, user, Buffer.from('<html>bad</html>'))).status, 415);
+  assert.equal((await upload(f, user, Buffer.alloc(5242881))).status, 413);
+  assert.equal((await upload(f, user, gif, 'uaiden', { 'Content-Length': '99999999' })).status, 413);
+  assert.equal(f.objects.size, 0);
+  assert.equal(f.sqlite.prepare('SELECT count(*) n FROM media').get().n, 0);
+});
+
+test('concurrent reservations cannot exceed quota, failed uploads release it, and pending objects are swept', async t => {
+  const f = fixture(t), user = await f.login();
+  for (let i = 0; i < 10; i++) f.sqlite.prepare("INSERT INTO media VALUES(?, 'uaiden', 'existing.png','image/png',?, 'ready',?, 'test')").run(`seed-${i}`, i === 9 ? 5242880 - gif.length : 5242880, Date.now());
+  const results = await Promise.all([upload(f, user), upload(f, user)]);
+  assert.deepEqual(results.map(response => response.status).sort(), [201, 413]);
+  assert.equal(f.sqlite.prepare("SELECT bytes FROM media_usage WHERE slug='uaiden'").get().bytes, 52428800);
+  const other = await f.login(OTHER);
+  const originalPut = f.env.MEDIA.put;
+  f.env.MEDIA.put = async () => { throw new Error('R2 unavailable'); };
+  assert.equal((await upload(f, other, gif, 'apokefish')).status, 503);
+  assert.equal(f.sqlite.prepare("SELECT bytes FROM media_usage WHERE slug='apokefish'").get().bytes, 0);
+  f.env.MEDIA.put = originalPut;
+  f.sqlite.prepare("INSERT INTO media VALUES('abandoned','apokefish','pending.gif','image/gif',40,'pending',?, 'test')").run(Date.now() - 7200000);
+  f.objects.set('apokefish/abandoned', gif);
+  await cleanupMedia(f.env);
+  assert.equal(f.objects.has('apokefish/abandoned'), false);
+  assert.equal(f.sqlite.prepare("SELECT bytes FROM media_usage WHERE slug='apokefish'").get().bytes, 0);
+});
+
+test('deleting checks every current page atomically, permits historical-only deletion, and prevents new references', async t => {
+  const f = fixture(t), user = await f.login(), owner = await f.login(OWNER);
+  const { image } = await (await upload(f, user)).json();
+  const content = `![Build](${image.url.replaceAll('/', '\\/')})`;
+  assert.equal((await owner.call('/api/players/apokefish/', 'PUT', { markdown: content, version: 1 })).status, 200);
+  assert.equal((await user.call(`/api/players/uaiden/images/${image.id}/`, 'DELETE')).status, 409);
+  assert.equal((await owner.call('/api/players/apokefish/', 'PUT', { markdown: 'Removed', version: 2 })).status, 200);
+  assert.equal((await user.call(`/api/players/uaiden/images/${image.id}/`, 'DELETE')).status, 200);
+  assert.equal((await f.request(image.url, { headers: { 'If-None-Match': '"test-etag"' } })).status, 404);
+  assert.equal((await user.call('/api/players/uaiden/', 'PUT', { markdown: content, version: 1 })).status, 409);
+  assert.equal(f.objects.size, 0);
+  const next = (await (await upload(f, user)).json()).image;
+  f.sqlite.prepare("UPDATE media SET state='deleting' WHERE id=?").run(next.id);
+  assert.equal((await user.call('/api/players/uaiden/', 'PUT', { markdown: `![race](${next.url})`, version: 1 })).status, 409);
+});
+
+test('video embeds accept only provider URLs and raw iframes remain escaped', () => {
+  const result = render('[Video](https://youtu.be/dQw4w9WgXcQ)\n\n[Video](https://vimeo.com/76979871)\n\n[Video](https://youtube.com.evil.test/watch?v=dQw4w9WgXcQ)\n\n<iframe src="https://evil.test"></iframe>');
+  assert.equal((result.html.match(/<iframe /g) || []).length, 2);
+  assert.match(result.html, /src="https:\/\/www.youtube-nocookie.com\/embed\/dQw4w9WgXcQ"/);
+  assert.match(result.html, /src="https:\/\/player.vimeo.com\/video\/76979871"/);
+  assert.doesNotMatch(result.html, /<iframe src="https:\/\/evil/);
 });

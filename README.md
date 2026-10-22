@@ -49,6 +49,22 @@ After building and testing, run `npm run setup:discord` to verify the bot/applic
 
 Every protected API request fetches current server membership and roles. A page's IGN must match a held role's name, ignoring capitalization; `@everyone` is excluded. No arbitrary claims by typed name or browser-supplied role lists are trusted. The configured owner can edit all player pages but must still be a server member. Use the IGN as the role name, without decorative text or prefixes. Holders of multiple IGN roles can edit each matching page. Other articles remain owner-edited through Git.
 
+Player pages open in the Visual editor, with Markdown available as an alternate mode. Both edit the same Markdown draft; changing modes never publishes it. Unsupported Markdown stays in source mode. The editor is bundled locally and loaded only after selecting an editable page. Preview, conflicts, and revision restores use the same authenticated API as before.
+
+### Images and video
+
+Enable R2 on the Cloudflare account, then create the Standard bucket once:
+
+```powershell
+npx wrangler r2 bucket create mineandcraft-wiki-media
+```
+
+The `MEDIA` binding uses this private bucket. Files are served publicly through `/media/:id`, with validated raster MIME types and revalidation on every use. Uploads accept PNG, JPEG, WebP, and GIF, up to 5 MiB per file and 50 MiB per player page. GIF bytes are preserved, including animation. Limits include pending uploads; atomic D1 reservations prevent simultaneous requests from exceeding the quota. Uploads do not create page revisions. The scheduled cleanup retries incomplete uploads/deletions hourly.
+
+Players can upload, paste/drop files, reuse their own image library, insert HTTPS image URLs, and edit alt text. Removing an image from a draft does not delete its file. Deleting files is blocked while any current page references them; deleting an unused file can break images in older revisions. Image permissions are checked against current Discord IGN roles on every request; player-head replacement remains owner-only.
+
+The Video button embeds YouTube and Vimeo URLs. In Markdown, put `[Video](https://www.youtube.com/watch?v=VIDEO_ID)` in its own paragraph. Only validated provider URLs can create iframes; arbitrary iframe HTML stays escaped. Video files are not uploaded to R2.
+
 Writes also require the matching site origin, session CSRF token, and current page version. Discord outages deny editing. OAuth states are single-use and expire after ten minutes; sessions use HttpOnly, Secure, SameSite cookies and expire after seven days. Provider tokens are encrypted in D1. Saved changes retain revisions; restoring makes a new revision rather than erasing history.
 
 ## Content provenance
@@ -68,7 +84,7 @@ The importer preserves existing biographies and regenerates the recipe data and 
 
 To regenerate just recipe data and the reference, run `python scripts/import-recipes.py PATH_TO_ZIP`. Item renders are downloaded once from the pinned source commit listed in `public/images/items/CREDITS.txt` and served locally; builds and page views never depend on the image provider. Existing cached PNGs are reused.
 
-Java identities use Mojang's profile lookup. Bedrock identities use Geyser's Xbox gamertag/XUID and skin endpoints; lookups can be unavailable when the player is not cached. Automatically added heads are fetched from MCHeads and stored as PNG snapshots in D1. Existing supplied heads remain local files.
+Java identities use Mojang's profile lookup, with [PlayerDB](https://playerdb.co/) as a fallback when Mojang blocks Cloudflare or is unavailable. Returned names and UUIDs are validated before use. Bedrock identities use Geyser's Xbox gamertag/XUID and skin endpoints; lookups can be unavailable when the player is not cached. Automatically added heads are fetched from MCHeads and stored as PNG snapshots in D1. Existing supplied heads remain local files.
 
 ## Browser checks
 

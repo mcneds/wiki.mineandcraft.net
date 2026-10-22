@@ -1,7 +1,8 @@
 import catalog from './catalog.generated.json' with { type: 'json' };
 import { HttpError, configured, session, authorize, mayEdit, checkOrigin, checkCsrf, login, callback, cookie, limit } from './auth.mjs';
 import { lookup, png } from './lookup.mjs';
-import { escape, render, article, card, tile, playerUrl, description } from './content.mjs';
+import { escape, render, article, card, tile, playerUrl, description, mediaReferences } from './content.mjs';
+import { images, publicImage, cleanupMedia } from './media.mjs';
 
 const json = (data, status = 200) => Response.json(data, { status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
 const allPlayers = async env => (await env.DB.prepare('SELECT slug,name,image,markdown,version,updated,edition,minecraft_id FROM players ORDER BY name COLLATE NOCASE').all()).results;
@@ -33,9 +34,11 @@ const validateMarkdown = value => {
 const roleName = name => name.toLowerCase();
 async function update(env, user, player, changes, expected) {
   if (!Number.isSafeInteger(expected) || expected < 1) throw new HttpError(400, 'Reload the page before saving.');
-  const row = await env.DB.prepare('UPDATE players SET markdown=?,name=?,edition=?,minecraft_id=?,image=?,head_png=?,version=version+1,updated=?,updated_by=? WHERE slug=? AND version=? RETURNING slug,version')
-    .bind(changes.markdown ?? player.markdown, changes.name ?? player.name, changes.edition ?? player.edition, changes.minecraft_id ?? player.minecraft_id,
-      changes.image ?? player.image, changes.head_png ?? player.head_png, new Date().toISOString(), user.user_id, player.slug, expected).first();
+  let row;
+  try { row = await env.DB.prepare('UPDATE players SET markdown=?,media_refs=?,name=?,edition=?,minecraft_id=?,image=?,head_png=?,version=version+1,updated=?,updated_by=? WHERE slug=? AND version=? RETURNING slug,version')
+    .bind(changes.markdown ?? player.markdown, JSON.stringify(mediaReferences(changes.markdown ?? player.markdown)), changes.name ?? player.name, changes.edition ?? player.edition, changes.minecraft_id ?? player.minecraft_id,
+      changes.image ?? player.image, changes.head_png ?? player.head_png, new Date().toISOString(), user.user_id, player.slug, expected).first(); }
+  catch (error) { if (String(error).includes('media_unavailable')) throw new HttpError(409, 'An image in this page has been deleted or is still uploading. Remove it before saving.'); throw error; }
   if (!row) throw new HttpError(409, 'This page changed while you were editing. Copy your text, reload, and merge the changes.');
   return row;
 }
@@ -101,6 +104,13 @@ async function api(request, env, fetcher) {
     if (!player || !mayEdit(user, player)) throw new HttpError(403, 'You need a Discord role matching this page’s IGN.');
     return json({ html: render(validateMarkdown(body.markdown)).html });
   }
+  const media = path.match(/^\/api\/players\/([a-z0-9_-]{1,50})\/images\/(?:([a-f0-9-]{36})\/)?$/);
+  if (media) {
+    const player = await getPlayer(env, media[1]);
+    if (!player) throw new HttpError(404, 'Player not found.');
+    if (!mayEdit(user, player)) throw new HttpError(403, 'You need a Discord role matching this page’s IGN.');
+    return images(request, env, user, player, media[2]);
+  }
   const match = path.match(/^\/api\/players\/([a-z0-9_-]{1,50})\/(history\/|restore\/|identity\/|head\/)?$/);
   if (!match) throw new HttpError(404, 'Page not found.');
   const player = await getPlayer(env, match[1]);
@@ -110,7 +120,9 @@ async function api(request, env, fetcher) {
   if (!action && method === 'GET') return json({ ...publicPlayer(player), markdown: player.markdown });
   if (!action && method === 'PUT') {
     const body = await input(request);
-    return json(await update(env, user, player, { markdown: validateMarkdown(body.markdown) }, body.version));
+    const markdown = validateMarkdown(body.markdown);
+    if (body.version === player.version && markdown === player.markdown.replaceAll('\r\n', '\n')) return json({ slug: player.slug, version: player.version });
+    return json(await update(env, user, player, { markdown }, body.version));
   }
   if (action === 'history/' && method === 'GET') {
     const rows = await env.DB.prepare('SELECT id,version,author_id,created FROM revisions WHERE slug=? ORDER BY version DESC LIMIT 100').bind(player.slug).all();
@@ -162,6 +174,8 @@ async function html(request, env, template, main, title, player) {
 
 async function publicPage(request, env) {
   const path = new URL(request.url).pathname;
+  const media = path.match(/^\/media\/([a-f0-9-]{36})$/);
+  if (media) return publicImage(request, env, media[1]);
   const source = path.match(/^\/source\/players\/([a-z0-9_-]+)\.txt$/);
   if (source) {
     const player = await getPlayer(env, source[1]);
@@ -231,4 +245,4 @@ export function createHandler(fetcher = (...args) => fetch(...args)) {
     }
   };
 }
-export default { fetch: createHandler() };
+export default { fetch: createHandler(), scheduled: (_event, env, context) => context.waitUntil(cleanupMedia(env)) };

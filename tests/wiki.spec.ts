@@ -74,6 +74,7 @@ test('members can preview and save their page using the editor', async ({ page }
   await page.goto('/account/?player=uaiden');
   await expect(page.locator('#page-editor')).toBeVisible();
   await expect(page.locator('#owner-identity')).toBeHidden();
+  await page.getByRole('tab', { name: 'Markdown', exact: true }).click();
   await page.getByLabel('Page text (Markdown)').fill('## Builds\n\nUpdated base');
   await page.getByRole('button', { name: 'Preview', exact: true }).click();
   await expect(page.locator('#page-preview')).toContainText('Updated base');

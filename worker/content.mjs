@@ -1,4 +1,5 @@
 import MarkdownIt from 'markdown-it';
+import { video } from '../shared/video.mjs';
 
 export const escape = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 const markdown = new MarkdownIt({ html: false, linkify: false });
@@ -6,8 +7,32 @@ const markdown = new MarkdownIt({ html: false, linkify: false });
 const validateLink = markdown.validateLink.bind(markdown);
 markdown.validateLink = url => validateLink(url) && !/^data:/i.test(url);
 
+export function mediaReferences(source) {
+  const ids = new Set();
+  // Use parsed destinations so escaped slashes, reference links, and entities
+  // cannot evade the database's reference/deletion interlock.
+  for (const token of markdown.parse(source, {})) for (const child of token.children || []) {
+    const destination = child.type === 'image' ? child.attrGet('src') : child.type === 'link_open' ? child.attrGet('href') : null;
+    if (!destination) continue;
+    try {
+      const match = new URL(destination, 'https://wiki.mineandcraft.net').pathname.match(/^\/media\/([a-f0-9-]{36})$/);
+      if (match) ids.add(match[1]);
+    } catch { /* Not a URL. */ }
+  }
+  return [...ids];
+}
+
 export function render(source) {
   const tokens = markdown.parse(source, {});
+  for (let i = 0; i < tokens.length - 2; i++) {
+    const children = tokens[i + 1].children;
+    if (tokens[i].type !== 'paragraph_open' || tokens[i + 2].type !== 'paragraph_close' || children?.length !== 3 || children[0].type !== 'link_open' || children[1].type !== 'text' || children[1].content !== 'Video' || children[2].type !== 'link_close') continue;
+    const clip = video(children[0].attrGet('href'));
+    if (!clip) continue;
+    tokens[i].type = 'html_block';
+    tokens[i].content = `<div class="video-embed"><iframe src="${escape(clip.embed)}" title="${clip.provider} video" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>\n`;
+    tokens.splice(i + 1, 2);
+  }
   const headings = [];
   const used = new Set();
   for (let i = 0; i < tokens.length; i++) {
