@@ -26,7 +26,7 @@ This is the Vanilla Tweaks datapack mechanic, not a recipe or interface from a s
 
 ## Remove a loadstone
 
-Break the loadstone to stop it from keeping its chunk loaded. Item refunds and other removal details have not been verified, so this guide does not promise a nether-star refund.
+Break the loadstone to stop it from keeping its chunk loaded. **The Nether Star is not returned when the loadstone is broken.**
 
 ## What to expect
 
