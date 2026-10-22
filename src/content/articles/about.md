@@ -8,7 +8,7 @@ updated: "2026-10-22"
 
 ## Reading and contributing
 
-The wiki is public to read. Its pages are maintained by the server owner. If you spot an error or have a story, build, or screenshot to add, pass it to the owner through your existing server contact.
+The wiki is public to read. Its pages are maintained by the server owner. If you spot an error or have a story, build, or screenshot to add, send it to the owner through Discord.
 
 ## How information is checked
 
