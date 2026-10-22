@@ -123,11 +123,3 @@ Smelt colored concrete powder in a furnace to get the **same color of stained gl
 ```recipe
 powder_to_glass:white_stained_glass
 ```
-
-## What is not in this bundle?
-
-The supplied selection screenshot showed **Craftable Horse Armor**, but the actual ZIP has no horse armor recipe. It is therefore not listed as an available recipe here. If it is installed separately, the owner can add it after checking that pack.
-
-## Sources
-
-Recipe definitions and `Selected Packs.txt` inside the owner-supplied `VanillaTweaks_c223234_MC26.3.zip`. [Vanilla Tweaks](https://vanillatweaks.net/) is the original pack author. The [recipe reference](/wiki/recipe-reference/) records the archive paths so these instructions can be checked against the installed files.
