@@ -5,14 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev --host 127.0.0.1",
-    "build": "astro sync --force && astro check && astro build && pagefind --site dist && node scripts/check-links.mjs",
+    "build": "astro sync --force && astro check && astro build && pagefind --site dist && node scripts/check-links.mjs && node scripts/build-player-catalog.mjs",
     "preview": "astro preview --host 127.0.0.1",
     "deploy": "npm run build && wrangler deploy",
-    "test": "playwright test"
+    "test": "playwright test",
+    "dev:worker": "wrangler d1 migrations apply mineandcraft-wiki --local && wrangler dev --ip 127.0.0.1 --port 8787 --var SITE_ORIGIN:http://127.0.0.1:8787",
+    "preview:worker": "wrangler d1 migrations apply mineandcraft-wiki --local && wrangler dev --ip 127.0.0.1 --port 4321 --var SITE_ORIGIN:http://127.0.0.1:4321",
+    "test:worker": "node --test tests-worker/*.test.mjs",
+    "setup:discord": "node scripts/configure-discord.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.4",
-    "astro": "^7.4.2"
+    "astro": "^7.4.2",
+    "markdown-it": "^15.0.3"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",

@@ -1,0 +1,45 @@
+---
+import WikiLayout from '../layouts/WikiLayout.astro';
+---
+<WikiLayout title="Edit player pages" description="Sign in with Discord to edit your player page.">
+  <header class="page-heading"><h1>Edit player pages</h1></header>
+  <p id="account-status" role="status" aria-live="polite">Loading…</p>
+  <p><a id="discord-login" href="/auth/login/" hidden>Sign in with Discord</a><button id="discord-logout" type="button" hidden>Sign out</button></p>
+  <div id="account-tools" hidden>
+    <section class="editor-section">
+      <h2>Your pages</h2>
+      <label for="player-select">Player</label>
+      <select id="player-select"><option value="">Select a player</option></select>
+      <p id="no-pages" hidden>No editable pages yet. Add your player below using the IGN on your Discord role.</p>
+      <form id="page-editor" hidden>
+        <p><a id="view-player" href="/players/">View player page</a></p>
+        <label for="page-markdown">Page text (Markdown)</label>
+        <textarea id="page-markdown" rows="18" maxlength="30000" spellcheck="true"></textarea>
+        <div class="editor-actions"><button type="button" id="preview-page">Preview</button><button type="submit">Save changes</button></div>
+        <div id="page-preview" class="article-body editor-preview" hidden></div>
+      </form>
+    </section>
+    <section id="owner-identity" class="editor-section" hidden>
+      <h2>Player name &amp; head</h2>
+      <form id="identity-form">
+        <label for="identity-edition">Edition</label><select id="identity-edition"><option value="java">Java</option><option value="bedrock">Bedrock</option></select>
+        <label for="identity-name">Minecraft username / Xbox gamertag</label><input id="identity-name" required maxlength="16" />
+        <button type="submit">Fetch name &amp; head</button>
+      </form>
+      <label for="head-upload">Or upload a head image (PNG, up to 256 KB)</label><input id="head-upload" type="file" accept="image/png" />
+    </section>
+    <section id="page-history" class="editor-section" hidden><h2>Revision history</h2><ul id="revision-list"></ul></section>
+    <section class="editor-section">
+      <h2>Add a player</h2>
+      <p id="role-help">Your Discord role must match the player’s IGN. Capitalization does not matter.</p>
+      <form id="add-player">
+        <label for="new-edition">Edition</label><select id="new-edition"><option value="java">Java</option><option value="bedrock">Bedrock</option></select>
+        <label for="new-name">Minecraft username / Xbox gamertag</label><input id="new-name" required maxlength="16" autocomplete="off" />
+        <button type="button" id="lookup-player">Look up player</button>
+        <div id="new-player-preview" hidden><img id="new-player-head" width="110" height="110" alt="Player head preview" /><strong id="new-player-name"></strong><button type="submit">Create player page</button></div>
+      </form>
+    </section>
+  </div>
+  <noscript><p>The editor needs JavaScript. Reading the wiki does not require signing in.</p></noscript>
+  <script is:inline type="module" src="/account.js"></script>
+</WikiLayout>

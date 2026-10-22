@@ -1,0 +1,8 @@
+# Copy to .dev.vars for local setup. Never commit .dev.vars or paste tokens in chat.
+DISCORD_CLIENT_ID=""
+DISCORD_CLIENT_SECRET=""
+DISCORD_BOT_TOKEN=""
+DISCORD_GUILD_ID=""
+DISCORD_OWNER_ID=""
+# Generated automatically in the local .dev.vars; keep it stable after launch.
+SESSION_KEY=""

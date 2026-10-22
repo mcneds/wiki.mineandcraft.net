@@ -41,6 +41,47 @@ test('theme preference persists', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 });
 
+test('the editor requires sign-in and handles an unavailable setup', async ({ page }) => {
+  await page.route('**/api/me/', route => route.fulfill({ json: { configured: true, user: null } }));
+  await page.goto('/account/');
+  await expect(page.getByRole('link', { name: 'Sign in with Discord', exact: true })).toHaveAttribute('href', '/auth/login/');
+  await expect(page.locator('#account-tools')).toBeHidden();
+  await page.unroute('**/api/me/');
+  await page.route('**/api/me/', route => route.fulfill({ json: { configured: false, user: null } }));
+  await page.reload();
+  await expect(page.getByRole('status')).toHaveText('Editing is not available yet.');
+  await expect(page.locator('#discord-login')).toBeHidden();
+});
+
+test('members can preview and save their page using the editor', async ({ page }) => {
+  let version = 1;
+  let text = '## Builds\n\nMy base';
+  await page.route('**/api/**', async route => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    if (path === '/api/me/') return route.fulfill({ json: { configured: true, user: { name: 'uaiden', owner: false, csrf: 'test-csrf' }, players: [{ slug: 'uaiden', name: 'uaiden' }], roles: ['uaiden'] } });
+    if (path.endsWith('/history/')) return route.fulfill({ json: { revisions: [{ id: version, version, created: '2026-10-22T12:00:00Z' }] } });
+    if (path === '/api/preview/') return route.fulfill({ json: { html: '<h2>Builds</h2><p>Updated base</p>' } });
+    if (path === '/api/players/uaiden/' && request.method() === 'PUT') {
+      expect(request.headers()['x-csrf-token']).toBe('test-csrf');
+      const body = request.postDataJSON(); expect(body.version).toBe(version); text = body.markdown; version++;
+      return route.fulfill({ json: { slug: 'uaiden', version } });
+    }
+    if (path === '/api/players/uaiden/') return route.fulfill({ json: { slug: 'uaiden', name: 'uaiden', markdown: text, version, edition: 'java', url: '/wiki/players/uaiden/' } });
+    return route.fulfill({ status: 404, json: { error: 'Not found' } });
+  });
+  await page.goto('/account/?player=uaiden');
+  await expect(page.locator('#page-editor')).toBeVisible();
+  await expect(page.locator('#owner-identity')).toBeHidden();
+  await page.getByLabel('Page text (Markdown)').fill('## Builds\n\nUpdated base');
+  await page.getByRole('button', { name: 'Preview', exact: true }).click();
+  await expect(page.locator('#page-preview')).toContainText('Updated base');
+  await page.getByRole('button', { name: 'Save changes', exact: true }).click();
+  await expect(page.getByRole('status')).toHaveText('Changes saved.');
+  expect(version).toBe(2);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+});
+
 test('inventory references expand on demand and follow contents links', async ({ page }) => {
   await page.goto('/wiki/mods-and-datapacks/');
   await expect(page.getByRole('heading', { name: 'Player features', exact: true })).toBeVisible();

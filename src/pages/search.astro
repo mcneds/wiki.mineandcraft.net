@@ -22,13 +22,20 @@ import WikiLayout from '../layouts/WikiLayout.astro';
         searchModule ??= import('/pagefind/pagefind.js');
         const pagefind = await searchModule;
         const result = await pagefind.search(query);
-        const pages = await Promise.all(result.results.slice(0, 30).map(r => r.data()));
+        const [indexed, live] = await Promise.all([
+          Promise.all(result.results.slice(0, 30).map(r => r.data())),
+          fetch(`/api/players/?q=${encodeURIComponent(query)}`).then(r => r.ok ? r.json() : null).catch(() => null),
+        ]);
+        const pages = live ? [
+          ...indexed.filter(page => !new URL(page.url, location.href).pathname.startsWith('/wiki/players/')),
+          ...live.players.map(player => ({ url: player.url, meta: { title: player.name }, excerpt: player.excerpt })),
+        ] : indexed;
         if (current !== generation) return;
-        status.textContent = result.results.length ? `${result.results.length} ${result.results.length === 1 ? 'result' : 'results'} for “${query}”${result.results.length > 30 ? ' (showing the first 30)' : ''}.` : `No results for “${query}”. Try another word or browse All pages.`;
-        for (const page of pages) {
+        status.textContent = pages.length ? `${pages.length} ${pages.length === 1 ? 'result' : 'results'} for “${query}”${pages.length > 30 ? ' (showing the first 30)' : ''}.` : `No results for “${query}”. Try another word or browse All pages.`;
+        for (const page of pages.slice(0, 30)) {
           const li = document.createElement('li');
           const a = document.createElement('a'); a.href = page.url; a.textContent = page.meta.title || page.url;
-          const p = document.createElement('p'); p.textContent = new DOMParser().parseFromString(page.excerpt, 'text/html').body.textContent;
+          const p = document.createElement('p'); p.textContent = page.url.startsWith('/wiki/players/') && live ? page.excerpt : new DOMParser().parseFromString(page.excerpt, 'text/html').body.textContent;
           li.append(a,p); list.append(li);
         }
       } catch { if (current === generation) status.textContent = 'Search is unavailable right now. Use All pages to browse, or try again shortly.'; }

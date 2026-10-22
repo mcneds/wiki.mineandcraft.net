@@ -1,6 +1,6 @@
 # mineandcraft.net
 
-Public, owner-edited Minecraft server wiki. Astro builds ordinary Markdown articles into a static site; Pagefind provides local site search. Hosting uses Cloudflare Workers Static Assets and does not use the Minecraft VPS.
+Public Minecraft server wiki. Astro builds guide articles; a Cloudflare Worker and D1 database provide live player pages, Discord sign-in, role checks, and revision history. Pagefind searches guides, with live player results merged into search. Nothing runs on the Minecraft VPS.
 
 ## Local development
 
@@ -22,19 +22,33 @@ The build refreshes Astro's content cache, checks Astro/TypeScript, renders page
 
 ## Edit the wiki
 
-Articles live in `src/content/articles`. Edit them locally or through your own GitHub account, then rebuild and publish. Public visitors have no editing endpoint. The repository owner's account controls changes; do not grant repository write access to anyone you do not want editing the wiki.
+Guide articles live in `src/content/articles`. Edit them locally or through your GitHub account, then rebuild and publish. Player pages are stored in D1 after the initial import; edit them at `/account/`. Building or deploying does not overwrite saved player edits. The original player Markdown files are the initial seed and static preview only.
 
 Each article starts with title, description, category, and an ISO `updated` date. Categories are `Server`, `Guides`, `Crafting`, `Players`, and `Reference`. Set `draft: true` to exclude unfinished pages from routes, indexes, source views, and search.
 
-- Edit a player biography in `src/content/articles/players/IGN.md`. Preserve the exact IGN and image filename. Put additional player heads under `public/images/players`.
-- Copy `templates/player.md` for a new player. The Players directory and home-page roster update automatically.
+- Add a player through `/account/`: choose Java or Bedrock, look up the name, then create the page. The roster, directory, category, source view, All pages, and search update immediately. A member needs a held Discord role whose name matches the verified IGN, ignoring capitalization. The owner can add and edit any player.
+- Existing uploaded player heads are preserved. The owner can fetch canonical names and new heads, or upload a PNG replacement. Player URLs remain stable when capitalization or a verified account name changes.
 - Upload images into `public/images` and link them as `/images/...`. Use descriptive alt text and add captions/credits.
 - Use links such as `[Homes](/wiki/travel/)`. The build fails on broken internal links.
 - Change connection information in `src/content/articles/getting-started.md`.
 
 Recipe diagrams use a fenced `recipe` block with a recipe ID on the next line, for example `minecraft:oak_stairs`. See `crafting-tweaks.md` for examples. The build renders these blocks as crafting grids or furnace/process diagrams; unknown recipe IDs fail the build. IDs and exact ingredient/output data live in `src/data/recipes.json`.
 
-No CMS, database, or web-editing credentials are required. Page source is public read-only Markdown; it contains article text, never environment variables or server configurations.
+Guide source is public read-only Markdown. Player source is served from D1. Credentials and Discord sessions are never included in public source. Export player content with `npx wrangler d1 export mineandcraft-wiki --remote --output=player-backup.sql` before making manual database changes; keep backups private because they also contain sessions.
+
+## Discord editing setup
+
+Create a Discord application named **mineandcraft.net Wiki**, with a bot named **MineAndCraft Wiki**. Add the bot to the server with the `bot` scope, no administrator permissions, and no privileged gateway intents. OAuth2 redirect URL: `https://wiki.mineandcraft.net/auth/callback/`. Login requests only `identify` and `guilds.members.read`; the bot token is used to read server role names.
+
+Copy `.dev.vars.example` to `.dev.vars` and fill in the application ID, client secret, bot token, server ID, owner user ID, and a random SESSION_KEY of at least 32 characters. `.dev.vars` is ignored by Git. Keep SESSION_KEY stable; changing it invalidates encrypted session credentials. Never paste tokens into chat, Markdown, or Wrangler's public vars.
+
+For local editing, run `npm run build` then `npm run dev:worker` and open `http://127.0.0.1:8787`. Add `http://127.0.0.1:8787/auth/callback/` as a second Discord OAuth redirect if testing real local login.
+
+After building and testing, run `npm run setup:discord` to verify the bot/application and role access. Run `npm run setup:discord -- --publish` to install all six values as Cloudflare secrets. This reads the ignored file and sends secrets through stdin; it does not print them. Authentication stays disabled until all fields are present.
+
+Every protected API request fetches current server membership and roles. A page's IGN must match a held role's name, ignoring capitalization; `@everyone` is excluded. No arbitrary claims by typed name or browser-supplied role lists are trusted. The configured owner can edit all player pages but must still be a server member. Use the IGN as the role name, without decorative text or prefixes. Holders of multiple IGN roles can edit each matching page. Other articles remain owner-edited through Git.
+
+Writes also require the matching site origin, session CSRF token, and current page version. Discord outages deny editing. OAuth states are single-use and expire after ten minutes; sessions use HttpOnly, Secure, SameSite cookies and expire after seven days. Provider tokens are encrypted in D1. Saved changes retain revisions; restoring makes a new revision rather than erasing history.
 
 ## Content provenance
 
@@ -53,16 +67,17 @@ The importer preserves existing biographies and regenerates the recipe data and 
 
 To regenerate just recipe data and the reference, run `python scripts/import-recipes.py PATH_TO_ZIP`. Item renders are downloaded once from the pinned source commit listed in `public/images/items/CREDITS.txt` and served locally; builds and page views never depend on the image provider. Existing cached PNGs are reused.
 
-Bedrock port, current supported client versions, mod activation, server-specific limits, and historical player details remain unconfirmed. The articles mark these limits rather than inventing information.
+Java identities use Mojang's profile lookup. Bedrock identities use Geyser's Xbox gamertag/XUID and skin endpoints; lookups can be unavailable when the player is not cached. Automatically added heads are fetched from MCHeads and stored as PNG snapshots in D1. Existing supplied heads remain local files.
 
 ## Browser checks
 
 ```powershell
 npm run build
+npm run test:worker
 npm test
 ```
 
-Tests use installed Microsoft Edge on Windows and Playwright Chromium in CI. For another local browser, set `PLAYWRIGHT_CHANNEL=chrome`; or set `CI=true` after `npx playwright install chromium` to use the downloaded Chromium. Tests cover desktop/mobile navigation, player pages, search, appearance persistence, recipe ingredients/quantities/images, and missing-page behavior. Screenshots go to ignored `test-results/`.
+API tests use real SQLite with mocked Discord/profile providers to cover OAuth state replay, sessions, role matching/removal, cross-page denial, CSRF, conflicts, revision restores, lookup, and creation. Browser tests use local Wrangler/D1, installed Microsoft Edge on Windows, and Playwright Chromium in CI. For another local browser, set `PLAYWRIGHT_CHANNEL=chrome`; or set `CI=true` after `npx playwright install chromium`. Tests cover desktop/mobile navigation, player pages, search, the editor, appearance, recipes, and missing pages. Screenshots go to ignored `test-results/`.
 
 ## Publish to Cloudflare
 
@@ -71,6 +86,7 @@ First build and test locally. Log in through Cloudflare's browser flow, then con
 ```powershell
 npx wrangler login
 npx wrangler whoami
+npx wrangler d1 migrations apply mineandcraft-wiki --remote
 npm run deploy
 ```
 
@@ -78,8 +94,8 @@ The Worker is named `mineandcraft-wiki`. Wrangler config declares `wiki.mineandc
 
 Source repository: https://github.com/mcneds/wiki.mineandcraft.net
 
-To enable later deployments from GitHub using Cloudflare Workers Builds, connect that repository, select `main`, use `npm run build` as the build command and `npx wrangler deploy` as the deploy command. No account IDs or secrets belong in this repository. Domain registration alone does not connect the repository or authorize deployment.
+To enable later deployments from GitHub using Cloudflare Workers Builds, connect that repository, select `main`, use `npm run build` as the build command and `npx wrangler d1 migrations apply mineandcraft-wiki --remote && npx wrangler deploy` as the deploy command. Secrets belong in Cloudflare, never this repository.
 
 ## Credits
 
-Original wiki layout inspired by traditional Minecraft Wiki/Wikipedia navigation. No MediaWiki runtime is used. Player head images were generated with [MC Skins Avatar Maker](https://mcskins.top/avatar-maker) and supplied by the server owner. Third-party names and pack content belong to their respective authors. The existing repository license is preserved.
+Original wiki layout inspired by traditional Minecraft Wiki/Wikipedia navigation. No MediaWiki runtime is used. Original player head images were generated with [MC Skins Avatar Maker](https://mcskins.top/avatar-maker) and supplied by the server owner. Automatic heads use [MCHeads](https://mc-heads.net/). Third-party names and pack content belong to their respective authors. The existing repository license is preserved.
