@@ -20,7 +20,7 @@ Once a survival tree is mined, its leaves decay much faster. There is no player 
 
 ## Cauldron concrete
 
-Fill a cauldron with water, then **drop concrete powder into it** to harden the powder into concrete. Drop the item; simply holding the powder and clicking is not the documented action.
+Fill a cauldron with water, then **drop concrete powder into it** to harden the powder into concrete. Simply holding the powder and clicking is not enough.
 
 ```recipe
 conversion:cauldron-concrete
