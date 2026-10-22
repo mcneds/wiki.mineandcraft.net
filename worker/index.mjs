@@ -53,7 +53,10 @@ async function api(request, env, fetcher) {
       throw error;
     }
     const players = await allPlayers(env);
-    return json({ configured: true, user: { name: user.display_name, owner: user.owner, csrf: user.csrf }, players: players.filter(player => mayEdit(user, player)).map(publicPlayer), roles: user.roles });
+    const showAll = new URL(request.url).searchParams.get('scope') === 'all';
+    if (showAll && !user.owner) throw new HttpError(403, 'Only the owner can manage all player pages.');
+    const visible = showAll ? players : players.filter(player => user.roles.some(role => role.toLowerCase() === player.name.toLowerCase()));
+    return json({ configured: true, user: { name: user.display_name, owner: user.owner, csrf: user.csrf }, players: visible.map(publicPlayer), roles: user.roles });
   }
   if (path === '/api/players/' && method === 'GET') {
     const query = (new URL(request.url).searchParams.get('q') || '').trim().toLowerCase().slice(0, 100);

@@ -28,6 +28,7 @@ Each article starts with title, description, category, and an ISO `updated` date
 
 - Add a player through `/account/`: choose Java or Bedrock, look up the name, then create the page. The roster, directory, category, source view, All pages, and search update immediately. A member needs a held Discord role whose name matches the verified IGN, ignoring capitalization. The owner can add and edit any player.
 - Existing uploaded player heads are preserved. The owner can fetch canonical names and new heads, or upload a PNG replacement. Player URLs remain stable when capitalization or a verified account name changes.
+- The editor defaults to pages matching your IGN roles, including for the owner. The owner can explicitly enable **Show all players (owner)** to manage other pages; ordinary members cannot enable this mode.
 - Upload images into `public/images` and link them as `/images/...`. Use descriptive alt text and add captions/credits.
 - Use links such as `[Homes](/wiki/travel/)`. The build fails on broken internal links.
 - Change connection information in `src/content/articles/getting-started.md`.

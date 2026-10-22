@@ -17,6 +17,7 @@ test('home, player roster, and mobile navigation work', async ({ page }, testInf
     await page.locator('#site-sidebar').getByRole('link', { name: 'Players', exact: true }).click();
   } else await page.getByRole('link', { name: 'Meet everyone' }).click();
   await expect(page.locator('.player-card')).toHaveCount(14);
+  await expect(page.getByRole('link', { name: 'Edit your page', exact: true })).toHaveAttribute('href', '/account/');
   await page.locator('.player-card').filter({ hasText: 'uaiden' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('uaiden');
   await expect(page.locator('.player-head')).toBeVisible();
@@ -79,6 +80,32 @@ test('members can preview and save their page using the editor', async ({ page }
   await page.getByRole('button', { name: 'Save changes', exact: true }).click();
   await expect(page.getByRole('status')).toHaveText('Changes saved.');
   expect(version).toBe(2);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+});
+
+test('the owner sees their own page until explicitly showing all players', async ({ page }) => {
+  const players = [{ slug: 'uaiden', name: 'uaiden' }, { slug: 'apokefish', name: 'apokefish' }];
+  await page.route('**/api/**', async route => {
+    const url = new URL(route.request().url());
+    if (url.pathname === '/api/me/') return route.fulfill({ json: { configured: true, user: { name: 'Owner', owner: true, csrf: 'test-csrf' }, players: url.searchParams.get('scope') === 'all' ? players : players.slice(0, 1), roles: ['uaiden'] } });
+    if (url.pathname.endsWith('/history/')) return route.fulfill({ json: { revisions: [] } });
+    const player = players.find(player => url.pathname === `/api/players/${player.slug}/`);
+    if (player) return route.fulfill({ json: { ...player, markdown: `## About\n\n${player.name}`, version: 1, edition: 'java', url: `/wiki/players/${player.slug}/` } });
+    return route.fulfill({ status: 404, json: { error: 'Not found' } });
+  });
+  await page.goto('/account/');
+  const toggle = page.getByRole('checkbox', { name: 'Show all players (owner)' });
+  await expect(toggle).not.toBeChecked();
+  await expect(page.locator('#player-select option')).toHaveCount(2);
+  await expect(page.locator('#player-select')).toHaveValue('uaiden');
+  await toggle.check();
+  await expect(page.locator('#player-select option')).toHaveCount(3);
+  await page.locator('#player-select').selectOption('apokefish');
+  await expect(page.locator('#page-markdown')).toHaveValue('## About\n\napokefish');
+  await toggle.uncheck();
+  await expect(page.locator('#player-select option')).toHaveCount(2);
+  await expect(page.locator('#player-select')).toHaveValue('uaiden');
+  await expect(page.locator('#page-markdown')).toHaveValue('## About\n\nuaiden');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
 });
 

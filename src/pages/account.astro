@@ -7,7 +7,8 @@ import WikiLayout from '../layouts/WikiLayout.astro';
   <p><a id="discord-login" href="/auth/login/" hidden>Sign in with Discord</a><button id="discord-logout" type="button" hidden>Sign out</button></p>
   <div id="account-tools" hidden>
     <section class="editor-section">
-      <h2>Your pages</h2>
+      <h2 id="editable-pages-title">Your pages</h2>
+      <label id="owner-scope" class="owner-scope" hidden><input id="show-all-players" type="checkbox" /> Show all players (owner)</label>
       <label for="player-select">Player</label>
       <select id="player-select"><option value="">Select a player</option></select>
       <p id="no-pages" hidden>No editable pages yet. Add your player below using the IGN on your Discord role.</p>

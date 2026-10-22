@@ -4,6 +4,6 @@ import { getArticles, articleUrl } from '../lib/wiki';
 const players = (await getArticles()).filter(a => a.data.category === 'Players');
 ---
 <WikiLayout title="Players" description="Players on mineandcraft.net." section="Players">
-  <header class="page-heading"><h1>Players</h1></header>
+  <header class="page-heading players-heading"><h1>Players</h1><a class="edit-player-button" href="/account/">Edit your page</a></header>
   <div class="directory-grid">{players.map(player => <a class="player-card" href={articleUrl(player.id)}><img src={player.data.image} alt={`${player.data.title}'s Minecraft head`} width="110" height="110" loading="lazy" /><strong>{player.data.title}</strong><small>Read player page →</small></a>)}</div>
 </WikiLayout>

@@ -29,7 +29,7 @@ function fixture(t) {
     },
   };
   const env = { DB, SITE_ORIGIN: 'https://wiki.test', DISCORD_CLIENT_ID: APP, DISCORD_CLIENT_SECRET: 'client-secret', DISCORD_BOT_TOKEN: 'bot-token', DISCORD_GUILD_ID: GUILD, DISCORD_OWNER_ID: OWNER, SESSION_KEY: 'a-long-test-key-that-is-not-used-in-production-1234' };
-  const memberships = new Map([[OWNER, []], [MEMBER, ['role-uaiden', 'role-notch']], [OTHER, ['role-apokefish']]]);
+  const memberships = new Map([[OWNER, ['role-uaiden']], [MEMBER, ['role-uaiden', 'role-notch']], [OTHER, ['role-apokefish']]]);
   let discordFailure = false, refreshed = 0;
   const mockFetch = async (address, options = {}) => {
     const url = new URL(address);
@@ -142,7 +142,11 @@ test('writes require both the exact site origin and the session CSRF token', asy
 
 test('the owner can edit all player pages; saves detect conflicts and preserve restorable history', async t => {
   const f = fixture(t), owner = await f.login(OWNER);
-  assert.equal(owner.me.players.length, 14);
+  assert.deepEqual(owner.me.players.map(player => player.name), ['uaiden']);
+  const all = await (await owner.call('/api/me/?scope=all')).json();
+  assert.equal(all.players.length, 14);
+  const member = await f.login(MEMBER);
+  assert.equal((await member.call('/api/me/?scope=all')).status, 403);
   const original = f.sqlite.prepare("SELECT markdown FROM players WHERE slug='apokefish'").get().markdown;
   assert.equal((await owner.call('/api/players/apokefish/', 'PUT', { markdown: 'First edit', version: 1 })).status, 200);
   assert.equal((await owner.call('/api/players/apokefish/', 'PUT', { markdown: 'Stale edit', version: 1 })).status, 409);

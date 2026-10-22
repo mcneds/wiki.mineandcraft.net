@@ -1,6 +1,6 @@
 const $ = selector => document.querySelector(selector);
 const accountStatus = $('#account-status');
-let account, player, lookupResult, changed = false;
+let account, player, lookupResult, changed = false, showAllPlayers = false;
 const message = text => { accountStatus.textContent = text; };
 async function api(path, method = 'GET', body) {
   const response = await fetch(path, {
@@ -55,21 +55,33 @@ async function loadPlayer(slug) {
   await history();
 }
 async function refresh(selected) {
-  account = await api('/api/me/');
+  account = await api(showAllPlayers ? '/api/me/?scope=all' : '/api/me/');
   $('#discord-login').hidden = Boolean(account.user) || !account.configured;
   $('#discord-logout').hidden = !account.user;
   $('#account-tools').hidden = !account.user || Boolean(account.user.denied);
   if (!account.user) { message(account.configured ? 'Sign in with Discord to edit your player page.' : 'Editing is not available yet.'); return; }
   if (account.user.denied) { message(account.error); return; }
+  $('#owner-scope').hidden = !account.user.owner;
+  $('#show-all-players').checked = showAllPlayers;
+  $('#editable-pages-title').textContent = showAllPlayers ? 'All players' : 'Your pages';
   message(`Signed in as ${account.user.name}.`);
   const select = $('#player-select'); select.replaceChildren();
   const empty = document.createElement('option'); empty.value = ''; empty.textContent = 'Select a player'; select.append(empty);
   for (const page of account.players) { const option = document.createElement('option'); option.value = page.slug; option.textContent = page.name; select.append(option); }
   $('#no-pages').hidden = account.players.length > 0;
   $('#role-help').hidden = account.user.owner;
-  const target = selected || new URL(location.href).searchParams.get('player') || (account.players.length === 1 ? account.players[0].slug : '');
-  if (account.players.some(page => page.slug === target)) { select.value = target; await loadPlayer(target); }
+  const preferred = selected || new URL(location.href).searchParams.get('player') || '';
+  const target = account.players.some(page => page.slug === preferred) ? preferred : account.players.length === 1 ? account.players[0].slug : '';
+  select.value = target;
+  await loadPlayer(target);
 }
+$('#show-all-players').addEventListener('change', event => run(event.target, async () => {
+  if (!discardChanges()) { event.target.checked = showAllPlayers; return; }
+  const previous = showAllPlayers;
+  showAllPlayers = event.target.checked;
+  try { await refresh(player?.slug); }
+  catch (error) { showAllPlayers = previous; event.target.checked = previous; throw error; }
+}));
 $('#player-select').addEventListener('change', event => run(event.target, async () => {
   if (!discardChanges()) { event.target.value = player?.slug || ''; return; }
   await loadPlayer(event.target.value);
