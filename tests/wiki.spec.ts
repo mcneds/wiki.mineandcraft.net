@@ -29,15 +29,11 @@ test('production search finds recipes, commands, and players', async ({ page }) 
   await expect(page.locator('.search-results li')).toHaveCount(0);
 });
 
-test('theme preference persists and server address can be copied', async ({ page, context, browserName }) => {
-  if (browserName === 'chromium') await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+test('theme preference persists', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Switch to dark appearance' }).click();
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await page.getByRole('button', { name: /Copy server address/ }).click();
-  await expect(page.locator('.copy-status')).toHaveText('Server address copied.');
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('mineandcraft.net');
 });
 
 test('article contents, readable source, and empty Lore are honest', async ({ page }) => {

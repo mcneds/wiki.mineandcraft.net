@@ -31,7 +31,7 @@ Each article starts with title, description, category, and an ISO `updated` date
 - Copy `templates/player.md` for a new player. The Players directory and home-page roster update automatically.
 - Upload images into `public/images` and link them as `/images/...`. Use descriptive alt text and add captions/credits.
 - Use links such as `[Homes](/wiki/travel/)`. The build fails on broken internal links.
-- Change connection information in `getting-started.md` and the At a glance panel in `src/pages/index.astro` together.
+- Change connection information in `getting-started.md`; the shared sidebar's server summary is in `src/layouts/WikiLayout.astro`.
 
 No CMS, database, or web-editing credentials are required. Page source is public read-only Markdown; it contains article text, never environment variables or server configurations.
 
@@ -59,7 +59,7 @@ npm run build
 npm test
 ```
 
-Tests use installed Microsoft Edge on Windows and Playwright Chromium in CI. For another local browser, set `PLAYWRIGHT_CHANNEL=chrome`; or set `CI=true` after `npx playwright install chromium` to use the downloaded Chromium. Tests cover desktop/mobile navigation, player pages, search, appearance persistence, copying the server address, and missing-page behavior. Screenshots go to ignored `test-results/`.
+Tests use installed Microsoft Edge on Windows and Playwright Chromium in CI. For another local browser, set `PLAYWRIGHT_CHANNEL=chrome`; or set `CI=true` after `npx playwright install chromium` to use the downloaded Chromium. Tests cover desktop/mobile navigation, player pages, search, appearance persistence, and missing-page behavior. Screenshots go to ignored `test-results/`.
 
 ## Publish to Cloudflare
 
