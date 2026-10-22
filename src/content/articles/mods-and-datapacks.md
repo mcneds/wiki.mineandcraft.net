@@ -4,7 +4,7 @@ description: "The server's supplied mod and datapack inventory, with links to pl
 category: "Reference"
 updated: "2026-10-22"
 ---
-This inventory records the files visible in the owner's screenshots. **A listed file does not prove it is currently enabled**, and this is not a required client-download list. The entries distinguish player features from technical libraries and performance tools.
+This list is for reference. You don't need to install these mods or datapacks to join the server.
 
 ## Player features
 
