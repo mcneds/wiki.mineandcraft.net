@@ -42,7 +42,7 @@ Use `/trigger spawn` to travel to the world spawn point.
 
 ## Go back
 
-Use `/trigger back` to return to the previous location recorded by Homes, Spawn, or TPA. **Death return is disabled**, so this command will not return you to your death location.
+Use `/trigger back` to return to the previous location recorded by Homes, Spawn, or TPA.
 
 ## Visit another player
 

@@ -21,10 +21,6 @@ Use `/trigger graves` to list your graves.
 2. Find your grave.
 3. **Right-click or left-click the grave** to retrieve its contents, as described by the pack author for this version.
 
-## Can I teleport back?
-
-**Death return is disabled.** The [Back](/wiki/travel/#go-back) command (`/trigger back`) will not return you to your death location.
-
 ## Sources
 
-[Official Vanilla Tweaks 26.3 pack descriptions](https://vanillatweaks.net/assets/resources/json/26.3/dpcategories.json), Graves 4.1.2 and Back 1.3.18.
+[Official Vanilla Tweaks 26.3 pack descriptions](https://vanillatweaks.net/assets/resources/json/26.3/dpcategories.json), Graves 4.1.2.
