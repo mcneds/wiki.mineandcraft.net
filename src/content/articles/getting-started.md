@@ -26,9 +26,30 @@ An invitation is required for **both Java and Bedrock players**. Arrange access 
 
 ### Bedrock Edition
 
-Bedrock access is provided through **Geyser and Floodgate** on the Java server. Ask the owner for the Bedrock address and port with your invitation; the port has not yet been published here. Custom-server entry also depends on the device you play on.
+Bedrock access is provided through **[Geyser](https://geysermc.org/) and Floodgate** on the Java server.
 
 The server follows Java gameplay rules. Do not assume that every Bedrock farm design or redstone tutorial will behave the same way here.
+
+#### Mobile and Windows 10/11
+
+1. Open **Play → Servers → Add Server**.
+2. Enter `mineandcraft.net` as the **Server Address**. The server name can be anything you like.
+3. Leave the **Port** as `19132`.
+4. Save the entry and join.
+
+#### Console: BedrockTogether
+
+Use **[BedrockTogether](https://bedrocktogether.net/)** on a phone or tablet to join from a console.
+
+For **Xbox and PlayStation**:
+
+1. Install BedrockTogether from the App Store or Google Play using the link above.
+2. Connect your phone or tablet and console to the same Wi-Fi network.
+3. Open the app's **PlayStation · Xbox** tab. Enter `mineandcraft.net` in the **IP** field and `19132` in the **Port** field.
+4. Tap **Watch Ad and Run**. Keep the app open and your phone awake until you have joined.
+5. On your console, open Minecraft and go to **Play → Worlds**. Join the LAN game shown by BedrockTogether to connect to the server.
+
+For **Nintendo Switch**, use the app's **Switch · Friends** tab and follow the [BedrockTogether Switch guide](https://bedrocktogether.net/how-to-join-minecraft-server-nintendo-switch/). This uses a separate Microsoft account to broadcast the server to your Friends tab; read the app's account warning before signing in. Use the same address and port: `mineandcraft.net`, `19132`.
 
 ## What should I install?
 
