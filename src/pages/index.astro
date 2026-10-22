@@ -20,11 +20,11 @@ const guides = [
   <div class="home-columns">
     <div>
       <section class="panel"><div class="panel-title"><h2>What's different</h2><a href="/category/guides/">All guides →</a></div><div class="panel-body guide-list">{guides.map(g => <div class="guide-item"><span class="guide-number">{g.n}</span><div><a href={articleUrl(g.id)}>{g.title}</a><p>{g.text}</p></div></div>)}</div></section>
-      <section class="panel"><div class="panel-title"><h2>The people of mineandcraft.net</h2><a href="/players/">Meet everyone →</a></div><div class="panel-body"><p class="panel-intro">Every build starts with a player. Here are ours.</p><div class="profile-grid">{players.map(player => <a class="profile-tile" href={articleUrl(player.id)} title={player.data.title}><img src={player.data.image} width="56" height="56" alt={`${player.data.title}'s Minecraft head`} loading="lazy" /><span>{player.data.title}</span></a>)}</div></div></section>
     </div>
     <div>
       <section class="panel"><div class="panel-title sand"><h2>Lore</h2><a href="/lore/">Explore Lore →</a></div><div class="panel-body"><p class="lore-lead">The world is made of blocks.<br />The rest is us.</p><p class="lore-copy">Great builds, unexpected adventures, and the moments that become server history. This is where we keep them.</p>{newestStory ? <div class="lore-mini"><strong><a href={articleUrl(newestStory.id)}>{newestStory.data.title}</a></strong><p>{newestStory.data.description}</p></div> : <div class="lore-mini"><strong>The story is still being written.</strong><p>No events recorded yet. There is plenty of room for a first chapter.</p></div>}<a class="text-link" href="/players/">Start with the people behind the stories →</a></div></section>
     </div>
   </div>
-  <aside class="rule-strip"><span class="rule-icon" aria-hidden="true">❧</span><strong>Be civil.</strong><span>A shared world works best when we look out for each other.</span><a href="/wiki/rules/">Our one rule →</a></aside>
+  <section class="panel" aria-labelledby="member-list-title"><div class="panel-title"><h2 id="member-list-title">The people of mineandcraft.net</h2><a href="/players/">Meet everyone →</a></div><div class="panel-body"><p class="panel-intro">Every build starts with a player. Here are ours.</p><div class="profile-grid">{players.map(player => <a class="profile-tile" href={articleUrl(player.id)} title={player.data.title}><img src={player.data.image} width="56" height="56" alt={`${player.data.title}'s Minecraft head`} loading="lazy" /><span>{player.data.title}</span></a>)}</div></div></section>
+  <aside class="rule-strip"><strong>Be civil.</strong><span>A shared world works best when we look out for each other.</span><a href="/wiki/rules/">Our one rule →</a></aside>
 </WikiLayout>

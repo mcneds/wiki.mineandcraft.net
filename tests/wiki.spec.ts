@@ -4,6 +4,11 @@ test('home, player roster, and mobile navigation work', async ({ page }, testInf
   await page.goto('/');
   await expect(page).toHaveTitle('mineandcraft.net — The server wiki');
   await expect(page.locator('.profile-grid a')).toHaveCount(14);
+  const roster = await page.getByRole('region', { name: 'The people of mineandcraft.net' }).boundingBox();
+  const main = await page.locator('#main-content').boundingBox();
+  expect(roster).not.toBeNull();
+  expect(main).not.toBeNull();
+  expect(Math.abs(roster!.width - main!.width)).toBeLessThan(2);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   await page.screenshot({ path: `test-results/home-${testInfo.project.name}.png`, fullPage: true });
   if (testInfo.project.name === 'mobile') {
