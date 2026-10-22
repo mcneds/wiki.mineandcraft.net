@@ -8,13 +8,11 @@ A few additions make collecting materials and finishing builds more convenient. 
 
 ## Timber
 
-**Timber** lets you chop down a tree with an axe in survival. Use this command to toggle the feature for yourself:
+**Timber is always enabled.** Break a log with an **axe** to fell the whole tree.
 
-```text
-/trigger TimberToggle
-```
+Hold **Shift (sneak)** while breaking to remove just one block instead of the whole tree.
 
-Capitalization matters: the trigger is `TimberToggle`. Turn it off when you want normal, individual log breaking. The pack's administrative help function is `/function timber:help`; it is not presented here as a command every player can run.
+Each block broken counts as a separate durability use on the axe. **Unbreaking** applies to each use as normal, so it can reduce the durability lost.
 
 ## Fast leaf decay
 
