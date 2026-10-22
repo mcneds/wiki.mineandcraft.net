@@ -11,6 +11,10 @@ facts:
 ---
 The **Graves** datapack creates a grave when you die to hold your dropped items. Recover the items by interacting with that grave.
 
+## List your graves
+
+Use `/trigger graves` to list your graves.
+
 ## Recover your items
 
 1. Note any location information shown when you die, and return to the area.
@@ -19,13 +23,7 @@ The **Graves** datapack creates a grave when you die to hold your dropped items.
 
 ## Can I teleport back?
 
-The [Back](/wiki/travel/#go-back) datapack can return you to your last death location **if its death-return option is enabled**. That setting has not been confirmed for this server. `/trigger back` should not be treated as a guaranteed death-recovery command.
-
-## If you cannot recover a grave
-
-Give the owner your IGN, the approximate death location and dimension, and what happened when you interacted with the grave. Avoid repeatedly damaging the surrounding area in an attempt to fix it.
-
-Grave ownership rules, XP handling, expiration, and unusual death cases depend on the installed version and configuration. This guide does not promise behavior that has not been checked on the server.
+**Death return is disabled.** The [Back](/wiki/travel/#go-back) command (`/trigger back`) will not return you to your death location.
 
 ## Sources
 
