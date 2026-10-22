@@ -1,7 +1,7 @@
 const encoder = new TextEncoder();
 const now = () => Math.floor(Date.now() / 1000);
 export class HttpError extends Error {
-  constructor(status, message) { super(message); this.status = status; }
+  constructor(status, message, details = {}) { super(message); this.status = status; Object.assign(this, details); }
 }
 export const random = () => crypto.randomUUID() + crypto.randomUUID();
 export const hash = async text => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(text))), byte => byte.toString(16).padStart(2, '0')).join('');
@@ -39,15 +39,39 @@ export async function limit(env, bucket, maximum, seconds) {
   if (row.count > maximum) throw new HttpError(429, 'Too many requests. Please try again shortly.');
 }
 async function provider(fetcher, url, options) {
-  try { return await fetcher(url, { ...options, signal: AbortSignal.timeout(10000) }); }
-  catch { throw new HttpError(503, 'Discord is unavailable. Please try again shortly.'); }
+  const endpoint = url.includes('/oauth2/token') ? 'oauth-token' : url.endsWith('/roles') ? 'guild-roles' : url.includes('/members/') ? 'guild-member' : 'user-identity';
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let response;
+    try { response = await fetcher(url, { ...options, signal: AbortSignal.timeout(10000) }); }
+    catch {
+      console.warn('Discord request failed', { endpoint, status: 'network' });
+      throw new HttpError(503, 'Discord is unavailable. Please try again shortly.', { code: 'DISCORD_UNAVAILABLE' });
+    }
+    if (!response.ok) console.warn('Discord request failed', { endpoint, status: response.status });
+    if (response.status !== 429) return response;
+    let data;
+    try { data = await response.clone().json(); } catch { /* Retry-After may still be available. */ }
+    const header = response.headers.get('Retry-After');
+    const waits = [header === null ? NaN : Number(header), typeof data?.retry_after === 'number' ? data.retry_after : NaN].filter(value => Number.isFinite(value) && value >= 0);
+    const delay = waits.length ? Math.max(...waits) : null;
+    // Retry only reads, once, for a short Discord-specified delay. Never replay
+    // an OAuth authorization-code exchange or an editor mutation automatically.
+    if (attempt === 0 && (!options?.method || options.method === 'GET') && delay !== null && delay <= 2) {
+      await response.body?.cancel();
+      await new Promise(resolve => setTimeout(resolve, delay * 1000 + 50));
+      continue;
+    }
+    const retryAfter = delay === null ? undefined : Math.max(1, Math.ceil(delay));
+    throw new HttpError(503, retryAfter ? `Discord is limiting requests. Try again in ${retryAfter} seconds.` : 'Discord is limiting requests. Please try again shortly.', { code: 'DISCORD_RATE_LIMITED', retryAfter });
+  }
 }
 export async function tokenRequest(env, fetcher, fields) {
   const response = await provider(fetcher, 'https://discord.com/api/oauth2/token', {
     method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ client_id: env.DISCORD_CLIENT_ID, client_secret: env.DISCORD_CLIENT_SECRET, ...fields }),
   });
-  if (!response.ok) throw new HttpError(response.status === 429 || response.status >= 500 ? 503 : 401, 'Please sign in with Discord again.');
+  if (response.status >= 500) throw new HttpError(503, 'Discord sign-in is temporarily unavailable. Please try again shortly.', { code: 'DISCORD_UNAVAILABLE' });
+  if (!response.ok) throw new HttpError(401, 'Please sign in with Discord again.', { code: 'SIGN_IN_REQUIRED' });
   const data = await response.json();
   if (!data.access_token || !data.refresh_token) throw new HttpError(503, 'Discord sign-in could not be completed.');
   return { access: data.access_token, refresh: data.refresh_token, expires: now() + Number(data.expires_in || 3600) };
@@ -71,15 +95,18 @@ export async function authorize(request, env, fetcher) {
   }
   // Fresh membership and role names on every privileged request: role removal takes effect on the next save.
   const [member, roles] = await Promise.all([
-    provider(fetcher, `https://discord.com/api/v10/users/@me/guilds/${env.DISCORD_GUILD_ID}/member`, { headers: { Authorization: `Bearer ${credentials.access}` } }),
+    provider(fetcher, `https://discord.com/api/v10/guilds/${env.DISCORD_GUILD_ID}/members/${current.user_id}`, { headers: { Authorization: `Bot ${env.DISCORD_BOT_TOKEN}` } }),
     provider(fetcher, `https://discord.com/api/v10/guilds/${env.DISCORD_GUILD_ID}/roles`, { headers: { Authorization: `Bot ${env.DISCORD_BOT_TOKEN}` } }),
   ]);
-  if (member.status === 401) throw new HttpError(401, 'Please sign in with Discord again.');
-  if ([403, 404].includes(member.status)) throw new HttpError(403, 'You must be a member of the server Discord to edit.');
-  if (!member.ok || !roles.ok) throw new HttpError(503, 'Discord roles could not be checked. Please try again shortly.');
-  const membership = await member.json();
-  const guildRoles = await roles.json();
-  if (!Array.isArray(membership.roles) || !Array.isArray(guildRoles)) throw new HttpError(503, 'Discord roles could not be checked.');
+  if (member.status === 404) {
+    const error = await member.clone().json().catch(() => ({}));
+    if (error.code === 10007) throw new HttpError(403, 'You must be a member of the server Discord to edit.', { code: 'DISCORD_MEMBERSHIP_REQUIRED' });
+  }
+  if ([401, 403, 404].includes(member.status) || [401, 403, 404].includes(roles.status)) throw new HttpError(503, 'The wiki bot cannot access the Discord server. The owner needs to check its configuration.', { code: 'DISCORD_BOT_CONFIGURATION' });
+  if (!member.ok || !roles.ok) throw new HttpError(503, 'Discord permission checks are temporarily unavailable. Please try again shortly.', { code: 'DISCORD_UNAVAILABLE' });
+  let membership, guildRoles;
+  try { membership = await member.json(); guildRoles = await roles.json(); } catch { /* Fail closed on malformed upstream responses. */ }
+  if (membership?.user?.id !== current.user_id || !Array.isArray(membership?.roles) || !membership.roles.every(id => typeof id === 'string') || !Array.isArray(guildRoles) || !guildRoles.every(role => typeof role.id === 'string' && typeof role.name === 'string')) throw new HttpError(503, 'Discord returned an unreadable permission check. Please try again shortly.', { code: 'DISCORD_UNAVAILABLE' });
   const ids = new Set(membership.roles);
   const names = guildRoles.filter(role => role.id !== env.DISCORD_GUILD_ID && ids.has(role.id)).map(role => role.name);
   return { ...current, owner: current.user_id === env.DISCORD_OWNER_ID, roles: names };

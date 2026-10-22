@@ -1,9 +1,10 @@
 import { video } from '../../shared/video.mjs';
 
-export function createPageEditor({ api, context, dirty, message }) {
+export function createPageEditor({ api, context, dirty, message, refreshSession }) {
   const $ = selector => document.querySelector(selector);
   const textarea = $('#page-markdown');
   let visual, modulePromise, mode = 'markdown', visualChanged = false, generation = 0, uploading = false;
+  let pendingUpload, retryTimer;
   const notice = text => { $('#editor-notice').textContent = text; $('#editor-notice').hidden = !text; };
   const getSource = () => {
     if (mode === 'visual' && visualChanged) textarea.value = visual.source();
@@ -41,6 +42,9 @@ export function createPageEditor({ api, context, dirty, message }) {
     }
   }
   async function load(source) {
+    pendingUpload = null; clearTimeout(retryTimer);
+    $('#retry-upload').hidden = true; $('#media-sign-in').hidden = true;
+    $('#image-upload').value = ''; $('#upload-status').textContent = '';
     const token = ++generation;
     textarea.value = source; visualChanged = false;
     setMode('markdown'); notice('Loading Visual editor…');
@@ -99,7 +103,9 @@ export function createPageEditor({ api, context, dirty, message }) {
   const safeImageUrl = value => /^https:\/\/[^\s<>]+$/i.test(value) || /^\/media\/[a-f0-9-]{36}$/.test(value);
   function insertImage(url, alt) {
     if (!safeImageUrl(url)) throw new Error('Use an HTTPS image URL.');
-    if (mode === 'visual') visual.image({ src: url, alt });
+    if (mode === 'visual') {
+      if (!visual.image({ src: url, alt })) throw new Error('Move the cursor outside the code block or table and retry inserting the image.');
+    }
     else insertSource(`\n\n![${alt.replace(/[\\[\]]/g, '\\$&').replace(/\r?\n/g, ' ')}](${url.replaceAll('(', '%28').replaceAll(')', '%29')})\n\n`);
   }
   $('#edit-video').addEventListener('click', () => { $('#video-error').textContent = ''; $('#video-dialog').showModal(); });
@@ -156,23 +162,50 @@ export function createPageEditor({ api, context, dirty, message }) {
   });
   async function uploadFiles(files) {
     if (uploading) { message('Wait for the current upload to finish.'); return; }
-    const { player, account } = context();
+    if (files && !files.length) return;
+    const { player } = context();
     if (!player) return;
+    if (files) pendingUpload = { slug: player.slug, files: files.map(file => ({ file })), needsSignIn: false };
+    if (!pendingUpload?.files.length || pendingUpload.slug !== player.slug) return;
+    clearTimeout(retryTimer); $('#retry-upload').hidden = true; $('#media-sign-in').hidden = true;
     uploading = true; $('#image-upload').disabled = true;
+    const progress = $('#upload-progress'); progress.hidden = false; progress.removeAttribute('value');
     try {
-      for (const file of files) {
-        if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type) || file.size > 5242880 || !file.size) throw new Error('Choose a PNG, JPEG, WebP, or GIF image up to 5 MB.');
-        $('#media-status').textContent = 'Uploading…'; message('Uploading image…');
+      if (pendingUpload.needsSignIn) { await refreshSession(); pendingUpload.needsSignIn = false; }
+      while (pendingUpload.files.length) {
+        const entry = pendingUpload.files[0], { file } = entry;
+        if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type) || file.size > 5242880 || !file.size) throw Object.assign(new Error('Choose a PNG, JPEG, WebP, or GIF image up to 5 MB.'), { status: 415 });
+        $('#media-status').textContent = ''; $('#upload-status').textContent = `Uploading ${file.name}…`; message('Uploading image…');
         const body = new FormData(); body.append('file', file);
-        const response = await fetch(`/api/players/${player.slug}/images/`, { method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-Token': account.user.csrf }, body });
-        const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Upload failed.');
-        if (context().player?.slug === player.slug) insertImage(result.image.url, $('#image-alt').value || file.name);
+        // If storage succeeded but insertion failed, retry insertion without
+        // storing another copy of an already confirmed upload.
+        const result = entry.result ||= await api(`/api/players/${player.slug}/images/`, 'POST', body, { onProgress: (loaded, total) => {
+          if (!total) return;
+          const percent = Math.min(100, Math.round(loaded / total * 100)); progress.value = percent;
+          $('#upload-status').textContent = percent === 100 ? `Saving ${file.name}…` : `Uploading ${file.name}: ${percent}%`;
+        } });
+        if (context().player?.slug !== player.slug) return;
+        insertImage(result.image.url, $('#image-alt').value || file.name);
+        pendingUpload.files.shift();
         showUsage(result.usage); message('Image uploaded. Save your page to publish the change.');
       }
-      $('#media-status').textContent = ''; $('#image-dialog').close();
-    } catch (error) { message(error.message); $('#media-status').textContent = error.message; }
-    finally { uploading = false; $('#image-upload').disabled = false; $('#image-upload').value = ''; }
+      pendingUpload = null; $('#image-upload').value = '';
+      $('#upload-status').textContent = 'Image uploaded.'; $('#media-status').textContent = ''; $('#image-dialog').close();
+    } catch (error) {
+      message(error.message); $('#upload-status').textContent = error.message;
+      if (!$('#image-dialog').open) $('#image-dialog').showModal();
+      pendingUpload.needsSignIn = error.status === 401 || pendingUpload.needsSignIn;
+      $('#media-sign-in').hidden = !pendingUpload.needsSignIn;
+      $('#retry-upload').hidden = [400, 413, 415].includes(error.status);
+      $('#retry-upload').disabled = Boolean(error.retryAfter);
+      if (error.retryAfter) retryTimer = setTimeout(() => { $('#retry-upload').disabled = false; }, Math.min(error.retryAfter, 86400) * 1000);
+      // Keep validation feedback next to the picker as well as the upload
+      // status. The selected File remains in memory for an explicit retry.
+      $('#media-status').textContent = error.message;
+    }
+    finally { uploading = false; $('#image-upload').disabled = false; progress.hidden = true; }
   }
   $('#image-upload').addEventListener('change', event => uploadFiles([...event.target.files]));
+  $('#retry-upload').addEventListener('click', () => uploadFiles());
   return { load, source: getSource, busy: () => uploading };
 }

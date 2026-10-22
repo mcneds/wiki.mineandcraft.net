@@ -240,7 +240,12 @@ export function createHandler(fetcher = (...args) => fetch(...args)) {
       const status = error instanceof HttpError ? error.status : 500;
       if (status === 500) console.error('Wiki request failed:', error?.name || 'Error', error?.stack?.split('\n').slice(1).join('\n') || '');
       const message = error instanceof HttpError ? error.message : 'The request could not be completed. Please try again shortly.';
-      if (url.pathname.startsWith('/api/')) return json({ error: message }, status);
+      if (url.pathname.startsWith('/api/')) {
+        const details = error instanceof HttpError ? error : {};
+        const response = json({ error: message, ...(details.code ? { code: details.code } : {}), ...(details.retryAfter ? { retryAfter: details.retryAfter } : {}) }, status);
+        if (details.retryAfter) response.headers.set('Retry-After', String(details.retryAfter));
+        return response;
+      }
       return new Response(`<!doctype html><html lang="en"><meta charset="utf-8"><title>mineandcraft.net</title><p>${escape(message)}</p><p><a href="/account/">Back to the editor</a> · <a href="/">Main page</a></p></html>`, { status, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
     }
   };

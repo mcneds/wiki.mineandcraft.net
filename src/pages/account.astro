@@ -74,6 +74,9 @@ import '../styles/editor.css';
     <label for="image-alt">Alt text</label><input id="image-alt" maxlength="300" />
     <div class="editor-actions"><button type="button" id="update-image" hidden>Update selected image</button></div>
     <label for="image-upload">Upload an image</label><input id="image-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+    <progress id="upload-progress" max="100" aria-label="Upload progress" hidden></progress>
+    <p id="upload-status" role="status" aria-live="polite"></p>
+    <div class="editor-actions"><button type="button" id="retry-upload" hidden>Retry upload</button><a id="media-sign-in" href="/auth/login/" target="_blank" rel="noopener" hidden>Sign in with Discord</a></div>
     <form id="image-url-form"><label for="image-url">Or image URL</label><input id="image-url" type="url" placeholder="https://…" required /><button type="submit">Insert URL</button></form>
     <h3>Your images</h3><ul id="image-library" class="image-library"></ul>
     <button type="button" data-close="image-dialog">Close</button>

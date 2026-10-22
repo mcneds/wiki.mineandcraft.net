@@ -38,12 +38,16 @@ function fixture(t) {
     async delete(key) { objects.delete(key); },
   };
   const memberships = new Map([[OWNER, ['role-uaiden']], [MEMBER, ['role-uaiden', 'role-notch']], [OTHER, ['role-apokefish']]]);
+  const discordResponses = new Map(), discordCalls = [];
   let discordFailure = false, refreshed = 0;
   const mockFetch = async (address, options = {}) => {
     const url = new URL(address);
     const auth = options.headers?.Authorization;
     const id = auth?.replace('Bearer access:', '');
     if (url.hostname === 'discord.com') {
+      const endpoint = url.pathname.endsWith('/token') ? 'token' : url.pathname.endsWith('/roles') ? 'roles' : url.pathname.includes('/members/') ? 'member' : 'identity';
+      discordCalls.push(endpoint);
+      if (discordResponses.has(endpoint)) return discordResponses.get(endpoint)(url, options);
       if (discordFailure) return Response.json({}, { status: 503 });
       if (url.pathname === '/api/oauth2/token') {
         const fields = new URLSearchParams(options.body);
@@ -53,7 +57,11 @@ function fixture(t) {
         return Response.json({ access_token: `access:${userId}`, refresh_token: `refresh:${userId}`, expires_in: 3600 });
       }
       if (url.pathname === '/api/v10/users/@me') return Response.json({ id, username: `user-${id}`, global_name: 'Player' });
-      if (url.pathname === `/api/v10/users/@me/guilds/${GUILD}/member`) return memberships.has(id) ? Response.json({ roles: memberships.get(id) }) : Response.json({}, { status: 404 });
+      if (url.pathname.startsWith(`/api/v10/guilds/${GUILD}/members/`)) {
+        assert.equal(auth, 'Bot bot-token');
+        const memberId = url.pathname.split('/').at(-1);
+        return memberships.has(memberId) ? Response.json({ user: { id: memberId }, roles: memberships.get(memberId) }) : Response.json({ code: 10007 }, { status: 404 });
+      }
       if (url.pathname === `/api/v10/guilds/${GUILD}/roles`) {
         assert.equal(auth, 'Bot bot-token');
         return Response.json([{ id: GUILD, name: 'uaiden' }, { id: 'role-uaiden', name: 'uAiDeN' }, { id: 'role-apokefish', name: 'apokefish' }, { id: 'role-notch', name: 'Notch' }]);
@@ -86,7 +94,7 @@ function fixture(t) {
       },
     };
   }
-  return { env, sqlite, request, login, memberships, objects, failDiscord: () => { discordFailure = true; }, refreshCount: () => refreshed };
+  return { env, sqlite, request, login, memberships, objects, discordResponses, discordCalls, failDiscord: () => { discordFailure = true; }, refreshCount: () => refreshed };
 }
 
 test('Discord sign-in uses single-use state, secure opaque cookies, and encrypted provider credentials', async t => {
@@ -212,6 +220,78 @@ test('role-gated writes are rate limited', async t => {
   const f = fixture(t), user = await f.login();
   for (let version = 1; version <= 30; version++) assert.equal((await user.call('/api/players/uaiden/', 'PUT', { markdown: `Edit ${version}`, version })).status, 200);
   assert.equal((await user.call('/api/players/uaiden/', 'PUT', { markdown: 'Too fast', version: 31 })).status, 429);
+});
+
+test('repeated editor actions use fresh bot membership checks without spending the OAuth membership quota', async t => {
+  const f = fixture(t), user = await f.login();
+  const before = f.discordCalls.filter(value => value === 'member').length;
+  for (let i = 0; i < 12; i++) {
+    const path = ['/api/players/uaiden/', '/api/players/uaiden/history/', '/api/players/uaiden/images/'][i % 3];
+    assert.equal((await user.call(path)).status, 200);
+  }
+  assert.equal(f.discordCalls.filter(value => value === 'member').length - before, 12);
+  f.memberships.set(MEMBER, []);
+  assert.equal((await upload(f, user)).status, 403);
+  assert.equal(f.objects.size, 0);
+});
+
+test('short Discord throttles retry the read once; long throttles return timing and leave uploads untouched', async t => {
+  const f = fixture(t), user = await f.login();
+  let attempts = 0;
+  f.discordResponses.set('member', () => ++attempts === 1 ? Response.json({ retry_after: 0.001 }, { status: 429, headers: { 'Retry-After': '0.001' } }) : Response.json({ user: { id: MEMBER }, roles: ['role-uaiden'] }));
+  assert.equal((await user.call('/api/players/uaiden/')).status, 200);
+  assert.equal(attempts, 2);
+  attempts = 0;
+  f.discordResponses.set('member', () => { attempts++; return Response.json({ retry_after: 257.1 }, { status: 429 }); });
+  const limited = await upload(f, user);
+  assert.equal(limited.status, 503); assert.equal(limited.headers.get('Retry-After'), '258');
+  assert.equal((await limited.json()).code, 'DISCORD_RATE_LIMITED');
+  assert.equal(attempts, 1); assert.equal(f.objects.size, 0);
+  assert.equal(f.sqlite.prepare('SELECT count(*) n FROM media').get().n, 0);
+  f.discordResponses.clear();
+  assert.equal((await upload(f, user)).status, 201);
+  assert.equal(f.objects.size, 1);
+});
+
+test('Discord retries are bounded, report bot configuration separately, and reject malformed membership', async t => {
+  const f = fixture(t), user = await f.login();
+  let attempts = 0;
+  f.discordResponses.set('member', () => { attempts++; return Response.json({ retry_after: 0 }, { status: 429 }); });
+  const throttled = await user.call('/api/players/uaiden/');
+  assert.equal(throttled.status, 503); assert.equal(attempts, 2);
+  for (const status of [401, 403, 404]) {
+    f.discordResponses.set('member', () => Response.json({ code: 10004 }, { status }));
+    const denied = await user.call('/api/players/uaiden/');
+    assert.equal(denied.status, 503);
+    assert.equal((await denied.json()).code, 'DISCORD_BOT_CONFIGURATION');
+  }
+  f.discordResponses.set('member', () => Response.json({ user: { id: OTHER }, roles: ['role-uaiden'] }));
+  const mismatched = await user.call('/api/players/uaiden/');
+  assert.equal(mismatched.status, 503); assert.equal((await mismatched.json()).code, 'DISCORD_UNAVAILABLE');
+  f.discordResponses.clear();
+  f.discordResponses.set('roles', () => Response.json({}, { status: 403 }));
+  const roles = await user.call('/api/players/uaiden/');
+  assert.equal((await roles.json()).code, 'DISCORD_BOT_CONFIGURATION');
+});
+
+test('expired sessions and revoked refresh credentials require sign-in instead of reporting a role failure', async t => {
+  const f = fixture(t), user = await f.login();
+  const { seal, unseal } = await import('../worker/auth.mjs');
+  const credentials = await unseal(f.sqlite.prepare('SELECT credentials FROM sessions').get().credentials, f.env);
+  credentials.expires = 0;
+  f.sqlite.prepare('UPDATE sessions SET credentials=?').run(await seal(credentials, f.env));
+  let attempts = 0;
+  f.discordResponses.set('token', () => { attempts++; return Response.json({}, { status: 400 }); });
+  const expired = await user.call('/api/players/uaiden/');
+  assert.equal(expired.status, 401); assert.equal((await expired.json()).code, 'SIGN_IN_REQUIRED'); assert.equal(attempts, 1);
+  attempts = 0;
+  f.discordResponses.set('token', () => { attempts++; return Response.json({ retry_after: 0 }, { status: 429 }); });
+  assert.equal((await user.call('/api/players/uaiden/')).status, 503); assert.equal(attempts, 1);
+  f.env.SESSION_KEY = 'changed-test-key-that-cannot-decrypt-an-existing-session';
+  assert.equal((await user.call('/api/players/uaiden/')).status, 401);
+  f.sqlite.prepare('UPDATE sessions SET expires=0').run();
+  assert.equal((await upload(f, user)).status, 401);
+  assert.equal(f.objects.size, 0);
 });
 
 test('Bedrock lookup uses the canonical Xbox name, XUID, and a stored Geyser skin', async () => {

@@ -150,3 +150,70 @@ test('pasted and dropped files use the upload flow and oversized images stay loc
   await expect(page.locator('#media-status')).toContainText('up to 5 MB');
   expect(uploads).toBe(2);
 });
+
+for (const mode of ['Visual', 'Markdown']) test(`failed uploads retain the file and ${mode} draft for an explicit retry`, async ({ page }) => {
+  await setup(page);
+  if (mode === 'Markdown') {
+    await page.getByRole('tab', { name: 'Markdown', exact: true }).click();
+    await page.locator('#page-markdown').fill('An unsaved **draft**');
+  } else await page.getByRole('textbox', { name: 'Page text (Visual)' }).fill('An unsaved draft');
+  let release!: () => void, attempts = 0;
+  const blocked = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/api/players/uaiden/images/', async route => {
+    if (route.request().method() !== 'POST') return route.fallback();
+    if (++attempts === 1) { await blocked; return route.fulfill({ status: 503, json: { error: 'Discord permission checks are temporarily unavailable. Please try again shortly.', code: 'DISCORD_UNAVAILABLE' } }); }
+    return route.fallback();
+  });
+  await page.getByRole('button', { name: 'Images', exact: true }).click();
+  await page.getByLabel('Upload an image', { exact: true }).setInputFiles({ name: 'Build.gif', mimeType: 'image/gif', buffer: gif });
+  await expect(page.getByRole('progressbar', { name: 'Upload progress' })).toBeVisible();
+  await expect(page.locator('#upload-status')).toContainText('Build.gif');
+  release();
+  await expect(page.locator('#upload-status')).toContainText('Discord permission checks');
+  await expect(page.locator('#image-dialog')).toBeVisible();
+  expect(await page.locator('#image-upload').evaluate((input: HTMLInputElement) => input.files?.[0]?.name)).toBe('Build.gif');
+  await page.getByRole('button', { name: 'Retry upload', exact: true }).click();
+  await expect(page.locator('#image-dialog')).toBeHidden();
+  expect(attempts).toBe(2);
+  if (mode === 'Visual') await expect(page.getByRole('textbox', { name: 'Page text (Visual)' })).toContainText('An unsaved draft');
+  else await expect(page.locator('#page-markdown')).toHaveValue(/An unsaved \*\*draft\*\*/);
+  await page.getByRole('button', { name: 'Save changes', exact: true }).click();
+  await expect(page.locator('#account-status')).toHaveText('Changes saved.');
+});
+
+test('an expired sign-in keeps the draft and file, then refreshes CSRF before retrying', async ({ page }) => {
+  await setup(page, 'My draft');
+  let attempts = 0, checks = 0;
+  await page.route('**/api/me/', route => { checks++; return route.fulfill({ json: { configured: true, user: { name: 'Player', owner: false, csrf: 'fresh-csrf' }, players: [{ slug: 'uaiden', name: 'uaiden' }] } }); });
+  await page.route('**/api/players/uaiden/images/', route => {
+    if (route.request().method() !== 'POST') return route.fallback();
+    if (++attempts === 1) return route.fulfill({ status: 401, json: { error: 'Please sign in with Discord again.' } });
+    expect(route.request().headers()['x-csrf-token']).toBe('fresh-csrf');
+    return route.fulfill({ status: 201, json: { image: { url: `/media/${imageId}` }, usage: { used: gif.length } } });
+  });
+  await page.getByRole('button', { name: 'Images', exact: true }).click();
+  await page.getByLabel('Upload an image', { exact: true }).setInputFiles({ name: 'Build.gif', mimeType: 'image/gif', buffer: gif });
+  await expect(page.locator('#media-sign-in')).toBeVisible();
+  await expect(page.locator('#media-sign-in')).toHaveAttribute('target', '_blank');
+  await page.getByRole('button', { name: 'Retry upload', exact: true }).click();
+  await expect(page.locator('#image-dialog')).toBeHidden();
+  await expect(page.getByRole('textbox', { name: 'Page text (Visual)' })).toContainText('My draft');
+  expect(attempts).toBe(2); expect(checks).toBe(1);
+});
+
+test('Discord retry timing disables upload retry until the cooldown ends', async ({ page }) => {
+  await setup(page);
+  let attempts = 0;
+  await page.route('**/api/players/uaiden/images/', route => {
+    if (route.request().method() !== 'POST') return route.fallback();
+    if (++attempts === 1) return route.fulfill({ status: 503, json: { error: 'Discord is limiting requests. Try again shortly.', retryAfter: 1 } });
+    return route.fallback();
+  });
+  await page.getByRole('button', { name: 'Images', exact: true }).click();
+  await page.getByLabel('Upload an image', { exact: true }).setInputFiles({ name: 'Build.gif', mimeType: 'image/gif', buffer: gif });
+  const retry = page.getByRole('button', { name: 'Retry upload', exact: true });
+  await expect(retry).toBeVisible(); await expect(retry).toBeDisabled();
+  expect(attempts).toBe(1);
+  await expect(retry).toBeEnabled(); await retry.click();
+  await expect(page.locator('#image-dialog')).toBeHidden(); expect(attempts).toBe(2);
+});

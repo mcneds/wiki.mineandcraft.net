@@ -47,7 +47,9 @@ For local editing, run `npm run build` then `npm run dev:worker` and open `http:
 
 After building and testing, run `npm run setup:discord` to verify the bot/application and role access. Run `npm run setup:discord -- --publish` to install all six values as Cloudflare secrets. This reads the ignored file and sends secrets through stdin; it does not print them. Authentication stays disabled until all fields are present.
 
-Every protected API request fetches current server membership and roles. A page's IGN must match a held role's name, ignoring capitalization; `@everyone` is excluded. No arbitrary claims by typed name or browser-supplied role lists are trusted. The configured owner can edit all player pages but must still be a server member. Use the IGN as the role name, without decorative text or prefixes. Holders of multiple IGN roles can edit each matching page. Other articles remain owner-edited through Git.
+Every protected API request fetches current server membership and roles using the bot's single-member and server-role endpoints. It does not consume the tightly limited OAuth membership endpoint; no member permissions are cached. A page's IGN must match a held role's name, ignoring capitalization; `@everyone` is excluded. No arbitrary claims by typed name or browser-supplied role lists are trusted. The configured owner can edit all player pages but must still be a server member. Use the IGN as the role name, without decorative text or prefixes. Holders of multiple IGN roles can edit each matching page. Other articles remain owner-edited through Git.
+
+Discord GET requests can retry once after a short, provider-specified cooldown; OAuth token exchanges are never automatically replayed. Longer rate limits return `DISCORD_RATE_LIMITED` and `Retry-After` timing. Errors distinguish bot configuration, membership, sign-in expiry, and temporary outages. Logs include only endpoint labels and HTTP statuses, never Discord credentials or response bodies.
 
 Player pages open in the Visual editor, with Markdown available as an alternate mode. Both edit the same Markdown draft; changing modes never publishes it. Unsupported Markdown stays in source mode. The editor is bundled locally and loaded only after selecting an editable page. Preview, conflicts, and revision restores use the same authenticated API as before.
 
@@ -62,6 +64,8 @@ npx wrangler r2 bucket create mineandcraft-wiki-media
 The `MEDIA` binding uses this private bucket. Files are served publicly through `/media/:id`, with validated raster MIME types and revalidation on every use. Uploads accept PNG, JPEG, WebP, and GIF, up to 5 MiB per file and 50 MiB per player page. GIF bytes are preserved, including animation. Limits include pending uploads; atomic D1 reservations prevent simultaneous requests from exceeding the quota. Uploads do not create page revisions. The scheduled cleanup retries incomplete uploads/deletions hourly.
 
 Players can upload, paste/drop files, reuse their own image library, insert HTTPS image URLs, and edit alt text. Removing an image from a draft does not delete its file. Deleting files is blocked while any current page references them; deleting an unused file can break images in older revisions. Image permissions are checked against current Discord IGN roles on every request; player-head replacement remains owner-only.
+
+Uploads show transfer progress and keep the selected file and unsaved draft after failures. Retry is explicit and respects any Discord cooldown. If sign-in expires, the dialog opens sign-in in another tab and refreshes its CSRF token before retrying. An upload already confirmed by storage is reused when retrying a failed insertion.
 
 The Video button embeds YouTube and Vimeo URLs. In Markdown, put `[Video](https://www.youtube.com/watch?v=VIDEO_ID)` in its own paragraph. Only validated provider URLs can create iframes; arbitrary iframe HTML stays escaped. Video files are not uploaded to R2.
 
