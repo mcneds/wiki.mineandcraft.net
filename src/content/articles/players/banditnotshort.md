@@ -24,5 +24,3 @@ No builds or projects have been documented here yet.
 
 - [All players](/players/)
 - [Getting started](/wiki/getting-started/)
-
-*In-game name and head image supplied by the server owner.*
