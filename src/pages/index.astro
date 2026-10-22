@@ -6,12 +6,12 @@ const players = articles.filter(a => a.data.category === 'Players');
 const stories = articles.filter(a => a.data.category === 'Lore').sort((a, b) => (b.data.date ?? '').localeCompare(a.data.date ?? ''));
 const newestStory = stories[0];
 const guides = [
-  { n: '01', title: 'Getting started', id: 'getting-started', text: 'Your first steps, server access, and playing together.' },
-  { n: '02', title: 'Homes & teleporting', id: 'travel', text: 'Set a home, return to spawn, and visit a friend.' },
-  { n: '03', title: 'Building & gathering', id: 'building', text: 'Timber, cauldron conversions, and helpful tools.' },
-  { n: '04', title: 'Graves & recovery', id: 'graves', text: 'Find your grave and get back on your feet.' },
-  { n: '05', title: 'Crafting tweaks', id: 'crafting-tweaks', text: 'The recipes that work a little differently here.' },
-  { n: '06', title: 'Heads & collectibles', id: 'collectibles', text: 'Mini blocks, mob heads, and treasures from the End.' },
+  { n: '01', title: 'Set a home & teleport', id: 'travel', text: 'Save a location with /trigger sethome, then return with /trigger home.' },
+  { n: '02', title: 'Chop trees & convert materials', id: 'building', text: 'Chop a tree with an axe. Drop concrete powder or dirt into a water cauldron to make concrete or mud.' },
+  { n: '03', title: 'Recover items from a grave', id: 'graves', text: 'Click your grave to retrieve the items saved when you died.' },
+  { n: '04', title: 'Use changed crafting recipes', id: 'crafting-tweaks', text: 'Smelt rotten flesh into leather, turn wool into string, and reclaim blocks from slabs or stairs.' },
+  { n: '05', title: 'Make mini blocks & collect heads', id: 'collectibles', text: 'Use a stonecutter to make mini blocks. Killing mobs gives a chance of a head drop.' },
+  { n: '06', title: 'Repair Mending equipment', id: 'trading-and-repairs', text: 'Sneak-right-click a Mending item to repair it using experience you already have.' },
 ];
 ---
 <WikiLayout title="mineandcraft.net" description="Guides, recipes, players, and lore for mineandcraft.net." home>
@@ -19,7 +19,7 @@ const guides = [
   <nav class="quick-nav" aria-label="Popular wiki sections"><a href="/category/guides/"><span class="quick-symbol" aria-hidden="true">⌘</span><span><strong>Player guides</strong><small>Make yourself at home</small></span></a><a href="/wiki/crafting-tweaks/"><span class="quick-symbol" aria-hidden="true">▦</span><span><strong>Crafting tweaks</strong><small>A few useful changes</small></span></a><a href="/players/"><span class="quick-symbol" aria-hidden="true">♙</span><span><strong>Our players</strong><small>The people behind the blocks</small></span></a><a href="/lore/"><span class="quick-symbol" aria-hidden="true">❧</span><span><strong>Lore</strong><small>Every world has a story</small></span></a></nav>
   <div class="home-columns">
     <div>
-      <section class="panel"><div class="panel-title"><h2>Life on the server</h2><a href="/category/guides/">All guides →</a></div><div class="panel-body guide-list">{guides.map(g => <div class="guide-item"><span class="guide-number">{g.n}</span><div><a href={articleUrl(g.id)}>{g.title}</a><p>{g.text}</p></div></div>)}</div><div class="panel-note">A familiar Minecraft world, with a few <a href="/wiki/mods-and-datapacks/">quality-of-life additions</a>.</div></section>
+      <section class="panel"><div class="panel-title"><h2>What's different</h2><a href="/category/guides/">All guides →</a></div><div class="panel-body guide-list">{guides.map(g => <div class="guide-item"><span class="guide-number">{g.n}</span><div><a href={articleUrl(g.id)}>{g.title}</a><p>{g.text}</p></div></div>)}</div></section>
       <section class="panel"><div class="panel-title"><h2>The people of mineandcraft.net</h2><a href="/players/">Meet everyone →</a></div><div class="panel-body"><p class="panel-intro">Every build starts with a player. Here are ours.</p><div class="profile-grid">{players.map(player => <a class="profile-tile" href={articleUrl(player.id)} title={player.data.title}><img src={player.data.image} width="56" height="56" alt={`${player.data.title}'s Minecraft head`} loading="lazy" /><span>{player.data.title}</span></a>)}</div></div></section>
     </div>
     <div>
