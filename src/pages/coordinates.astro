@@ -1,0 +1,54 @@
+---
+import WikiLayout from '../layouts/WikiLayout.astro';
+import '../styles/coordinates.css';
+import { PRESET_TAGS, DIMENSIONS } from '../../shared/coordinates.mjs';
+---
+<WikiLayout title="Coordinates" description="Player-submitted locations on mineandcraft.net." section="Coordinates">
+  <header class="page-heading players-heading"><h1 id="coordinate-title">Coordinates</h1><button id="add-coordinate" type="button" hidden>Add entry</button></header>
+  <p id="coordinate-back" hidden><a href="/coordinates/">All coordinates</a></p>
+  <form id="coordinate-filters" class="coordinate-filters" action="/coordinates/" role="search">
+    <label>Search<input name="q" type="search" maxlength="100" /></label>
+    <label>Tag<select name="tag" id="coordinate-tag-filter"><option value="">All tags</option>{PRESET_TAGS.map(tag => <option value={tag.toLowerCase()}>{tag}</option>)}</select></label>
+    <label>Dimension<select name="dimension"><option value="">All dimensions</option>{Object.entries(DIMENSIONS).map(([value, label]) => <option data-param="dimension" value={value}>{label}</option>)}</select></label>
+    <label>Access<select name="access"><option value="">All entries</option><option data-param="access" value="public">Public</option><option data-param="access" value="private">Private</option></select></label>
+    <label>Sort<select name="sort"><option value="">Name</option><option data-param="sort" value="updated">Recently updated</option></select></label>
+    <button type="submit">Search</button>
+  </form>
+  <p id="coordinate-count"></p>
+  <div id="coordinate-results"><p>No entries yet.</p></div>
+  <nav id="coordinate-pagination" aria-label="Coordinate pages"></nav>
+  <p id="coordinate-account-status" role="status" aria-live="polite"></p>
+  <button id="coordinate-check-access" type="button" hidden>Retry permission check</button>
+  <p><a id="coordinate-sign-in" href="/auth/login/?returnTo=/coordinates/">Sign in with Discord to submit an entry</a></p>
+  <section id="coordinate-editor" class="editor-section" hidden>
+    <h2 id="coordinate-editor-title">Add entry</h2>
+    <form id="coordinate-form">
+      <label for="coordinate-poster">Posting as</label><select id="coordinate-poster" required></select>
+      <label for="coordinate-name">Name</label><input id="coordinate-name" maxlength="80" required />
+      <label for="coordinate-access">Access</label><select id="coordinate-access"><option value="public">Public</option><option value="private">Private</option></select>
+      <p id="coordinate-private-note" hidden>Coordinates are not collected. Notes and images remain public and may reveal the location.</p>
+      <fieldset id="coordinate-location-fields"><legend>Location</legend>
+        <label for="coordinate-dimension">Dimension</label><select id="coordinate-dimension">{Object.entries(DIMENSIONS).map(([value, label]) => <option value={value}>{label}</option>)}</select>
+        <div class="coordinate-axes"><label>X<input id="coordinate-x" type="number" step="1" min="-30000000" max="30000000" required /></label><label>Y (optional)<input id="coordinate-y" type="number" step="1" min="-30000000" max="30000000" /></label><label>Z<input id="coordinate-z" type="number" step="1" min="-30000000" max="30000000" required /></label></div>
+      </fieldset>
+      <fieldset><legend>Tags</legend><div id="coordinate-presets" class="coordinate-presets">{PRESET_TAGS.map(tag => <label><input type="checkbox" value={tag.toLowerCase()} /> {tag}</label>)}</div><label for="coordinate-custom-tags">Custom tags (comma separated)</label><input id="coordinate-custom-tags" maxlength="200" placeholder="iron, xp" /></fieldset>
+      <label for="coordinate-notes">Notes</label><textarea id="coordinate-notes" rows="5" maxlength="2000"></textarea>
+      <fieldset><legend>Owners / builders (optional)</legend><div id="coordinate-owner-options" class="coordinate-presets"></div></fieldset>
+      <fieldset><legend>Image (optional)</legend>
+        <p id="coordinate-image-usage"></p>
+        <label for="coordinate-image-library">Image from posting profile</label><select id="coordinate-image-library"><option value="">No image</option></select>
+        <button id="coordinate-refresh-images" type="button">Refresh images</button>
+        <img id="coordinate-image-preview" alt="Selected image preview" width="240" hidden />
+        <label for="coordinate-image-alt">Alt text</label><input id="coordinate-image-alt" maxlength="300" />
+        <label for="coordinate-image-upload">Upload an image (PNG, JPEG, WebP, GIF; up to 5 MB)</label><input id="coordinate-image-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+        <progress id="coordinate-upload-progress" max="100" aria-label="Image upload progress" hidden></progress>
+        <p id="coordinate-upload-status" role="status" aria-live="polite"></p><button id="coordinate-retry-upload" type="button" hidden>Retry upload</button>
+        <a id="coordinate-upload-sign-in" href="/auth/login/?returnTo=/coordinates/" target="_blank" rel="noopener" hidden>Sign in with Discord</a>
+      </fieldset>
+      <p id="coordinate-form-status" role="status" aria-live="polite"></p>
+      <div class="editor-actions"><button type="submit" id="save-coordinate">Publish entry</button><button type="button" id="cancel-coordinate">Cancel</button><button type="button" id="delete-coordinate" hidden>Delete entry</button></div>
+    </form>
+  </section>
+  <noscript><p>Submitting entries requires JavaScript.</p></noscript>
+  <script>import '../scripts/coordinates.js';</script>
+</WikiLayout>

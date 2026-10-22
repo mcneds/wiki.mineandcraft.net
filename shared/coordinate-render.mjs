@@ -1,0 +1,8 @@
+import { DIMENSIONS, tagName } from './coordinates.mjs';
+const escape = value => String(value ?? '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[character]);
+const playerHtml = player => `<a href="${escape(player.url)}">${escape(player.name)}</a>`;
+export function entryHtml(entry, detail = false) {
+  const location = entry.access === 'public' ? `${DIMENSIONS[entry.dimension]} · X: ${entry.x}${entry.y === null ? '' : `, Y: ${entry.y}`}, Z: ${entry.z}` : 'Private';
+  return `<article class="coordinate-entry" data-entry-id="${entry.id}">${detail ? '' : `<h2><a href="${entry.url}">${escape(entry.name)}</a></h2>`}<p class="coordinate-location">${escape(location)}${entry.access === 'public' ? `<button type="button" class="copy-coordinates" data-coordinates="${entry.x} ${entry.y === null ? '~' : entry.y} ${entry.z}">Copy coordinates</button>` : ''}</p><p class="coordinate-tags">${entry.tags.map(tag => `<a href="/coordinates/?tag=${encodeURIComponent(tag)}">${escape(tagName(tag))}</a>`).join(' ')}</p>${detail ? `${entry.image ? `<img class="coordinate-image" src="${entry.image.url}" alt="${escape(entry.image.alt)}" loading="lazy" />` : ''}<p class="coordinate-notes">${escape(entry.notes)}</p>${entry.owners.length ? `<p>Owners / builders: ${entry.owners.map(playerHtml).join(', ')}</p>` : ''}<p class="muted">Submitted by ${playerHtml(entry.poster)} · Updated ${escape(entry.updated.slice(0, 10))}</p>` : ''}<button type="button" class="edit-coordinate" data-id="${entry.id}" hidden>Edit entry</button></article>`;
+}
+export const listHtml = result => result.entries.length ? result.entries.map(entry => entryHtml(entry)).join('') : '<p>No entries found.</p>';

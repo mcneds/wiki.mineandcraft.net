@@ -121,11 +121,13 @@ export async function login(request, env) {
   const address = request.headers.get('CF-Connecting-IP') || 'local';
   await limit(env, `login:${await hash(address)}`, 10, 600);
   const state = random();
+  const requestedReturn = new URL(request.url).searchParams.get('returnTo');
+  const returnTo = requestedReturn === '/coordinates/' ? requestedReturn : '/account/';
   await env.DB.batch([
     env.DB.prepare('DELETE FROM oauth_states WHERE expires<?').bind(now()),
     env.DB.prepare('DELETE FROM sessions WHERE expires<?').bind(now()),
     env.DB.prepare('DELETE FROM rate_limits WHERE expires<?').bind(now()),
-    env.DB.prepare('INSERT INTO oauth_states(token_hash,expires) VALUES (?,?)').bind(await hash(state), now() + 600),
+    env.DB.prepare('INSERT INTO oauth_states(token_hash,expires,return_to) VALUES (?,?,?)').bind(await hash(state), now() + 600, returnTo),
   ]);
   const url = new URL('https://discord.com/oauth2/authorize');
   url.search = new URLSearchParams({ client_id: env.DISCORD_CLIENT_ID, response_type: 'code', scope: 'identify guilds.members.read', redirect_uri: `${env.SITE_ORIGIN}/auth/callback/`, state }).toString();
@@ -136,7 +138,7 @@ export async function callback(request, env, fetcher) {
   const url = new URL(request.url);
   const state = url.searchParams.get('state');
   if (!state || state !== readCookie(request, env, 'oauth')) throw new HttpError(400, 'Sign-in expired. Please try again.');
-  const consumed = await env.DB.prepare('DELETE FROM oauth_states WHERE token_hash=? AND expires>? RETURNING token_hash').bind(await hash(state), now()).first();
+  const consumed = await env.DB.prepare('DELETE FROM oauth_states WHERE token_hash=? AND expires>? RETURNING token_hash,return_to').bind(await hash(state), now()).first();
   if (!consumed) throw new HttpError(400, 'Sign-in expired. Please try again.');
   if (url.searchParams.has('error') || !url.searchParams.get('code')) throw new HttpError(400, 'Discord sign-in was cancelled.');
   const credentials = await tokenRequest(env, fetcher, { grant_type: 'authorization_code', code: url.searchParams.get('code'), redirect_uri: `${env.SITE_ORIGIN}/auth/callback/` });
@@ -148,7 +150,7 @@ export async function callback(request, env, fetcher) {
   const csrf = random();
   await env.DB.prepare('INSERT INTO sessions(token_hash,user_id,display_name,credentials,csrf,expires) VALUES (?,?,?,?,?,?)')
     .bind(await hash(token), user.id, user.global_name || user.username, await seal(credentials, env), csrf, now() + 86400 * 7).run();
-  const headers = new Headers({ Location: `${env.SITE_ORIGIN}/account/`, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' });
+  const headers = new Headers({ Location: `${env.SITE_ORIGIN}${consumed.return_to === '/coordinates/' ? '/coordinates/' : '/account/'}`, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' });
   headers.append('Set-Cookie', cookie(env, 'session', token, 86400 * 7));
   headers.append('Set-Cookie', cookie(env, 'oauth', '', 0));
   return new Response(null, { status: 302, headers });

@@ -69,6 +69,18 @@ Uploads show transfer progress and keep the selected file and unsaved draft afte
 
 The Video button embeds YouTube and Vimeo URLs. In Markdown, put `[Video](https://www.youtube.com/watch?v=VIDEO_ID)` in its own paragraph. Only validated provider URLs can create iframes; arbitrary iframe HTML stays escaped. Video files are not uploaded to R2.
 
+### Coordinate directory
+
+`/coordinates/` is publicly readable, with text search, tag/dimension/access filters, pagination, and alphabetical or recently updated sorting. Each entry has a permanent `/coordinates/:id/` URL. Entries also appear in the main wiki search. Reading the directory and detail pages works without JavaScript.
+
+Players sign in with Discord and publish immediately using an existing player page matching an IGN role. Only the original Discord submitter with current authorization for that posting profile, or the configured owner, can edit/delete an entry. Optional linked owners/builders are attribution only. The posting profile cannot change. Writes require Origin, CSRF, a current version, and the existing write rate limit.
+
+Public locations contain a dimension, integer X/Z, and optional Y. Private listings do not collect a dimension or coordinates; their database columns must all be NULL, and their public responses omit these fields. Switching Public to Private clears location values. Notes, images, tags, and attribution remain public, so authors should check them for location clues. There is no coordinate revision history or hidden-coordinate store. Previously published information may already be known to readers.
+
+Entries support up to eight tags (24 characters each), an 80-character name, and 2,000 characters of plain-text notes. Farm, Build, Base, Shop, Portal, Transport, Landmark, and Resource are presets; custom tags are normalized to lowercase. Images use the posting profile's existing R2 library and shared 5 MiB file / 50 MiB profile limits. Upload progress, explicit retries, and drafts survive temporary errors. A referenced image cannot be deleted, including when attached to a Private listing; deleting the entry leaves its image in the library.
+
+The additive `0004_coordinates.sql` migration creates entries, tag/player relationships, transactional image-reference guards, and an allowlisted OAuth return path. The directory starts empty. Public APIs are `GET /api/coordinates/` and `GET /api/coordinates/:id/`; the authenticated editing context is `GET /api/coordinates/context/`. POST to the collection, PUT/DELETE to an entry. The context exposes editable entry IDs, never author Discord IDs. Entry forms require JavaScript.
+
 Writes also require the matching site origin, session CSRF token, and current page version. Discord outages deny editing. OAuth states are single-use and expire after ten minutes; sessions use HttpOnly, Secure, SameSite cookies and expire after seven days. Provider tokens are encrypted in D1. Saved changes retain revisions; restoring makes a new revision rather than erasing history.
 
 ## Content provenance

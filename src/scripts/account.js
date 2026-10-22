@@ -1,36 +1,16 @@
+import { createApi } from './api.js';
 import { createPageEditor } from './page-editor.js';
 const $ = selector => document.querySelector(selector);
 const accountStatus = $('#account-status');
 let account, player, lookupResult, changed = false, showAllPlayers = false;
 const message = text => { accountStatus.textContent = text; };
+const api = createApi({ csrf: () => account?.user?.csrf || '', onUnauthorized: () => { $('#discord-login').hidden = false; } });
 const editor = createPageEditor({ api, context: () => ({ account, player }), dirty: () => { changed = true; }, message, refreshSession: async () => {
   const result = await api('/api/me/');
   if (!result.user || result.user.denied) throw Object.assign(new Error(result.error || 'Sign in with Discord, then retry the upload.'), { status: result.user?.denied ? 403 : 401 });
   account = result; $('#discord-login').hidden = true;
 } });
-async function api(path, method = 'GET', body, { onProgress } = {}) {
-  const multipart = body instanceof FormData;
-  const headers = { ...(body && !multipart ? { 'Content-Type': 'application/json' } : {}), ...(method !== 'GET' ? { 'X-CSRF-Token': account?.user?.csrf || '' } : {}) };
-  const payload = body ? multipart ? body : JSON.stringify(body) : undefined;
-  const response = onProgress ? await new Promise((resolve, reject) => {
-    const request = new XMLHttpRequest(); request.open(method, path); request.withCredentials = true; request.timeout = 60000;
-    for (const [name, value] of Object.entries(headers)) request.setRequestHeader(name, value);
-    request.upload.onprogress = event => onProgress(event.loaded, event.lengthComputable ? event.total : 0);
-    request.onload = () => resolve(new Response(request.responseText, { status: request.status, headers: { 'Retry-After': request.getResponseHeader('Retry-After') || '' } }));
-    request.onerror = request.ontimeout = request.onabort = () => reject(new Error('The upload connection failed. Please retry.'));
-    request.send(payload);
-  }) : await fetch(path, {
-    method, credentials: 'same-origin',
-    headers, ...(payload ? { body: payload } : {}),
-  });
-  if (response.status === 204) return;
-  const result = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    if (response.status === 401) $('#discord-login').hidden = false;
-    throw Object.assign(new Error(result.error || 'The request could not be completed. Please try again.'), { status: response.status, code: result.code, retryAfter: Number(result.retryAfter || response.headers.get('Retry-After')) || 0 });
-  }
-  return result;
-}
+
 async function run(button, action) {
   if (button) button.disabled = true;
   try { await action(); } catch (error) { message(error.message || 'Please try again shortly.'); }

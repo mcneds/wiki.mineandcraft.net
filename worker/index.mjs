@@ -3,6 +3,8 @@ import { HttpError, configured, session, authorize, mayEdit, checkOrigin, checkC
 import { lookup, png } from './lookup.mjs';
 import { escape, render, article, card, tile, playerUrl, description, mediaReferences } from './content.mjs';
 import { images, publicImage, cleanupMedia } from './media.mjs';
+import { coordinateContext, coordinateList, coordinateDetail, coordinateWrite, entryHtml, listHtml } from './coordinates.mjs';
+import { tagName } from '../shared/coordinates.mjs';
 
 const json = (data, status = 200) => Response.json(data, { status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
 const allPlayers = async env => (await env.DB.prepare('SELECT slug,name,image,markdown,version,updated,edition,minecraft_id FROM players ORDER BY name COLLATE NOCASE').all()).results;
@@ -46,6 +48,10 @@ async function update(env, user, player, changes, expected) {
 async function api(request, env, fetcher) {
   const path = new URL(request.url).pathname;
   const method = request.method;
+  if (path === '/api/coordinates/context/' && method === 'GET') return coordinateContext(request, env, fetcher);
+  if (path === '/api/coordinates/' && method === 'GET') return json(await coordinateList(env, new URL(request.url).searchParams));
+  const coordinate = path.match(/^\/api\/coordinates\/([a-f0-9-]{36})\/$/);
+  if (coordinate && method === 'GET') return json(await coordinateDetail(env, coordinate[1]));
   if (path === '/api/me/' && method === 'GET') {
     const current = await session(request, env);
     if (!configured(env) || !current) return json({ configured: configured(env), user: null });
@@ -111,6 +117,10 @@ async function api(request, env, fetcher) {
     if (!mayEdit(user, player)) throw new HttpError(403, 'You need a Discord role matching this page’s IGN.');
     return images(request, env, user, player, media[2]);
   }
+  if (path === '/api/coordinates/' || coordinate) {
+    if ((path === '/api/coordinates/' && method !== 'POST') || (coordinate && !['PUT', 'DELETE'].includes(method))) throw new HttpError(405, 'This action is not supported.');
+    return coordinateWrite(request, env, user, coordinate?.[1], await input(request));
+  }
   const match = path.match(/^\/api\/players\/([a-z0-9_-]{1,50})\/(history\/|restore\/|identity\/|head\/)?$/);
   if (!match) throw new HttpError(404, 'Page not found.');
   const player = await getPlayer(env, match[1]);
@@ -174,6 +184,35 @@ async function html(request, env, template, main, title, player) {
 
 async function publicPage(request, env) {
   const path = new URL(request.url).pathname;
+  const coordinatePage = path.match(/^\/coordinates\/(?:([a-f0-9-]{36})\/)?$/);
+  if (coordinatePage) {
+    const params = new URL(request.url).searchParams;
+    const result = coordinatePage[1] ? null : await coordinateList(env, params);
+    const entry = coordinatePage[1] ? await coordinateDetail(env, coordinatePage[1]) : null;
+    const base = await env.ASSETS.fetch(new Request(new URL('/coordinates/', request.url)));
+    const headers = new Headers(base.headers);
+    headers.set('Cache-Control', 'no-store'); headers.delete('ETag'); headers.delete('Content-Length'); headers.delete('Content-Encoding');
+    const title = entry ? entry.name : 'Coordinates';
+    const rewrite = new HTMLRewriter()
+      .on('#coordinate-title', { element(e) { e.setInnerContent(escape(title), { html: true }); } })
+      .on('title', { element(e) { e.setInnerContent(`${title} — mineandcraft.net`); } })
+      .on('meta[property="og:title"]', { element(e) { e.setAttribute('content', `${title} — mineandcraft.net`); } })
+      .on('link[rel="canonical"]', { element(e) { e.setAttribute('href', env.SITE_ORIGIN + path); } })
+      .on('.article-tabs .selected', { element(e) { e.setAttribute('href', path); } })
+      .on('#coordinate-results', { element(e) { e.setInnerContent(entry ? entryHtml(entry, true) : listHtml(result), { html: true }); } })
+      .on('#coordinate-count', { element(e) { e.setInnerContent(entry ? '' : `${result.total} ${result.total === 1 ? 'entry' : 'entries'}`); } })
+      .on('#coordinate-back', { element(e) { if (entry) e.removeAttribute('hidden'); } })
+      .on('#coordinate-filters', { element(e) { if (entry) e.setAttribute('hidden', ''); } })
+      .on('#coordinate-filters input[name="q"]', { element(e) { e.setAttribute('value', params.get('q') || ''); } })
+      .on('#coordinate-filters option[data-param]', { element(e) { if (e.getAttribute('value') === (params.get(e.getAttribute('data-param')) || '')) e.setAttribute('selected', ''); } })
+      .on('#coordinate-tag-filter', { element(e) { if (result) e.setInnerContent('<option value="">All tags</option>' + result.tags.map(tag => `<option value="${escape(tag)}"${params.get('tag') === tag ? ' selected' : ''}>${escape(tagName(tag))}</option>`).join(''), { html: true }); } })
+      .on('#coordinate-pagination', { element(e) {
+        if (!result || result.pages <= 1) return;
+        const link = (page, label) => { const query = new URLSearchParams(params); query.set('page', String(page)); return `<a href="/coordinates/?${escape(query.toString())}">${label}</a>`; };
+        e.setInnerContent(`${result.page > 1 ? link(result.page - 1, 'Previous') : ''} <span>Page ${result.page} of ${result.pages}</span> ${result.page < result.pages ? link(result.page + 1, 'Next') : ''}`, { html: true });
+      } });
+    return rewrite.transform(new Response(base.body, { status: base.status, headers }));
+  }
   const media = path.match(/^\/media\/([a-f0-9-]{36})$/);
   if (media) return publicImage(request, env, media[1]);
   const source = path.match(/^\/source\/players\/([a-z0-9_-]+)\.txt$/);
@@ -218,7 +257,7 @@ export function createHandler(fetcher = (...args) => fetch(...args)) {
     const url = new URL(request.url);
     try {
       const path = url.pathname;
-      const publicApi = path === '/api/players/' && request.method === 'GET';
+      const publicApi = request.method === 'GET' && (path === '/api/players/' || path === '/api/coordinates/' || /^\/api\/coordinates\/[a-f0-9-]{36}\/$/.test(path));
       if ((path.startsWith('/auth/') || (path.startsWith('/api/') && !publicApi)) && url.origin !== env.SITE_ORIGIN) throw new HttpError(403, 'Use the wiki’s main address to sign in and edit.');
       if (path === '/auth/login/' && request.method === 'GET') return await login(request, env);
       if (path === '/auth/callback/' && request.method === 'GET') return await callback(request, env, fetcher);
@@ -233,6 +272,7 @@ export function createHandler(fetcher = (...args) => fetch(...args)) {
       if (!['GET', 'HEAD'].includes(request.method)) throw new HttpError(405, 'This action is not supported.');
       // Match the existing trailing-slash convention for database-backed pages too.
       if (/^\/wiki\/players\/[^/.]+$/.test(path)) return Response.redirect(new URL(path + '/', request.url).href, 308);
+      if (/^\/coordinates(?:\/[a-f0-9-]{36})?$/.test(path)) return Response.redirect(new URL(path + '/', request.url).href, 308);
       const response = await publicPage(request, env);
       if (request.method === 'HEAD') return new Response(null, { status: response.status, headers: response.headers });
       return response;

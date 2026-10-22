@@ -14,6 +14,7 @@ function fixture(t) {
   sqlite.exec(readFileSync('migrations/0001_accounts.sql', 'utf8'));
   sqlite.exec(readFileSync('migrations/0002_initial_players.sql', 'utf8'));
   sqlite.exec(readFileSync('migrations/0003_media.sql', 'utf8'));
+  sqlite.exec(readFileSync('migrations/0004_coordinates.sql', 'utf8'));
   t.after(() => sqlite.close());
   class Statement {
     constructor(sql, values = []) { this.sql = sql; this.values = values; }
@@ -425,4 +426,99 @@ test('video embeds accept only provider URLs and raw iframes remain escaped', ()
   assert.match(result.html, /src="https:\/\/www.youtube-nocookie.com\/embed\/dQw4w9WgXcQ"/);
   assert.match(result.html, /src="https:\/\/player.vimeo.com\/video\/76979871"/);
   assert.doesNotMatch(result.html, /<iframe src="https:\/\/evil/);
+});
+
+const entryData = (extra = {}) => ({ name: 'Iron farm', access: 'public', dimension: 'overworld', x: -120, y: 80, z: 450, notes: 'Use the collection chest.', tags: ['Farm', 'IRON', 'iron'], owners: ['apokefish'], posterSlug: 'uaiden', imageId: null, imageAlt: '', ...extra });
+test('verified players publish searchable coordinates and attribution without exposing Discord IDs', async t => {
+  const f = fixture(t), user = await f.login();
+  assert.equal((await f.request('/api/coordinates/', { method: 'POST' })).status, 401);
+  const response = await user.call('/api/coordinates/', 'POST', entryData()); assert.equal(response.status, 201);
+  const entry = await response.json();
+  assert.deepEqual(entry.tags, ['farm', 'iron']); assert.equal(entry.owners[0].name, 'apokefish'); assert.equal(entry.poster.name, 'uaiden');
+  assert.equal(JSON.stringify(entry).includes(MEMBER), false); assert.equal(entry.author_id, undefined);
+  assert.equal((await f.request(`/api/coordinates/${entry.id}/`)).status, 200);
+  for (const query of ['q=IRON', 'q=apokefish', 'tag=farm', 'dimension=overworld', 'access=public', 'sort=updated']) {
+    const result = await (await f.request('/api/coordinates/?' + query)).json(); assert.equal(result.total, 1);
+  }
+  assert.equal((await (await f.request('/api/coordinates/?dimension=nether')).json()).total, 0);
+  assert.equal((await (await f.request('/api/coordinates/?tag=%27%20OR%201%3D1--')).json()).total, 0);
+  const context = await (await user.call('/api/coordinates/context/')).json();
+  assert.deepEqual(context.editableIds, [entry.id]); assert.equal(context.postingPlayers[0].slug, 'uaiden');
+  assert.equal(f.sqlite.prepare('SELECT count(*) n FROM coordinate_tags').get().n, 2);
+});
+
+test('private entries never store location values, and making a public entry private clears them atomically', async t => {
+  const f = fixture(t), user = await f.login();
+  assert.equal((await user.call('/api/coordinates/', 'POST', entryData({ access: 'private' }))).status, 400);
+  const body = entryData({ access: 'private' }); for (const key of ['dimension', 'x', 'y', 'z']) delete body[key];
+  const privateEntry = await (await user.call('/api/coordinates/', 'POST', body)).json();
+  for (const key of ['dimension', 'x', 'y', 'z']) assert.equal(Object.hasOwn(privateEntry, key), false);
+  const saved = f.sqlite.prepare('SELECT dimension,x,y,z FROM coordinate_entries WHERE id=?').get(privateEntry.id);
+  assert.ok(Object.values(saved).every(value => value === null));
+  const pub = await (await user.call('/api/coordinates/', 'POST', entryData({ name: 'Changing base', x: 18765432, z: -19876543 }))).json();
+  const updated = await user.call(`/api/coordinates/${pub.id}/`, 'PUT', { ...body, version: 1, tags: ['base'], owners: [] }); assert.equal(updated.status, 200);
+  const record = f.sqlite.prepare('SELECT dimension,x,y,z FROM coordinate_entries WHERE id=?').get(pub.id);
+  assert.ok(Object.values(record).every(value => value === null));
+  const list = await (await f.request('/api/coordinates/?access=private')).json();
+  assert.equal(JSON.stringify(list).includes('18765432'), false);
+  assert.equal(f.sqlite.prepare('SELECT count(*) n FROM coordinate_tags WHERE entry_id=?').get(pub.id).n, 1);
+  assert.equal(f.sqlite.prepare('SELECT count(*) n FROM coordinate_owners WHERE entry_id=?').get(pub.id).n, 0);
+});
+
+test('entry edits require the original submitter and current IGN role, with owner override and version conflicts', async t => {
+  const f = fixture(t), user = await f.login(), other = await f.login(OTHER), owner = await f.login(OWNER);
+  const entry = await (await user.call('/api/coordinates/', 'POST', entryData())).json();
+  assert.equal((await other.call(`/api/coordinates/${entry.id}/`, 'PUT', { ...entryData(), version: 1 })).status, 403);
+  f.memberships.set(OTHER, ['role-uaiden']);
+  assert.equal((await other.call(`/api/coordinates/${entry.id}/`, 'DELETE', { version: 1 })).status, 403);
+  assert.deepEqual((await (await other.call('/api/coordinates/context/')).json()).editableIds, []);
+  assert.equal((await user.call(`/api/coordinates/${entry.id}/`, 'PUT', { ...entryData({ notes: 'New notes' }), version: 1 })).status, 200);
+  assert.equal((await user.call(`/api/coordinates/${entry.id}/`, 'PUT', { ...entryData({ tags: ['stale'] }), version: 1 })).status, 409);
+  assert.equal(f.sqlite.prepare("SELECT count(*) n FROM coordinate_tags WHERE tag='stale'").get().n, 0);
+  f.memberships.set(MEMBER, []);
+  assert.equal((await user.call(`/api/coordinates/${entry.id}/`, 'PUT', { ...entryData(), version: 2 })).status, 403);
+  assert.equal((await owner.call(`/api/coordinates/${entry.id}/`, 'PUT', { ...entryData({ posterSlug: 'apokefish' }), version: 2 })).status, 400);
+  assert.equal((await owner.call(`/api/coordinates/${entry.id}/`, 'DELETE', { version: 1 })).status, 409);
+  assert.equal((await owner.call(`/api/coordinates/${entry.id}/`, 'DELETE', { version: 2 })).status, 200);
+  assert.equal(f.sqlite.prepare('SELECT count(*) n FROM coordinate_tags').get().n, 0);
+  assert.equal(f.sqlite.prepare('SELECT count(*) n FROM coordinate_owners').get().n, 0);
+  assert.equal((await f.request(`/api/coordinates/${entry.id}/`)).status, 404);
+});
+
+test('coordinate attachments share the posting profile quota and interlock atomically with file deletion', async t => {
+  const f = fixture(t), user = await f.login(), other = await f.login(OTHER);
+  const { image } = await (await upload(f, user)).json();
+  const { image: foreign } = await (await upload(f, other, gif, 'apokefish')).json();
+  assert.equal((await user.call('/api/coordinates/', 'POST', entryData({ imageId: foreign.id }))).status, 409);
+  const response = await user.call('/api/coordinates/', 'POST', entryData({ imageId: image.id, imageAlt: 'The farm' })); assert.equal(response.status, 201);
+  const entry = await response.json(); assert.equal(entry.image.url, image.url);
+  assert.equal(f.sqlite.prepare("SELECT bytes FROM media_usage WHERE slug='uaiden'").get().bytes, gif.length);
+  assert.equal((await user.call(`/api/players/uaiden/images/${image.id}/`, 'DELETE')).status, 409);
+  const privateBody = entryData({ access: 'private', imageId: image.id, version: 1 }); for (const field of ['dimension', 'x', 'y', 'z']) delete privateBody[field];
+  assert.equal((await user.call(`/api/coordinates/${entry.id}/`, 'PUT', privateBody)).status, 200);
+  assert.equal((await user.call(`/api/players/uaiden/images/${image.id}/`, 'DELETE')).status, 409);
+  assert.equal((await user.call(`/api/coordinates/${entry.id}/`, 'DELETE', { version: 2 })).status, 200);
+  assert.equal(f.objects.has(`uaiden/${image.id}`), true);
+  assert.equal((await user.call(`/api/players/uaiden/images/${image.id}/`, 'DELETE')).status, 200);
+  assert.equal((await user.call('/api/coordinates/', 'POST', entryData({ imageId: image.id }))).status, 409);
+});
+
+test('coordinate validation and mutations enforce shape, CSRF, and guild membership', async t => {
+  const f = fixture(t), user = await f.login();
+  for (const extra of [{ name: '' }, { tags: [] }, { tags: ['x'.repeat(25)] }, { x: 0.5 }, { z: null }, { dimension: 'other' }, { owners: ['unknown'] }]) assert.equal((await user.call('/api/coordinates/', 'POST', entryData(extra))).status, 400);
+  assert.equal((await user.call('/api/coordinates/', 'POST', entryData(), { 'X-CSRF-Token': 'bad' })).status, 403);
+  assert.equal((await user.call('/api/coordinates/', 'POST', entryData(), { Origin: 'https://evil.test' })).status, 403);
+  f.memberships.delete(MEMBER);
+  assert.equal((await user.call('/api/coordinates/', 'POST', entryData())).status, 403);
+});
+
+test('coordinate login return paths are allowlisted and tied to single-use OAuth state', async t => {
+  const f = fixture(t);
+  for (const [destination, expected] of [['/coordinates/', '/coordinates/'], ['https://evil.test', '/account/'], ['//evil.test', '/account/']]) {
+    const start = await f.request('/auth/login/?returnTo=' + encodeURIComponent(destination));
+    const state = new URL(start.headers.get('Location')).searchParams.get('state');
+    const cookie = start.headers.get('Set-Cookie').split(';')[0];
+    const callback = await f.request(`/auth/callback/?code=${MEMBER}&state=${state}`, { headers: { Cookie: cookie } });
+    assert.equal(callback.headers.get('Location'), f.env.SITE_ORIGIN + expected);
+  }
 });

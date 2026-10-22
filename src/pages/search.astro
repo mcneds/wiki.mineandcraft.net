@@ -22,20 +22,21 @@ import WikiLayout from '../layouts/WikiLayout.astro';
         searchModule ??= import('/pagefind/pagefind.js');
         const pagefind = await searchModule;
         const result = await pagefind.search(query);
-        const [indexed, live] = await Promise.all([
+        const [indexed, live, coordinates] = await Promise.all([
           Promise.all(result.results.slice(0, 30).map(r => r.data())),
           fetch(`/api/players/?q=${encodeURIComponent(query)}`).then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch(`/api/coordinates/?q=${encodeURIComponent(query)}`).then(r => r.ok ? r.json() : null).catch(() => null),
         ]);
-        const pages = live ? [
+        const pages = [...(live ? [
           ...indexed.filter(page => !new URL(page.url, location.href).pathname.startsWith('/wiki/players/')),
           ...live.players.map(player => ({ url: player.url, meta: { title: player.name }, excerpt: player.excerpt })),
-        ] : indexed;
+        ] : indexed), ...(coordinates?.entries || []).map(entry => ({ url: entry.url, meta: { title: entry.name }, excerpt: entry.notes }))];
         if (current !== generation) return;
         status.textContent = pages.length ? `${pages.length} ${pages.length === 1 ? 'result' : 'results'} for “${query}”${pages.length > 30 ? ' (showing the first 30)' : ''}.` : `No results for “${query}”. Try another word or browse All pages.`;
         for (const page of pages.slice(0, 30)) {
           const li = document.createElement('li');
           const a = document.createElement('a'); a.href = page.url; a.textContent = page.meta.title || page.url;
-          const p = document.createElement('p'); p.textContent = page.url.startsWith('/wiki/players/') && live ? page.excerpt : new DOMParser().parseFromString(page.excerpt, 'text/html').body.textContent;
+          const p = document.createElement('p'); p.textContent = (page.url.startsWith('/wiki/players/') && live) || page.url.startsWith('/coordinates/') ? page.excerpt : new DOMParser().parseFromString(page.excerpt, 'text/html').body.textContent;
           li.append(a,p); list.append(li);
         }
       } catch { if (current === generation) status.textContent = 'Search is unavailable right now. Use All pages to browse, or try again shortly.'; }
