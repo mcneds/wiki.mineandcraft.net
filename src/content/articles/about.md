@@ -14,8 +14,6 @@ The wiki is public to read. Its pages are maintained by the server owner. If you
 
 The initial guides use the owner's server information, supplied mod and datapack inventory, official project documentation, and the uploaded crafting-tweaks archive. Where a setting has not been checked on the running server, the relevant article says so.
 
-Player names and head images come from the owner's supplied roster. Biographies, join dates, builds, and events are added only when information is provided. An unwritten history is left unwritten.
-
 ## Credits
 
 - Player head images supplied by the server owner.
