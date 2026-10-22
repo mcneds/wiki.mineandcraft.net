@@ -4,14 +4,7 @@ description: "starlitsiren06's player page on mineandcraft.net."
 category: "Players"
 updated: "2026-10-22"
 image: "/images/players/starlitsiren06.png"
-facts:
-  - label: "In-game name"
-    value: "starlitsiren06"
-  - label: "Community"
-    value: "mineandcraft.net"
 ---
-**starlitsiren06** is a player in the mineandcraft.net community.
-
 ## About
 
 This player's story has not been recorded yet.

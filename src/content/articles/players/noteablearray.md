@@ -4,14 +4,7 @@ description: "noteablearray's player page on mineandcraft.net."
 category: "Players"
 updated: "2026-10-22"
 image: "/images/players/noteablearray.png"
-facts:
-  - label: "In-game name"
-    value: "noteablearray"
-  - label: "Community"
-    value: "mineandcraft.net"
 ---
-**noteablearray** is a player in the mineandcraft.net community.
-
 ## About
 
 This player's story has not been recorded yet.

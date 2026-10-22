@@ -16,7 +16,7 @@ const section = article.data.category === 'Players' ? 'Players' : article.data.c
     <div class="article-layout">
       <div class="article-body"><Content /></div>
       <aside class="article-rail" data-pagefind-ignore>
-        {(article.data.image || article.data.facts.length > 0) && <section class="infobox"><h2>{article.data.title}</h2>{article.data.image && <img class="player-head" src={article.data.image} alt={`${article.data.title}'s Minecraft head`} width="200" height="200" />}<dl>{article.data.facts.map(f => <div><dt>{f.label}</dt><dd>{f.value}</dd></div>)}</dl></section>}
+        {(article.data.image || article.data.facts.length > 0) && <section class="infobox"><h2>{article.data.title}</h2>{article.data.image && <img class="player-head" src={article.data.image} alt={`${article.data.title}'s Minecraft head`} width="200" height="200" />}{article.data.facts.length > 0 && <dl>{article.data.facts.map(f => <div><dt>{f.label}</dt><dd>{f.value}</dd></div>)}</dl>}</section>}
         {headings.length > 0 && <nav class="contents" aria-label="Article contents"><h2>CONTENTS</h2><ol>{headings.filter(h => h.depth <= 3).map(h => <li class={`depth-${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol></nav>}
         <p class="article-meta">Last updated<br /><time datetime={article.data.updated}>{new Date(article.data.updated + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}</time></p>
       </aside>

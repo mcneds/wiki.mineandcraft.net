@@ -4,14 +4,7 @@ description: "highlandyal12's player page on mineandcraft.net."
 category: "Players"
 updated: "2026-10-22"
 image: "/images/players/highlandyal12.png"
-facts:
-  - label: "In-game name"
-    value: "highlandyal12"
-  - label: "Community"
-    value: "mineandcraft.net"
 ---
-**highlandyal12** is a player in the mineandcraft.net community.
-
 ## About
 
 This player's story has not been recorded yet.

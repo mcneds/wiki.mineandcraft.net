@@ -4,14 +4,7 @@ description: "bobzbbob's player page on mineandcraft.net."
 category: "Players"
 updated: "2026-10-22"
 image: "/images/players/bobzbbob.png"
-facts:
-  - label: "In-game name"
-    value: "bobzbbob"
-  - label: "Community"
-    value: "mineandcraft.net"
 ---
-**bobzbbob** is a player in the mineandcraft.net community.
-
 ## About
 
 This player's story has not been recorded yet.
