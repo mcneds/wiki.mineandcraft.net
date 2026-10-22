@@ -33,6 +33,8 @@ Each article starts with title, description, category, and an ISO `updated` date
 - Use links such as `[Homes](/wiki/travel/)`. The build fails on broken internal links.
 - Change connection information in `src/content/articles/getting-started.md`.
 
+Recipe diagrams use a fenced `recipe` block with a recipe ID on the next line, for example `minecraft:oak_stairs`. See `crafting-tweaks.md` for examples. The build renders these blocks as crafting grids or furnace/process diagrams; unknown recipe IDs fail the build. IDs and exact ingredient/output data live in `src/data/recipes.json`.
+
 No CMS, database, or web-editing credentials are required. Page source is public read-only Markdown; it contains article text, never environment variables or server configurations.
 
 ## Content provenance
@@ -48,7 +50,9 @@ Crafting documentation was derived from the supplied `VanillaTweaks_c223234_MC26
 python scripts/import-roster-and-recipes.py 'C:/path/to/MACNET'
 ```
 
-The importer preserves existing biographies and regenerates `recipe-reference.md`. Review `crafting-tweaks.md` if the archive changes. The selection screenshot showed Craftable Horse Armor, but the supplied archive does not contain that recipe.
+The importer preserves existing biographies and regenerates the recipe data and visual reference. Review `crafting-tweaks.md` if the archive changes. The selection screenshot showed Craftable Horse Armor, but the supplied archive does not contain that recipe.
+
+To regenerate just recipe data and the reference, run `python scripts/import-recipes.py PATH_TO_ZIP`. Item renders are downloaded once from the pinned source commit listed in `public/images/items/CREDITS.txt` and served locally; builds and page views never depend on the image provider. Existing cached PNGs are reused.
 
 Bedrock port, current supported client versions, mod activation, server-specific limits, and historical player details remain unconfirmed. The articles mark these limits rather than inventing information.
 
@@ -59,7 +63,7 @@ npm run build
 npm test
 ```
 
-Tests use installed Microsoft Edge on Windows and Playwright Chromium in CI. For another local browser, set `PLAYWRIGHT_CHANNEL=chrome`; or set `CI=true` after `npx playwright install chromium` to use the downloaded Chromium. Tests cover desktop/mobile navigation, player pages, search, appearance persistence, and missing-page behavior. Screenshots go to ignored `test-results/`.
+Tests use installed Microsoft Edge on Windows and Playwright Chromium in CI. For another local browser, set `PLAYWRIGHT_CHANNEL=chrome`; or set `CI=true` after `npx playwright install chromium` to use the downloaded Chromium. Tests cover desktop/mobile navigation, player pages, search, appearance persistence, recipe ingredients/quantities/images, and missing-page behavior. Screenshots go to ignored `test-results/`.
 
 ## Publish to Cloudflare
 

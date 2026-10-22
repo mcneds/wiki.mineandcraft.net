@@ -13,35 +13,25 @@ facts:
   - label: "Recipe definitions"
     value: "409"
 ---
-These recipes come from the actual **VanillaTweaks_c223234_MC26.3.zip** supplied by the owner. Its selection list contains **11 tweaks**, and its recipe files define the inputs and quantities documented below.
-
-## Quick reference
-
-| Tweak | Example input | Output |
-| --- | --- | --- |
-| Double Slabs | 1 andesite block | 2 andesite slabs |
-| Rotten Flesh to Leather | Smelt 1 rotten flesh | 1 leather |
-| More Bricks | 4 bricks in a square | 4 brick blocks |
-| More Stairs | 6 oak planks in a stair pattern | 8 oak stairs |
-| More Trapdoors | 6 oak planks in two full rows | 12 oak trapdoors |
-| Craftable Enchanted Golden Apples | Apple surrounded by 8 gold blocks | 1 enchanted golden apple |
-| Unpackable Ice | 1 packed ice / 1 blue ice | 9 ice / 9 packed ice |
-| Unpackable Wool | 1 wool | 4 string |
-| Craftable Gravel | 4 flint in a square | 1 gravel |
-| Back to Blocks | 2 matching slabs side by side / 4 matching stairs | 1 / 3 original blocks |
-| Powder to Glass | Smelt 1 colored concrete powder | 1 matching stained glass |
-
-The building examples above are representative recipes, not a claim that every block variant has the same recipe. See the [complete recipe reference](/wiki/recipe-reference/) for every definition in the supplied archive.
+[All recipes and block variants](/wiki/recipe-reference/).
 
 ## Double Slabs
 
 Put a supported full block into the crafting grid on its own to make **two slabs**. For example, one andesite block produces two andesite slabs. This is a shapeless recipe.
 
+```recipe
+minecraft:slabs/andesite_slab
+```
+
 This crafting tweak is separate from [KleeSlabs](/wiki/building/#kleeslabs), which changes how double slabs break in the world.
 
 ## Rotten Flesh to Leather
 
-Smelt **rotten flesh in a furnace** to get leather. Each input produces one leather. The supplied recipe specifies 200 cooking ticks and 1.0 experience; it does not include a smoker variant.
+Smelt **rotten flesh in a furnace** to get leather.
+
+```recipe
+rotten_flesh_to_leather:leather
+```
 
 ## More building materials
 
@@ -49,45 +39,65 @@ Smelt **rotten flesh in a furnace** to get leather. Each input produces one leat
 
 Arrange four brick items in a 2×2 square to get **four brick blocks**.
 
-### More Stairs
-
-The familiar six-block stair pattern produces **eight stairs** for the covered recipes. For oak, use six oak planks:
-
-```text
-P · ·
-P P ·
-P P P
+```recipe
+minecraft:bricks
 ```
 
-`P` is an oak plank and `·` is an empty slot.
+### More Stairs
+
+Use the normal stair pattern to make **eight stairs** from six blocks.
+
+```recipe
+minecraft:oak_stairs
+```
 
 ### More Trapdoors
 
 Two full rows of oak planks produce **12 oak trapdoors**. Other covered wood variants follow the same output. The archive's copper trapdoor recipe is different: **four copper ingots in a square produce one copper trapdoor**.
 
+```recipe
+minecraft:oak_trapdoor
+```
+
+```recipe
+minecraft:copper_trapdoor
+```
+
 ## Craftable enchanted golden apples
 
 Place an apple in the center of the crafting table and surround it with **eight gold blocks**:
 
-```text
-G G G
-G A G
-G G G
+```recipe
+craftable_notch_apples:notch_apple
 ```
-
-`G` is a gold block, not a gold ingot. `A` is an apple. The result is one enchanted golden apple.
 
 ## Unpackable Ice
 
 Place one packed ice in the grid to recover **nine ice**. Place one blue ice in the grid to recover **nine packed ice**. Both unpacking recipes are shapeless.
 
+```recipe
+uncraftable_ice:ice
+```
+
+```recipe
+uncraftable_ice:packed_ice
+```
+
 ## Unpackable Wool
 
 One wool block produces **four string** in a shapeless recipe. The recipe accepts items in the wool tag.
 
+```recipe
+wool_to_string:string
+```
+
 ## Craftable Gravel
 
 Arrange **four flint** in a 2×2 square to craft **one gravel**.
+
+```recipe
+flint_to_gravel:gravel
+```
 
 ## Back to Blocks
 
@@ -98,9 +108,21 @@ Reclaim full blocks from supported slabs and stairs:
 
 For example, two oak slabs produce one oak plank block. Four brick stairs produce three brick blocks.
 
+```recipe
+slabs_stairs_to_block:slabs/oak_planks
+```
+
+```recipe
+slabs_stairs_to_block:stairs/bricks
+```
+
 ## Powder to Glass
 
-Smelt colored concrete powder in a furnace to get the **same color of stained glass**. One white concrete powder, for example, produces one white stained glass. The recipe specifies 200 cooking ticks and 0.1 experience.
+Smelt colored concrete powder in a furnace to get the **same color of stained glass**.
+
+```recipe
+powder_to_glass:white_stained_glass
+```
 
 ## What is not in this bundle?
 

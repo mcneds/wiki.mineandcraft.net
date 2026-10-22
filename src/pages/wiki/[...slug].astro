@@ -12,7 +12,7 @@ const section = article.data.category === 'Players' ? 'Players' : article.data.c
 <WikiLayout title={article.data.title} description={article.data.description} source={`/source/${article.id}.txt`} section={section}>
   <article data-pagefind-body>
     <div class="page-kicker"><a href="/">Main page</a> <span aria-hidden="true"> / </span> <a href={`/category/${article.data.category.toLowerCase()}/`}>{article.data.category}</a></div>
-    <header class="page-heading"><h1 data-pagefind-meta="title">{article.data.title}</h1><p>From mineandcraft.net, the server wiki</p></header>
+    <header class="page-heading"><h1 data-pagefind-meta="title">{article.data.title}</h1></header>
     <div class="article-layout">
       <div class="article-body"><Content /></div>
       <aside class="article-rail" data-pagefind-ignore>

@@ -18,6 +18,10 @@ The **Chunk Loaders** datapack adds a “loadstone”: a lodestone that keeps it
 1. Place a **lodestone** in the chunk you want to keep loaded.
 2. **Drop a nether star above the lodestone** to turn it into a chunk loader.
 
+```recipe
+conversion:loadstone
+```
+
 This is the Vanilla Tweaks datapack mechanic, not a recipe or interface from a similarly named mod.
 
 ## Remove a loadstone

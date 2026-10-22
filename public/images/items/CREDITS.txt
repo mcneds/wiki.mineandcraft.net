@@ -1,0 +1,4 @@
+Minecraft item renders: https://github.com/Owen1212055/mc-assets
+Pinned source commit: 798494f03c20bbb577dd7fcd10e8737dbc0dfc0a
+Original inventory renders by Owen1212055, copied unchanged.
+Minecraft textures and item designs belong to Mojang/Microsoft.

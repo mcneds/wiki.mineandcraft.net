@@ -55,7 +55,7 @@ test('article contents, readable source, and empty Lore are honest', async ({ pa
   await expect(page.getByRole('heading', { level: 1 })).toContainText("There isn't a page here");
 });
 
-test('long recipe tables stay within the page and guide layout is readable', async ({ page }, testInfo) => {
+test('recipe reference stays within the page and guide layout is readable', async ({ page }, testInfo) => {
   await page.goto('/wiki/recipe-reference/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Recipe reference');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
@@ -64,4 +64,33 @@ test('long recipe tables stay within the page and guide layout is readable', asy
   const commandColor = await page.locator('.article-body pre span').first().evaluate(element => getComputedStyle(element).color);
   expect(commandColor).toBe(await page.evaluate(() => getComputedStyle(document.body).color));
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+});
+
+test('recipe grids show ingredient positions, outputs, and furnace processing', async ({ page }, testInfo) => {
+  await page.goto('/wiki/crafting-tweaks/');
+  const stairs = page.locator('[data-recipe-id="minecraft:oak_stairs"]');
+  await expect(stairs.locator('.crafting-grid .recipe-slot:not(.empty)')).toHaveCount(6);
+  const occupied = await stairs.locator('.crafting-grid .recipe-slot').evaluateAll(slots => slots.flatMap((slot, index) => slot.querySelector('img') ? [index] : []));
+  expect(occupied).toEqual([0, 3, 4, 6, 7, 8]);
+  await expect(stairs.locator('.recipe-output .recipe-count')).toHaveText('8');
+  const apple = page.locator('[data-recipe-id="craftable_notch_apples:notch_apple"]');
+  await expect(apple.locator('.crafting-grid').getByRole('img', { name: 'Gold Block', exact: true })).toHaveCount(8);
+  await expect(apple.locator('.crafting-grid .recipe-slot').nth(4).getByRole('img')).toHaveAttribute('alt', 'Apple');
+  const furnace = page.locator('[data-recipe-id="rotten_flesh_to_leather:leather"]');
+  await expect(furnace.locator('.crafting-grid')).toHaveCount(0);
+  await expect(furnace.locator('.recipe-method')).toHaveText('Furnace');
+  await expect(furnace.locator('.recipe-output img')).toHaveAttribute('alt', 'Leather');
+  await page.locator('.recipe-item').evaluateAll(images => images.forEach(image => (image as HTMLImageElement).loading = 'eager'));
+  await expect.poll(() => page.locator('.recipe-item').evaluateAll(images => images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBeTruthy();
+  await stairs.screenshot({ path: `test-results/stairs-${testInfo.project.name}.png` });
+  await apple.screenshot({ path: `test-results/apple-${testInfo.project.name}.png` });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+  await page.goto('/wiki/recipe-reference/');
+  await expect(page.locator('.recipe-card')).toHaveCount(409);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+  await page.goto('/wiki/building/');
+  await expect(page.locator('[data-recipe-id="conversion:cauldron-concrete"] .crafting-grid')).toHaveCount(0);
+  await expect(page.locator('[data-recipe-id="conversion:cauldron-concrete"] .recipe-method')).toHaveText('Drop into a water cauldron');
+  await page.goto('/wiki/chunk-loaders/');
+  await expect(page.locator('[data-recipe-id="conversion:loadstone"] .recipe-method')).toHaveText('Drop a nether star above a placed lodestone');
 });

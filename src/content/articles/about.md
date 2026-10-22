@@ -19,6 +19,7 @@ Player names and head images come from the owner's supplied roster. Biographies,
 ## Credits
 
 - Player head images supplied by the server owner.
+- Minecraft item renders by [Owen1212055](https://github.com/Owen1212055/mc-assets), using Minecraft textures by Mojang/Microsoft.
 - Vanilla Tweaks features and crafting packs by [Vanilla Tweaks](https://vanillatweaks.net/).
 - Mod authors and original documentation are linked from the relevant articles.
 
