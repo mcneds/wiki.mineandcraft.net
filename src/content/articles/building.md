@@ -28,7 +28,7 @@ conversion:cauldron-concrete
 
 ## Cauldron mud
 
-**Drop dirt into a water-filled cauldron** to turn it into mud. This is a different feature from Cauldron Concrete, with dirt as its input.
+**Drop dirt into a water-filled cauldron** to turn it into mud.
 
 ```recipe
 conversion:cauldron-mud
