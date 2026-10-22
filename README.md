@@ -82,4 +82,4 @@ To enable later deployments from GitHub using Cloudflare Workers Builds, connect
 
 ## Credits
 
-Original wiki layout inspired by traditional Minecraft Wiki/Wikipedia navigation. No MediaWiki runtime is used. Player-head images are owner-supplied assets; third-party names and pack content belong to their respective authors. The existing repository license is preserved.
+Original wiki layout inspired by traditional Minecraft Wiki/Wikipedia navigation. No MediaWiki runtime is used. Player head images were generated with [MC Skins Avatar Maker](https://mcskins.top/avatar-maker) and supplied by the server owner. Third-party names and pack content belong to their respective authors. The existing repository license is preserved.

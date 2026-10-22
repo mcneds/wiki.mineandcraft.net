@@ -16,7 +16,7 @@ The initial guides use the owner's server information, supplied mod and datapack
 
 ## Credits
 
-- Player head images supplied by the server owner.
+- Player head images generated with [MC Skins Avatar Maker](https://mcskins.top/avatar-maker) and supplied by the server owner.
 - Minecraft item renders by [Owen1212055](https://github.com/Owen1212055/mc-assets), using Minecraft textures by Mojang/Microsoft.
 - Vanilla Tweaks features and crafting packs by [Vanilla Tweaks](https://vanillatweaks.net/).
 - Mod authors and original documentation are linked from the relevant articles.
