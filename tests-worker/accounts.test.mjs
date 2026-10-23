@@ -6,6 +6,7 @@ import { createHandler } from '../worker/index.mjs';
 import { article, render } from '../worker/content.mjs';
 import { lookup } from '../worker/lookup.mjs';
 import { cleanupMedia } from '../worker/media.mjs';
+import { commentsSection } from '../worker/comments.mjs';
 
 const OWNER = '100000000000000001', MEMBER = '100000000000000002', OTHER = '100000000000000003';
 const GUILD = '200000000000000001', APP = '300000000000000001';
@@ -15,6 +16,7 @@ function fixture(t) {
   sqlite.exec(readFileSync('migrations/0002_initial_players.sql', 'utf8'));
   sqlite.exec(readFileSync('migrations/0003_media.sql', 'utf8'));
   sqlite.exec(readFileSync('migrations/0004_coordinates.sql', 'utf8'));
+  sqlite.exec(readFileSync('migrations/0005_comments.sql', 'utf8'));
   t.after(() => sqlite.close());
   class Statement {
     constructor(sql, values = []) { this.sql = sql; this.values = values; }
@@ -534,11 +536,82 @@ test('coordinate validation and mutations enforce shape, CSRF, and guild members
 
 test('coordinate login return paths are allowlisted and tied to single-use OAuth state', async t => {
   const f = fixture(t);
-  for (const [destination, expected] of [['/coordinates/', '/coordinates/'], ['https://evil.test', '/account/'], ['//evil.test', '/account/']]) {
+  for (const [destination, expected] of [['/coordinates/', '/coordinates/'], ['/wiki/players/jobansz/', '/wiki/players/jobansz/'], ['/wiki/players/../account/', '/account/'], ['/wiki/players/%2f%2fevil.test/', '/account/'], ['https://evil.test', '/account/'], ['//evil.test', '/account/']]) {
     const start = await f.request('/auth/login/?returnTo=' + encodeURIComponent(destination));
     const state = new URL(start.headers.get('Location')).searchParams.get('state');
     const cookie = start.headers.get('Set-Cookie').split(';')[0];
     const callback = await f.request(`/auth/callback/?code=${MEMBER}&state=${state}`, { headers: { Cookie: cookie } });
     assert.equal(callback.headers.get('Location'), f.env.SITE_ORIGIN + expected);
   }
+});
+
+test('verified players comment on any profile with public IGN attribution and private Discord IDs', async t => {
+  const f = fixture(t), user = await f.login();
+  const version = f.sqlite.prepare("SELECT version FROM players WHERE slug='apokefish'").get().version;
+  const response = await user.call('/api/players/apokefish/comments/', 'POST', { posterSlug: 'uaiden', body: 'Nice base!\nSee you there.' });
+  assert.equal(response.status, 201);
+  const created = await response.json();
+  assert.equal(created.poster.name, 'uaiden'); assert.equal(created.canDelete, true);
+  const publicResponse = await f.request('/api/players/apokefish/comments/');
+  const list = await publicResponse.json();
+  assert.equal(publicResponse.status, 200); assert.equal(list.comments[0].body, 'Nice base!\nSee you there.');
+  assert.equal(JSON.stringify(list).includes(MEMBER), false); assert.equal(Object.hasOwn(list.comments[0], 'canDelete'), false);
+  const context = await (await user.call('/api/players/apokefish/comments/context/')).json();
+  assert.deepEqual(context.postingPlayers.map(player => player.slug), ['uaiden']);
+  assert.equal(context.comments[0].canDelete, true);
+  assert.equal(f.sqlite.prepare("SELECT version FROM players WHERE slug='apokefish'").get().version, version);
+  assert.equal((await f.request('/api/players/uaiden/comments/')).status, 200);
+  assert.equal((await f.request('/api/players/missing/comments/')).status, 404);
+  assert.equal((await user.call('/api/players/missing/comments/', 'POST', { posterSlug: 'uaiden', body: 'Test' })).status, 404);
+});
+
+test('comment posting denies anonymous users, forged identities, missing roles, CSRF, and invalid text', async t => {
+  const f = fixture(t), user = await f.login(), owner = await f.login(OWNER);
+  const path = '/api/players/apokefish/comments/', body = { posterSlug: 'uaiden', body: 'Hello' };
+  assert.equal((await f.request(path, { method: 'POST' })).status, 401);
+  assert.equal((await user.call(path, 'POST', { ...body, posterSlug: 'apokefish' })).status, 403);
+  assert.equal((await owner.call(path, 'POST', { ...body, posterSlug: 'apokefish' })).status, 403);
+  for (const invalid of ['', '  \n ', 'x'.repeat(2001), '\0bad', 42]) assert.equal((await user.call(path, 'POST', { ...body, body: invalid })).status, 400);
+  assert.equal((await user.call(path, 'POST', body, { Origin: 'https://evil.test' })).status, 403);
+  assert.equal((await user.call(path, 'POST', body, { 'X-CSRF-Token': 'wrong' })).status, 403);
+  assert.equal((await user.call(path, 'PUT', body)).status, 405);
+  f.memberships.set(MEMBER, []);
+  assert.equal((await user.call(path, 'POST', body)).status, 403);
+  f.memberships.delete(MEMBER);
+  assert.equal((await user.call(path, 'POST', body)).status, 403);
+  assert.equal(f.sqlite.prepare('SELECT count(*) n FROM profile_comments').get().n, 0);
+});
+
+test('comment deletion checks both the author account and current role, with owner moderation', async t => {
+  const f = fixture(t), user = await f.login(), other = await f.login(OTHER), owner = await f.login(OWNER);
+  const path = '/api/players/apokefish/comments/';
+  const comment = await (await user.call(path, 'POST', { posterSlug: 'uaiden', body: 'Test' })).json();
+  const deletion = `${path}${comment.id}/`;
+  assert.equal((await other.call(deletion, 'DELETE')).status, 403);
+  f.memberships.set(OTHER, ['role-uaiden']);
+  assert.equal((await other.call(deletion, 'DELETE')).status, 403);
+  assert.equal((await user.call(`/api/players/uaiden/comments/${comment.id}/`, 'DELETE')).status, 404);
+  f.memberships.set(MEMBER, []);
+  assert.equal((await user.call(deletion, 'DELETE')).status, 403);
+  assert.equal((await owner.call(deletion, 'DELETE')).status, 200);
+  assert.equal((await owner.call(deletion, 'DELETE')).status, 404);
+  f.memberships.set(MEMBER, ['role-uaiden']);
+  const own = await (await user.call(path, 'POST', { posterSlug: 'uaiden', body: 'Another' })).json();
+  assert.equal((await user.call(`${path}${own.id}/`, 'DELETE')).status, 200);
+});
+
+test('comment limits and pagination bound public responses, with HTML escaped as plain text', async t => {
+  const f = fixture(t), user = await f.login(), path = '/api/players/apokefish/comments/';
+  const body = '<script>alert(1)</script> **plain** & text';
+  for (let i = 0; i < 5; i++) assert.equal((await user.call(path, 'POST', { posterSlug: 'uaiden', body })).status, 201);
+  assert.equal((await user.call(path, 'POST', { posterSlug: 'uaiden', body: 'Too many' })).status, 429);
+  for (let i = 0; i < 30; i++) f.sqlite.prepare('INSERT INTO profile_comments(id,profile_slug,poster_slug,author_id,body,created) VALUES(?,?,?,?,?,?)').run(`seed-${i}`, 'apokefish', 'uaiden', MEMBER, `Seed ${i}`, '2020-01-01');
+  const first = await (await f.request(path)).json(), second = await (await f.request(path + '?page=2')).json();
+  assert.equal(first.comments.length, 30); assert.equal(first.hasMore, true);
+  assert.equal(second.comments.length, 5); assert.equal(second.hasMore, false);
+  assert.equal(new Set([...first.comments, ...second.comments].map(comment => comment.id)).size, 35);
+  const html = commentsSection('apokefish', first);
+  assert.equal(html.includes('<script>'), false);
+  assert.ok(html.includes('&lt;script&gt;alert(1)&lt;/script&gt; **plain** &amp; text'));
+  assert.equal(html.includes('class="delete-comment"'), false);
 });

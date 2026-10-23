@@ -115,6 +115,7 @@ export const mayEdit = (user, player) => user.owner || user.roles.some(role => r
 export function checkCsrf(request, user) {
   if (request.headers.get('X-CSRF-Token') !== user.csrf) throw new HttpError(403, 'Reload the editor and try again.');
 }
+const returnPath = value => value === '/coordinates/' || /^\/wiki\/players\/[a-z0-9_-]{1,50}\/$/.test(value || '') ? value : '/account/';
 
 export async function login(request, env) {
   if (!configured(env)) throw new HttpError(503, 'Discord editing is not configured yet.');
@@ -122,7 +123,7 @@ export async function login(request, env) {
   await limit(env, `login:${await hash(address)}`, 10, 600);
   const state = random();
   const requestedReturn = new URL(request.url).searchParams.get('returnTo');
-  const returnTo = requestedReturn === '/coordinates/' ? requestedReturn : '/account/';
+  const returnTo = returnPath(requestedReturn);
   await env.DB.batch([
     env.DB.prepare('DELETE FROM oauth_states WHERE expires<?').bind(now()),
     env.DB.prepare('DELETE FROM sessions WHERE expires<?').bind(now()),
@@ -150,7 +151,7 @@ export async function callback(request, env, fetcher) {
   const csrf = random();
   await env.DB.prepare('INSERT INTO sessions(token_hash,user_id,display_name,credentials,csrf,expires) VALUES (?,?,?,?,?,?)')
     .bind(await hash(token), user.id, user.global_name || user.username, await seal(credentials, env), csrf, now() + 86400 * 7).run();
-  const headers = new Headers({ Location: `${env.SITE_ORIGIN}${consumed.return_to === '/coordinates/' ? '/coordinates/' : '/account/'}`, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' });
+  const headers = new Headers({ Location: `${env.SITE_ORIGIN}${returnPath(consumed.return_to)}`, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' });
   headers.append('Set-Cookie', cookie(env, 'session', token, 86400 * 7));
   headers.append('Set-Cookie', cookie(env, 'oauth', '', 0));
   return new Response(null, { status: 302, headers });

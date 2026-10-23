@@ -5,6 +5,7 @@ import { escape, render, article, card, tile, playerUrl, description, mediaRefer
 import { images, publicImage, cleanupMedia } from './media.mjs';
 import { coordinateContext, coordinateList, coordinateDetail, coordinateWrite, entryHtml, listHtml } from './coordinates.mjs';
 import { tagName } from '../shared/coordinates.mjs';
+import { commentList, commentContext, commentWrite, commentsSection } from './comments.mjs';
 
 const json = (data, status = 200) => Response.json(data, { status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
 const allPlayers = async env => (await env.DB.prepare('SELECT slug,name,image,markdown,version,updated,edition,minecraft_id FROM players ORDER BY name COLLATE NOCASE').all()).results;
@@ -48,6 +49,12 @@ async function update(env, user, player, changes, expected) {
 async function api(request, env, fetcher) {
   const path = new URL(request.url).pathname;
   const method = request.method;
+  const comment = path.match(/^\/api\/players\/([a-z0-9_-]{1,50})\/comments\/(?:(context|[a-f0-9-]{36})\/)?$/);
+  if (comment && method === 'GET') {
+    if (comment[2] === 'context') return json(await commentContext(request, env, fetcher, comment[1]));
+    if (!comment[2]) return json(await commentList(env, comment[1], new URL(request.url).searchParams));
+    throw new HttpError(405, 'This action is not supported.');
+  }
   if (path === '/api/coordinates/context/' && method === 'GET') return coordinateContext(request, env, fetcher);
   if (path === '/api/coordinates/' && method === 'GET') return json(await coordinateList(env, new URL(request.url).searchParams));
   const coordinate = path.match(/^\/api\/coordinates\/([a-f0-9-]{36})\/$/);
@@ -76,6 +83,10 @@ async function api(request, env, fetcher) {
   if (!['GET', 'HEAD'].includes(method)) {
     checkOrigin(request, env); checkCsrf(request, user);
     await limit(env, `write:${user.user_id}`, 30, 60);
+  }
+  if (comment) {
+    if (comment[2] === 'context') throw new HttpError(405, 'This action is not supported.');
+    return json(await commentWrite(request, env, user, comment[1], comment[2], method === 'POST' ? await input(request) : {}), method === 'POST' ? 201 : 200);
   }
   if (path === '/api/lookup/' && method === 'POST') {
     const body = await input(request);
@@ -229,7 +240,7 @@ async function publicPage(request, env) {
   const page = path.match(/^\/wiki\/players\/([a-z0-9_-]+)\/$/);
   if (page) {
     const player = await getPlayer(env, page[1]);
-    if (player) return html(request, env, '/wiki/players/0480/', article(player), player.name, player);
+    if (player) return html(request, env, '/wiki/players/0480/', article(player) + commentsSection(player.slug, await commentList(env, player.slug)), player.name, player);
   }
   if (['/', '/players/', '/all-pages/', '/category/players/'].includes(path)) {
     const players = await allPlayers(env);
@@ -257,7 +268,7 @@ export function createHandler(fetcher = (...args) => fetch(...args)) {
     const url = new URL(request.url);
     try {
       const path = url.pathname;
-      const publicApi = request.method === 'GET' && (path === '/api/players/' || path === '/api/coordinates/' || /^\/api\/coordinates\/[a-f0-9-]{36}\/$/.test(path));
+      const publicApi = request.method === 'GET' && (path === '/api/players/' || path === '/api/coordinates/' || /^\/api\/coordinates\/[a-f0-9-]{36}\/$/.test(path) || /^\/api\/players\/[a-z0-9_-]{1,50}\/comments\/$/.test(path));
       if ((path.startsWith('/auth/') || (path.startsWith('/api/') && !publicApi)) && url.origin !== env.SITE_ORIGIN) throw new HttpError(403, 'Use the wiki’s main address to sign in and edit.');
       if (path === '/auth/login/' && request.method === 'GET') return await login(request, env);
       if (path === '/auth/callback/' && request.method === 'GET') return await callback(request, env, fetcher);

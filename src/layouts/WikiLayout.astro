@@ -1,6 +1,7 @@
 ---
 import '../styles/wiki.css';
 import '../styles/recipes.css';
+import '../styles/comments.css';
 import { getArticles } from '../lib/wiki';
 interface Props {
   title: string;
@@ -72,6 +73,7 @@ const explore = [
       </div>
     </div>
     <script>
+      import '../scripts/comments.js';
       const menu = document.querySelector<HTMLButtonElement>('.menu-toggle');
       menu?.addEventListener('click', () => {
         const open = menu.getAttribute('aria-expanded') !== 'true';

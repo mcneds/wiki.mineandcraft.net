@@ -1,0 +1,6 @@
+.profile-comments{border-top:1px solid var(--line);margin-top:30px;padding-top:24px;max-width:850px;overflow-wrap:anywhere}
+.profile-comments h2{margin-bottom:20px}.profile-comments ol{list-style:none;margin:0;padding:0}
+.profile-comment{border-bottom:1px solid var(--line);padding:16px 0}.profile-comment header{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px 16px}.profile-comment header a{font-weight:600}.profile-comment time{font-size:12px;color:var(--muted)}.profile-comment p{white-space:pre-wrap;margin:10px 0 0}
+.profile-comments button{border:1px solid var(--line);padding:8px 12px;background:var(--paper);color:var(--ink);font:inherit;margin-top:12px}.profile-comments button:disabled{opacity:.55;cursor:wait}
+.profile-comments form{margin:20px 0}.profile-comments label{display:block;margin:14px 0 6px}.profile-comments select,.profile-comments textarea{display:block;width:100%;max-width:100%;padding:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:inherit}.profile-comments select{max-width:280px}.profile-comments textarea{resize:vertical}.profile-comments textarea:focus-visible,.profile-comments select:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+#comments-status,#comments-account{margin-top:14px;font-size:13px}.delete-comment{font-size:12px!important}

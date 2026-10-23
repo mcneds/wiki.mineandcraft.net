@@ -83,6 +83,12 @@ The additive `0004_coordinates.sql` migration creates entries, tag/player relati
 
 Writes also require the matching site origin, session CSRF token, and current page version. Discord outages deny editing. OAuth states are single-use and expire after ten minutes; sessions use HttpOnly, Secure, SameSite cookies and expire after seven days. Provider tokens are encrypted in D1. Saved changes retain revisions; restoring makes a new revision rather than erasing history.
 
+## Profile comments
+
+Player profiles have public, plain-text comments (up to 2,000 characters). Posting requires Discord sign-in, an existing player page, and its matching IGN role. Authors can delete their own comments while they retain that role; the configured wiki owner can delete any comment. Posting as another player is denied, including for the owner. Comments record the Discord author privately and link the chosen player page publicly. They do not change profile revisions. Writes use current Discord checks, Origin, CSRF, the shared write limit, and an additional five-comments-per-minute limit per account.
+
+Apply the additive `0005_comments.sql` D1 migration before deploying. Public comments are rendered on the server, 30 at a time, newest first. Older comments, posting, and deletion use JavaScript. Public `GET /api/players/:slug/comments/` supports `?page=2`; the private `context/` endpoint adds posting profiles and deletion permissions. POST to the collection and DELETE `:id/`. Discord sign-in can return to the same profile using an allowlisted local path. Comments have no replies, attachments, or Markdown rendering.
+
 ## Content provenance
 
 The initial roster includes the 14 PNGs supplied by the owner. Only those images were copied; local server configuration and statistics archives were not imported or published.
