@@ -552,9 +552,11 @@ test('verified players comment on any profile with public IGN attribution and pr
   assert.equal(response.status, 201);
   const created = await response.json();
   assert.equal(created.poster.name, 'uaiden'); assert.equal(created.canDelete, true);
+  assert.equal(created.poster.image, '/images/players/uaiden.png');
   const publicResponse = await f.request('/api/players/apokefish/comments/');
   const list = await publicResponse.json();
   assert.equal(publicResponse.status, 200); assert.equal(list.comments[0].body, 'Nice base!\nSee you there.');
+  assert.equal(list.comments[0].poster.image, created.poster.image);
   assert.equal(JSON.stringify(list).includes(MEMBER), false); assert.equal(Object.hasOwn(list.comments[0], 'canDelete'), false);
   const context = await (await user.call('/api/players/apokefish/comments/context/')).json();
   assert.deepEqual(context.postingPlayers.map(player => player.slug), ['uaiden']);

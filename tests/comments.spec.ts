@@ -5,7 +5,7 @@ import { join } from 'node:path';
 
 const idFor = (project: string) => project === 'desktop' ? 'c3333333-3333-4333-8333-333333333333' : 'c4444444-4444-4444-8444-444444444444';
 const ownId = 'c5555555-5555-4555-8555-555555555555';
-const player = { slug: 'uaiden', name: 'uaiden' };
+const player = { slug: 'uaiden', name: 'uaiden', image: '/images/players/uaiden.png' };
 function sql(command: string) {
   // Use the local database directly so parallel fixtures do not start competing
   // Wrangler runtimes just to insert/delete a test row. Never opens remote D1.
@@ -23,12 +23,18 @@ test.afterAll(async ({}, info) => {
   sql(`DELETE FROM profile_comments WHERE id='${idFor(info.project.name)}' AND author_id='browser-comments'`);
 });
 
-test('public profile comments render without JavaScript and never execute HTML', async ({ browser }) => {
+test('public profile comments render without JavaScript and never execute HTML', async ({ browser }, info) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
   await page.goto('/wiki/players/jobansz/');
   await expect(page.locator('#comments-list')).toContainText('Browser comment <script>alert(1)</script>');
   await expect(page.locator('#comments-list script')).toHaveCount(0);
+  const head = page.locator('#comments-list .comment-author img').first();
+  await expect(head).toHaveAttribute('src', player.image);
+  await head.scrollIntoViewIfNeeded();
+  await expect(head).toHaveJSProperty('complete', true);
+  expect(await head.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+  await page.locator('.profile-comment').first().screenshot({ path: `test-results/comment-head-${info.project.name}.png` });
   await expect(page.locator('.delete-comment')).toHaveCount(0);
   await expect(page.locator('#comments-login')).toHaveAttribute('href', '/auth/login/?returnTo=%2Fwiki%2Fplayers%2Fjobansz%2F');
   await context.close();

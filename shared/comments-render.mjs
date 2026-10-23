@@ -1,7 +1,7 @@
 const escape = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 
 export function commentHtml(comment) {
-  return `<li class="profile-comment" id="comment-${escape(comment.id)}" data-comment-id="${escape(comment.id)}"><header><a href="/wiki/players/${escape(comment.poster.slug)}/">${escape(comment.poster.name)}</a> <time datetime="${escape(comment.created)}">${escape(comment.created.slice(0, 16).replace('T', ' '))} UTC</time></header><p>${escape(comment.body)}</p>${comment.canDelete ? '<button type="button" class="delete-comment">Delete comment</button>' : ''}</li>`;
+  return `<li class="profile-comment" id="comment-${escape(comment.id)}" data-comment-id="${escape(comment.id)}"><header><a class="comment-author" href="/wiki/players/${escape(comment.poster.slug)}/"><img src="${escape(comment.poster.image)}" alt="" width="32" height="32" loading="lazy" decoding="async">${escape(comment.poster.name)}</a> <time datetime="${escape(comment.created)}">${escape(comment.created.slice(0, 16).replace('T', ' '))} UTC</time></header><p>${escape(comment.body)}</p>${comment.canDelete ? '<button type="button" class="delete-comment">Delete comment</button>' : ''}</li>`;
 }
 
 export function commentsSection(slug, result) {
