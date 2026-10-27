@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.wav
+*.ogg
+*.exe
+*.obj
+*.wav.timing.json
+.trial.lock
+analysis.json
+paired-analysis.json
+report.html
+audio-offsets.png

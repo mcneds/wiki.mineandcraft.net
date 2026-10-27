@@ -16,6 +16,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 /** Exercises the exact installed Bedrock codec, including the observed crash. */
 public final class ProtocolSmoke {
     public static void main(String[] args) {
+        CoordinatedAudioTest.run();
         if (!CopperBedrock.bufferedSound("mineandcraft_music:buffered.disc_test").equals("mineandcraft_music:buffered.disc_test"))
             throw new AssertionError("Buffered custom audio was changed back to its streaming event");
         if (!CopperBedrock.bufferedSound("mineandcraft_music:disc_test").equals("mineandcraft_music:buffered.disc_test"))
@@ -47,6 +48,17 @@ public final class ProtocolSmoke {
                 if (front.distanceSquared(normal) > .000001) throw new AssertionError("Wrong plate face " + face);
                 codec.tryEncode(helper, buffer, plate);
                 var copy = (AddEntityPacket) codec.tryDecode(helper, buffer, codec.getPacketDefinition(AddEntityPacket.class).getId());
+                if (!copy.getMetadata().getFlag(org.geysermc.geyser.shaded.org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.SILENT))
+                    throw new AssertionError("Visual wall plate can emit ambient sounds for " + face);
+                for (var flag : org.geysermc.geyser.shaded.org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.values())
+                    if (plate.getMetadata().getFlag(flag) != copy.getMetadata().getFlag(flag))
+                        throw new AssertionError("Plate flag lost during serialization: " + flag);
+                // The decoder expands absent flag bits to false; compare their values above.
+                for (var flags : List.of(
+                        org.geysermc.geyser.shaded.org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FLAGS,
+                        org.geysermc.geyser.shaded.org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FLAGS_2)) {
+                    plate.getMetadata().remove(flags); copy.getMetadata().remove(flags);
+                }
                 if (!plate.equals(copy)) throw new AssertionError("Plate facing lost during serialization for " + face);
                 buffer.clear();
             }
@@ -74,6 +86,17 @@ public final class ProtocolSmoke {
                     throw new AssertionError("Stop handle or stop event lost during serialization");
             }
             var start = new PlaySoundPacket();
+            for (var event : List.of(
+                    new org.geysermc.geyser.shaded.org.cloudburstmc.protocol.bedrock.data.sound.SeekToSoundData(65.25f),
+                    new org.geysermc.geyser.shaded.org.cloudburstmc.protocol.bedrock.data.sound.SetVolumeSoundData(4f),
+                    new org.geysermc.geyser.shaded.org.cloudburstmc.protocol.bedrock.data.sound.PauseSoundData(),
+                    new org.geysermc.geyser.shaded.org.cloudburstmc.protocol.bedrock.data.sound.ResumeSoundData())) {
+                var update = new ClientboundUpdateSoundDataPacket();
+                update.setServerSoundHandle(CopperBedrock.voiceHandle(42)); update.setEvent(event);
+                buffer.clear(); codec.tryEncode(helper, buffer, update);
+                var copy = codec.tryDecode(helper, buffer, codec.getPacketDefinition(ClientboundUpdateSoundDataPacket.class).getId());
+                if (!update.equals(copy)) throw new AssertionError("Warm-up sound update did not round-trip: " + event);
+            }
             start.setSound("mineandcraft_music:disc_test");
             start.setPosition(Vector3f.from(190.5, 20.5, -19.5));
             start.setVolume(4);
@@ -87,7 +110,7 @@ public final class ProtocolSmoke {
                     codec.getPacketDefinition(PlaySoundPacket.class).getId());
             if (!start.equals(decoded)) throw new AssertionError("Playback offset/position/handle did not round-trip: " + decoded);
             var voice = new CopperBedrock.Voice(new CopperBedrock.Recording("record.cat", 15), 4, 1);
-            float offset = voice.playbackPosition(voice.started + 7_000_000_000L);
+            float offset = voice.playbackPosition(voice.clock.created + 7_000_000_000L);
             if (Math.abs(offset - 22) > .001) throw new AssertionError("A moved speaker lost its current song position");
             System.out.println("PASS: reproduced old stop crash; fixed stop events, sound handles, playback offsets, and moved-voice timing verified");
         } finally { buffer.release(); }

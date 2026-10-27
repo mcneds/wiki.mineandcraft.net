@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.concurrent.TimeUnit;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.event.subscribe.Subscribe;
@@ -57,22 +58,37 @@ public final class CopperBedrock implements Extension {
     }
     static final class Voice {
         final Recording recording;
-        final long started = System.nanoTime();
+        final CoordinatedAudio.Clock clock;
         final float volume, pitch;
         boolean playing;
         Voice(Recording recording, float volume, float pitch) {
             this.recording = recording;
             this.volume = volume;
             this.pitch = pitch;
+            this.clock = new CoordinatedAudio.Clock(recording.offset(), pitch, System.nanoTime());
         }
         float playbackPosition(long now) {
-            return recording.offset() + Math.max(0, now - started) / 1_000_000_000f * pitch;
+            return clock.position(now);
         }
     }
     static final class Listener {
         final Map<Integer, Vector3f> positions = new ConcurrentHashMap<>();
         final Map<Integer, Voice> voices = new ConcurrentHashMap<>();
         final Map<Vector3i, Recording> records = new ConcurrentHashMap<>();
+        final CoordinatedAudio audio;
+        Listener(GeyserSession session) {
+            audio = new CoordinatedAudio(System::nanoTime,
+                    (delay, action) -> session.scheduleInEventLoop(action, delay, TimeUnit.MILLISECONDS),
+                    new CoordinatedAudio.Output() {
+                        @Override public void prepare(CoordinatedAudio.Entry entry, float offset) {
+                            play(session, entry.sound, entry.position, 0, entry.pitch, entry.handle, offset);
+                        }
+                        @Override public void update(long handle, org.geysermc.geyser.shaded.org.cloudburstmc.protocol.bedrock.data.sound.SoundData event) {
+                            var packet = new ClientboundUpdateSoundDataPacket();
+                            packet.setServerSoundHandle(handle); packet.setEvent(event); session.sendUpstreamPacket(packet);
+                        }
+                    });
+        }
     }
 
     @Subscribe
@@ -106,7 +122,10 @@ public final class CopperBedrock implements Extension {
 
     @Subscribe
     public void disconnected(SessionDisconnectEvent event) {
-        if (event.connection() instanceof GeyserSession session) listeners.remove(session);
+        if (event.connection() instanceof GeyserSession session) {
+            Listener listener = listeners.remove(session);
+            if (listener != null) listener.audio.close();
+        }
     }
 
     @Subscribe
@@ -120,7 +139,7 @@ public final class CopperBedrock implements Extension {
                         source.sendMessage(session.bedrockUsername() + ": " + listener.voices.size() + " entity voices");
                         listener.records.forEach((position, recording) -> source.sendMessage("  record " + position + " " + recording.sound()));
                         listener.voices.forEach((id, voice) -> source.sendMessage("  " + id + " " +
-                                (voice.playing ? "playing" : "parked") + " " + listener.positions.get(id) +
+                                listener.audio.phase(voiceHandle(id)) + " " + listener.positions.get(id) +
                                 " " + voice.recording.sound() + " handle=" + voiceHandle(id)));
                     });
                 }).build());
@@ -157,7 +176,7 @@ public final class CopperBedrock implements Extension {
     }
 
     private Listener listener(GeyserSession session) {
-        return listeners.computeIfAbsent(session, key -> new Listener());
+        return listeners.computeIfAbsent(session, Listener::new);
     }
 
     private boolean addEntity(GeyserSession session, ClientboundAddEntityPacket packet) {
@@ -176,10 +195,9 @@ public final class CopperBedrock implements Extension {
         if (position.equals(previous)) return;
         Voice voice = listener.voices.get(packet.getId());
         if (voice == null) return;
-        if (voice.playing) stop(session, voiceHandle(packet.getId()));
         voice.playing = audibleAnchor(session, position);
-        if (voice.playing) play(session, voice.recording.sound(), position, voice.volume, voice.pitch,
-                voiceHandle(packet.getId()), voice.playbackPosition(System.nanoTime()));
+        listener.audio.start(voiceHandle(packet.getId()), voice.recording.sound(), position, voice.volume, voice.pitch,
+                voice.clock, voice.playing);
     }
 
     // In 26.3 a stepped sync omits endPosition entirely. The final step is the
@@ -198,7 +216,7 @@ public final class CopperBedrock implements Extension {
         for (int id : packet.getEntityIds()) {
             listener.positions.remove(id);
             Voice voice = listener.voices.remove(id);
-            if (voice != null && voice.playing) stop(session, voiceHandle(id));
+            if (voice != null) listener.audio.stop(voiceHandle(id));
         }
     }
 
@@ -227,12 +245,12 @@ public final class CopperBedrock implements Extension {
         Vector3f position = listener.positions.get(packet.getEntityId());
         if (position == null) return false;
         Voice old = listener.voices.remove(packet.getEntityId());
-        if (old != null && old.playing) stop(session, voiceHandle(packet.getEntityId()));
+        if (old != null) listener.audio.stop(voiceHandle(packet.getEntityId()));
         Voice voice = new Voice(recording, packet.getVolume(), packet.getPitch());
         listener.voices.put(packet.getEntityId(), voice);
         voice.playing = audibleAnchor(session, position);
-        if (voice.playing) play(session, recording.sound(), position, packet.getVolume(), packet.getPitch(),
-                voiceHandle(packet.getEntityId()), recording.offset());
+        listener.audio.start(voiceHandle(packet.getEntityId()), recording.sound(), position,
+                packet.getVolume(), packet.getPitch(), voice.clock, voice.playing);
         return true;
     }
 
@@ -240,7 +258,7 @@ public final class CopperBedrock implements Extension {
         if (packet.getEvent() == LevelEventType.SOUND_STOP_JUKEBOX_SONG) {
             listener(session).records.remove(packet.getPosition());
             Long handle = session.getWorldCache().removePlayingRecord(packet.getPosition());
-            if (handle != null) stop(session, handle);
+            if (handle != null && !listener(session).audio.stop(handle)) stop(session, handle);
             return true;
         }
         if (packet.getEvent() != LevelEventType.SOUND_PLAY_JUKEBOX_SONG) return false;
@@ -248,16 +266,18 @@ public final class CopperBedrock implements Extension {
         if (song.isEmpty()) return false;
         Recording recording = recording(song.get().soundEvent());
         if (recording == null) return false;
+        Listener listener = listener(session);
+        Long previous = session.getWorldCache().removePlayingRecord(packet.getPosition());
+        if (previous != null && !listener.audio.stop(previous)) stop(session, previous);
         long handle = session.getWorldCache().addPlayingRecord(packet.getPosition());
-        listener(session).records.put(packet.getPosition(), recording);
+        listener.records.put(packet.getPosition(), recording);
         var origin = packet.getPosition();
-        play(session, recording.sound(), Vector3f.from(origin.getX() + .5, origin.getY() + .5, origin.getZ() + .5),
-                4, 1, handle, recording.offset());
+        listener.audio.start(handle, recording.sound(), Vector3f.from(origin.getX() + .5, origin.getY() + .5, origin.getZ() + .5),
+                4, 1, new CoordinatedAudio.Clock(recording.offset(), 1, System.nanoTime()), true);
         return true;
     }
 
-    // Java parks spare audio anchors 4096 blocks above/below the listener. Bedrock
-    // can seek when a voice is bound, so those inaudible decoders are unnecessary.
+    // Parked anchors retain the audible cohort's clock without occupying a decoder.
     static boolean audibleAnchor(GeyserSession session, Vector3f position) {
         return Math.abs(position.getY() - session.getPlayerEntity().position().getY()) < 2048;
     }

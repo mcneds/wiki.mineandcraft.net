@@ -65,6 +65,8 @@ public final class CopperFrameEntity extends ItemFrameEntity {
         actor.setRotation(Vector2f.from(0, yaw));
         actor.setHeadRotation(yaw);
         actor.setBodyRotation(yaw);
+        // This manually spawned visual actor must not emit client-side ambient sounds.
+        actor.getMetadata().setFlag(org.geysermc.geyser.shaded.org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.SILENT, true);
         actor.getMetadata().put(org.geysermc.geyser.shaded.org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.SCALE, 1f);
         actor.getMetadata().put(org.geysermc.geyser.shaded.org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.WIDTH, .5f);
         actor.getMetadata().put(org.geysermc.geyser.shaded.org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.HEIGHT, .625f);
