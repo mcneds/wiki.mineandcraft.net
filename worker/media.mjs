@@ -76,7 +76,7 @@ export async function images(request, env, user, player, id) {
   if (id && request.method === 'DELETE') {
     let row;
     try { row = await env.DB.prepare("UPDATE media SET state='deleting' WHERE id=? AND slug=? AND state IN ('ready','deleting') RETURNING *").bind(id, player.slug).first(); }
-    catch (error) { if (String(error).includes('media_in_use')) throw new HttpError(409, 'This image is used on a player page or coordinate entry. Remove it there before deleting it.'); throw error; }
+    catch (error) { if (String(error).includes('media_in_use')) throw new HttpError(409, 'This image is used on a player page, coordinate entry, or unfinished mapart. Remove the reference before deleting it.'); throw error; }
     if (!row) throw new HttpError(404, 'Image not found.');
     try { await env.MEDIA.delete(key(row)); }
     catch { throw new HttpError(503, 'Deletion is pending. Please try again shortly.'); }

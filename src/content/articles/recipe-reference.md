@@ -2,9 +2,11 @@
 title: "Recipe reference"
 description: "Crafting grids, furnace recipes, ingredients, and output quantities."
 category: "Crafting"
-updated: "2026-10-22"
+updated: "2026-10-26"
 ---
 [Crafting tweaks](/wiki/crafting-tweaks/) explains each change. Shapeless ingredients can be placed anywhere in the crafting grid. Hover over an item to see its name.
+
+For copper wire, speakers, and wall plates, see the [Copper Speakers crafting recipes](/wiki/copper-speakers/#crafting).
 
 ## Double Slabs
 

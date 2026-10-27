@@ -1,0 +1,23 @@
+{
+  "site_origin": "https://wiki.mineandcraft.net",
+  "state_dir": "/var/lib/mineandcraft-music",
+  "datapacks_dir": "/srv/minecraft/world/datapacks",
+  "polymer_source_dir": "/srv/minecraft/polymer/source_assets",
+  "geyser_packs_dir": "/srv/minecraft/config/Geyser-Fabric/packs",
+  "polymer_pack": "/srv/minecraft/polymer/resource_pack.zip",
+  "panel_credentials": "/etc/mineandcraft-music/pufferpanel.json",
+  "panel_origin": "http://127.0.0.1:8080",
+  "panel_server_id": "YOUR_SERVER_ID",
+  "data_format": [121, 0],
+  "resource_format": [97, 1],
+  "bedrock_engine": [1, 21, 0],
+  "allow_youtube": false,
+  "youtube_pot": false,
+  "youtube_proxy": null,
+  "youtube_lavalink_config": null,
+  "poll_seconds": 60,
+  "pack_limit_bytes": 104857600,
+  "preflight_command": ["/opt/mineandcraft-music/venv/bin/python", "/opt/mineandcraft-music/music-panel-refresh.py", "--config", "/etc/mineandcraft-music/config.json", "--check"],
+  "refresh_command": ["/opt/mineandcraft-music/venv/bin/python", "/opt/mineandcraft-music/music-panel-refresh.py", "--config", "/etc/mineandcraft-music/config.json"],
+  "recovery_command": ["/opt/mineandcraft-music/venv/bin/python", "/opt/mineandcraft-music/music-panel-refresh.py", "--config", "/etc/mineandcraft-music/config.json", "--bootstrap"]
+}

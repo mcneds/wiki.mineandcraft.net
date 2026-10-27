@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "mineandcraft_chat",
+  "version": "${version}",
+  "name": "MineAndCraft Chat",
+  "description": "Two-way guild chat with Discord.",
+  "environment": "server",
+  "license": "MIT",
+  "entrypoints": { "main": ["net.mineandcraft.chat.ChatBridge"] },
+  "depends": { "fabricloader": ">=0.19.5", "minecraft": "26.3", "java": ">=25", "fabric-api": "*" }
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "mineandcraft_mapart",
+  "version": "${version}",
+  "name": "MineAndCraft Mapart",
+  "description": "Private wiki mapart conversion and material-backed player claims.",
+  "environment": "server",
+  "license": "MIT",
+  "entrypoints": { "main": ["net.mineandcraft.mapart.MapartBridge"] },
+  "mixins": ["mineandcraft-mapart.mixins.json"],
+  "depends": { "fabricloader": ">=0.19.5", "minecraft": "26.3", "java": ">=25", "fabric-api": "*", "image2map": "0.15.0+26.3" }
+}

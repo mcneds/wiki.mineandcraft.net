@@ -114,12 +114,18 @@ processes = {
     },
 }
 icons.update(['furnace'])
+target = ROOT / 'src/data/recipes.json'
+existing = json.loads(target.read_text(encoding='utf-8')) if target.exists() else {}
+mod_sources = existing.get('modSources', {})
+mod_recipes = {key: value for key, value in existing.get('recipes', {}).items()
+               if key.split(':')[0] in mod_sources}
 payload = {
     'archive': archive.name, 'sha256': hashlib.sha256(archive.read_bytes()).hexdigest(),
     'renderSource': {'repository': 'https://github.com/Owen1212055/mc-assets', 'commit': RENDER_COMMIT},
-    'recipes': {**recipes, **processes},
+    'recipes': {**recipes, **processes, **mod_recipes},
 }
-target = ROOT / 'src/data/recipes.json'
+if mod_sources:
+    payload['modSources'] = mod_sources
 target.parent.mkdir(parents=True, exist_ok=True)
 target.write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
 
@@ -144,6 +150,8 @@ category: "Crafting"
 updated: "2026-10-22"
 ---
 [Crafting tweaks](/wiki/crafting-tweaks/) explains each change. Shapeless ingredients can be placed anywhere in the crafting grid. Hover over an item to see its name.
+
+For copper wire, speakers, and wall plates, see the [Copper Speakers crafting recipes](/wiki/copper-speakers/#crafting).
 
 '''
 for group in order:

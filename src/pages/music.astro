@@ -1,0 +1,27 @@
+---
+import WikiLayout from '../layouts/WikiLayout.astro';
+import '../styles/music.css';
+---
+<WikiLayout title="Music gallery" description="Browse the server music collection and claim custom Minecraft discs." section="Music discs">
+  <header class="page-heading"><h1>Music gallery</h1></header>
+  <nav class="music-navigation" aria-label="Music pages"><a href="/music/" aria-current="page">Gallery</a><a href="/music/create/" >Upload &amp; progress</a></nav>
+  <p>Browse the server collection and choose a song for your next music disc.</p>
+  <h2>Get a disc in game</h2>
+  <ol><li>Hold any music disc in your main hand, including a custom disc whose song you want to change.</li><li>Choose a song marked <strong>Added to server</strong> and copy its claim command below.</li><li>Run the command in Minecraft, then put the disc in a jukebox.</li></ol>
+  <p>The command changes the song while keeping the base disc and its appearance: Blocks stays Blocks, for example. Anyone on the server can claim installed songs; no website sign-in or client mod is needed. Reconnect and accept the sound pack after a music update.</p>
+  <p>Connect <a href="/wiki/copper-speakers/">speakers with copper wire</a> to extend your jukebox and hear music around your build.</p>
+  <h2>Server collection</h2>
+  <form id="music-search-form" action="/music/" method="get" role="search">
+    <label for="music-search">Search by song, artist or player</label>
+    <div><input id="music-search" name="q" type="search" maxlength="120" placeholder="Find a song…" /><button type="submit">Search</button></div>
+    <div class="music-filter-bar">
+      <div><label for="music-artist">Artist</label><select id="music-artist" name="artist"><option value="">All artists</option></select></div>
+      <div><label for="music-uploader">Uploader</label><select id="music-uploader" name="uploader"><option value="">All uploaders</option></select></div>
+    </div>
+  </form>
+  <div id="music-catalogue"><p>No approved discs yet. <a href="/music/create/">Submit the first track</a>.</p></div>
+  <nav id="music-pagination" aria-label="Music collection pages"></nav>
+  <p id="music-gallery-status" role="status" aria-live="polite"></p>
+  <noscript><p>Claim commands are shown above. Visit <a href="/music/create/">Upload &amp; progress</a> to submit music.</p></noscript>
+  <script>import '../scripts/music-gallery.js';</script>
+</WikiLayout>

@@ -1,0 +1,27 @@
+---
+import WikiLayout from '../layouts/WikiLayout.astro';
+import '../styles/mapart.css';
+---
+<WikiLayout title="Mapart gallery" description="View and claim your completed Minecraft mapart." section="Mapart">
+  <header class="page-heading"><h1>Mapart gallery</h1><p>Your finished artwork, ready to claim in Minecraft.</p></header>
+  <nav class="mapart-navigation" aria-label="Mapart pages"><a href="/mapart/" aria-current="page">Your gallery</a><a href="/mapart/create/">Create &amp; progress</a></nav>
+  <p>Each copy costs one blank map per tile, or is free in creative mode. Bring your own item frames. You can claim another copy whenever you need one.</p>
+  <p id="mapart-account-status" role="status" aria-live="polite"></p>
+  <a id="mapart-sign-in" href="/auth/login/?returnTo=/mapart/" target="_blank" rel="noopener">Sign in with Discord</a>
+  <button id="mapart-refresh" type="button">Refresh mapart and permissions</button>
+  <noscript><p>Sign in and enable JavaScript to view your private mapart gallery and claim commands.</p></noscript>
+  <section id="mapart-member" hidden>
+    <h2>Your finished mapart</h2>
+    <p id="mapart-storage-label"></p>
+    <meter id="mapart-storage" min="0" max="1" value="0" aria-labelledby="mapart-storage-label"></meter>
+    <label for="mapart-search">Search by artwork or player</label>
+    <input id="mapart-search" type="search" placeholder="Artwork title or player name" maxlength="120" />
+    <p id="mapart-usage"></p>
+    <p id="mapart-pending-summary"></p>
+    <p id="mapart-live-status" class="mapart-live-status"></p>
+    <p id="mapart-updates" class="mapart-announcement" role="status" aria-live="polite" aria-atomic="true"></p>
+    <label id="mapart-owner-controls" class="mapart-check" hidden><input id="mapart-show-all" type="checkbox" /> Show all members’ mapart (owner)</label>
+    <div id="mapart-artworks" class="mapart-gallery"></div>
+  </section>
+</WikiLayout>
+<script>import '../scripts/mapart.js';</script>

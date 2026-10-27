@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "mineandcraft_plan_tools",
+  "version": "${version}",
+  "name": "MineAndCraft Plan Tools",
+  "description": "Project commands and private per-player WorldEdit schematic libraries.",
+  "environment": "server",
+  "license": "MIT",
+  "entrypoints": { "main": ["net.mineandcraft.plantools.PlanTools"] },
+  "mixins": ["plantools.mixins.json"],
+  "depends": { "fabricloader": ">=0.19.5", "minecraft": "26.3", "java": ">=25", "fabric-api": "*", "plan": "=15", "worldedit": "=7.4.6" }
+}

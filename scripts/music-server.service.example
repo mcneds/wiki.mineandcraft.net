@@ -1,0 +1,31 @@
+[Unit]
+Description=mineandcraft music disc publishing
+After=network-online.target pufferpanel.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pufferpanel
+Group=pufferpanel
+EnvironmentFile=/etc/mineandcraft-music/bridge.env
+Environment=PATH=/opt/mineandcraft-music/venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=HOME=/var/lib/mineandcraft-music
+Environment=DENO_DIR=/var/lib/mineandcraft-music/deno-cache
+ExecStart=/opt/mineandcraft-music/venv/bin/python -u /opt/mineandcraft-music/music-server.py --config /etc/mineandcraft-music/config.json
+Restart=on-failure
+RestartSec=30
+TimeoutStopSec=500
+KillMode=mixed
+Nice=10
+CPUQuota=50%
+MemoryMax=768M
+TasksMax=128
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/mineandcraft-music /srv/minecraft/world/datapacks /srv/minecraft/polymer/source_assets /srv/minecraft/config/Geyser-Fabric/packs
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

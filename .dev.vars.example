@@ -6,3 +6,11 @@ DISCORD_GUILD_ID=""
 DISCORD_OWNER_ID=""
 # Generated automatically in the local .dev.vars; keep it stable after launch.
 SESSION_KEY=""
+# Optional: shared with the VPS music service; at least 32 random characters.
+MUSIC_BRIDGE_KEY=""
+# Mapart stays closed until the server companion has passed in-game checks.
+MAPART_ENABLED="false"
+MAPART_BRIDGE_KEY=""
+
+# Separate credential for name-only live player status reports.
+SERVER_STATUS_KEY=""

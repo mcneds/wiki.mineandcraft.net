@@ -1,10 +1,14 @@
 ---
 title: "Building & gathering"
-description: "Timber, faster leaf decay, cauldron conversions, and easier slab work."
+description: "Creative planning with Plan, Timber, faster leaf decay, cauldron conversions, and easier slab work."
 category: "Guides"
-updated: "2026-10-22"
+updated: "2026-10-26"
 ---
 A few additions make collecting materials and finishing builds more convenient. These are the features listed in the server's supplied inventory.
+
+## Plan a build in creative
+
+Use [Creative planning](/wiki/creative-planning/) to test a design before gathering materials. Plan is limited to **one world per user** on this server.
 
 ## Timber
 
@@ -59,6 +63,7 @@ minecraft:oak_trapdoor
 - [Crafting tweaks](/wiki/crafting-tweaks/) for better building yields and reclaiming blocks.
 - [Chunk loaders](/wiki/chunk-loaders/) for the loadstone feature.
 - [Heads & collectibles](/wiki/collectibles/) for mini-block decoration.
+- [Copper Speakers](/wiki/copper-speakers/) for wiring music around a build, crafting wall plates, and insulating cables. See the guide for availability.
 
 ## Sources
 

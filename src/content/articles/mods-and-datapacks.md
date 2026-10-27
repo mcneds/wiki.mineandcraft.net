@@ -2,7 +2,7 @@
 title: "Mods & datapacks"
 description: "The server's supplied mod and datapack inventory, with links to player guides."
 category: "Reference"
-updated: "2026-10-22"
+updated: "2026-10-27"
 ---
 This list is for reference. You don't need to install these mods or datapacks to join the server.
 
@@ -12,11 +12,16 @@ This list is for reference. You don't need to install these mods or datapacks to
 | --- | --- |
 | Homes, Spawn, Back, TPA | [Homes & teleporting](/wiki/travel/) |
 | Graves | [Graves & recovery](/wiki/graves/) |
+| Plan: one creative project world per user | [Creative planning](/wiki/creative-planning/) |
 | Timber, Fast Leaf Decay, cauldron conversions, More Effective Tools, KleeSlabs | [Building & gathering](/wiki/building/) |
 | Chunk Loaders | [Chunk loaders](/wiki/chunk-loaders/) |
 | Mini Blocks, head drops, Silence Mobs, End drops | [Heads & collectibles](/wiki/collectibles/) |
 | Infinite Trading, Better Than Mending, NetherPortalFix, Unlock All Recipes | [Trading, repairs & portals](/wiki/trading-and-repairs/) |
 | The crafting-tweaks bundle | [Crafting tweaks](/wiki/crafting-tweaks/) |
+
+## Additional mod guides
+
+[Copper Speakers](/wiki/copper-speakers/) **0.2.0** is live on the server. Extend your jukebox with copper wire and speakers; see the guide for wiring and joining music already playing.
 
 <details class="reference-list" id="reference-lists">
 <summary><span class="reference-show">Show reference lists</span><span class="reference-hide">Hide reference lists</span></summary>
@@ -56,6 +61,7 @@ All listed ZIPs target Minecraft **26.3**.
 | `infinitetrading-26.3.0-5.1.jar` | Trading without exhausted offers, subject to configuration |
 | `kleeslabs-fabric-26.3-26.3.0.2.jar` | Break one half of a double slab |
 | `netherportalfix-fabric-26.3-26.3.0.1.jar` | Remember player return portals |
+| [Plan](https://modrinth.com/mod/planned) | Private creative planning; one project world per user |
 | `Geyser-Fabric-2.12.0-b1264.jar` | Bedrock-to-Java crossplay bridge |
 | `Floodgate-Fabric-2.2.7-b69.jar` | Bedrock account authentication integration |
 | `piston-bounce-fix-fabric-1.0.0.jar` | Listed fix; behavior has not been independently verified |

@@ -1,0 +1,20 @@
+[Unit]
+Description=MineAndCraft live player status
+After=network-online.target pufferpanel.service
+Wants=network-online.target
+
+[Service]
+User=pufferpanel
+Group=pufferpanel
+EnvironmentFile=/etc/mineandcraft-music/status.env
+ExecStart=/opt/mineandcraft-music/venv/bin/python /opt/mineandcraft-music/server-status.py --config /etc/mineandcraft-music/status.json
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+MemoryMax=128M
+
+[Install]
+WantedBy=multi-user.target

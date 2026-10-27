@@ -21,7 +21,7 @@ test('home, player roster, and mobile navigation work', async ({ page }, testInf
   await page.locator('.player-card').filter({ hasText: 'uaiden' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('uaiden');
   await expect(page.locator('.player-head')).toBeVisible();
-  expect(await page.locator('.player-head').evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+  await expect.poll(() => page.locator('.player-head').evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
 });
 
 test('production search finds recipes, commands, and players', async ({ page }) => {
@@ -29,7 +29,7 @@ test('production search finds recipes, commands, and players', async ({ page }) 
     await page.goto(`/search/?q=${query}`);
     await expect(page.locator('.search-results').getByRole('link', { name: title, exact: true })).toBeVisible();
   }
-  await page.locator('#search-query').fill('zzzzunfindablewordzzzz');
+  await page.locator('#search-query').fill('qjxvknonexistent');
   await page.locator('#wiki-search').getByRole('button', { name: 'Search', exact: true }).click();
   await expect(page.locator('.search-status')).toContainText('No results');
   await expect(page.locator('.search-results li')).toHaveCount(0);

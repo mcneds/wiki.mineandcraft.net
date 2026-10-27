@@ -2014,7 +2014,7 @@
       },
       "summary": "1 Rotten Flesh \u2192 1 Leather",
       "source": "data/rotten_flesh_to_leather/recipe/leather.json",
-      "experience": 1.0,
+      "experience": 1,
       "cookingtime": 200
     },
     "powder_to_glass:black_stained_glass": {
@@ -13346,6 +13346,126 @@
         "count": 1
       },
       "summary": "Nether Star + placed Lodestone \u2192 Loadstone"
+    },
+    "copper_speakers:copper_wire": {
+      "type": "crafting_shaped",
+      "group": "Copper Speakers",
+      "slots": [
+        {
+          "item": "minecraft:copper_ingot",
+          "name": "Copper Ingot"
+        },
+        {
+          "item": "minecraft:copper_ingot",
+          "name": "Copper Ingot"
+        },
+        {
+          "item": "minecraft:copper_ingot",
+          "name": "Copper Ingot"
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "result": {
+        "item": "copper_speakers:copper_wire",
+        "name": "Copper Wire",
+        "count": 12
+      },
+      "summary": "3 Copper Ingot \u2192 12 Copper Wire",
+      "source": "data/copper_speakers/recipe/copper_wire.json"
+    },
+    "copper_speakers:speaker": {
+      "type": "crafting_shaped",
+      "group": "Copper Speakers",
+      "slots": [
+        null,
+        {
+          "item": "minecraft:paper",
+          "name": "Paper"
+        },
+        null,
+        {
+          "item": "minecraft:copper_ingot",
+          "name": "Copper Ingot"
+        },
+        {
+          "item": "minecraft:note_block",
+          "name": "Note Block"
+        },
+        {
+          "item": "minecraft:copper_ingot",
+          "name": "Copper Ingot"
+        },
+        null,
+        {
+          "item": "minecraft:copper_ingot",
+          "name": "Copper Ingot"
+        },
+        null
+      ],
+      "result": {
+        "item": "copper_speakers:speaker",
+        "name": "Speaker",
+        "count": 1
+      },
+      "summary": "1 Paper, 3 Copper Ingot, 1 Note Block \u2192 1 Speaker",
+      "source": "data/copper_speakers/recipe/speaker.json"
+    },
+    "copper_speakers:wall_plate": {
+      "type": "crafting_shaped",
+      "group": "Copper Speakers",
+      "slots": [
+        {
+          "item": "minecraft:copper_ingot",
+          "name": "Copper Ingot"
+        },
+        null,
+        {
+          "item": "minecraft:copper_ingot",
+          "name": "Copper Ingot"
+        },
+        {
+          "item": "minecraft:copper_ingot",
+          "name": "Copper Ingot"
+        },
+        {
+          "item": "copper_speakers:copper_wire",
+          "name": "Copper Wire"
+        },
+        {
+          "item": "minecraft:copper_ingot",
+          "name": "Copper Ingot"
+        },
+        {
+          "item": "minecraft:copper_ingot",
+          "name": "Copper Ingot"
+        },
+        null,
+        {
+          "item": "minecraft:copper_ingot",
+          "name": "Copper Ingot"
+        }
+      ],
+      "result": {
+        "item": "copper_speakers:wall_plate",
+        "name": "Wall Plate",
+        "count": 2
+      },
+      "summary": "6 Copper Ingot, 1 Copper Wire \u2192 2 Wall Plate",
+      "source": "data/copper_speakers/recipe/wall_plate.json"
+    }
+  },
+  "modSources": {
+    "copper_speakers": {
+      "name": "Copper Speakers",
+      "version": "0.1.7",
+      "minecraft": "26.3",
+      "recipes": "Bundled recipe JSON",
+      "images": "Inventory model JSON, Minecraft textures, and the mod speaker-front texture"
     }
   }
 }

@@ -1,0 +1,58 @@
+---
+import WikiLayout from '../../layouts/WikiLayout.astro';
+import '../../styles/mapart.css';
+import { MAPART_TILE_LIMIT, MAPART_SIDE_LIMIT } from '../../../shared/mapart.mjs';
+---
+<WikiLayout title="Create mapart" description="Create Minecraft mapart and follow its conversion progress." section="Mapart">
+  <header class="page-heading"><h1>Create mapart</h1><p>Choose your image and follow its progress.</p></header>
+  <nav class="mapart-navigation" aria-label="Mapart pages"><a href="/mapart/">Your gallery</a><a href="/mapart/create/" aria-current="page">Create &amp; progress</a></nav>
+  <p>Choose an image from your library or upload a temporary image. Create artwork up to {MAPART_TILE_LIMIT} tiles, then claim it in Minecraft. Each copy costs one blank map per tile, or is free in creative mode. Bring your own item frames.</p>
+  <p>Temporary originals are deleted after conversion and never enter your image library. Converted artwork stays available for replacement copies until you delete it. Maps already issued into the world remain there.</p>
+  <p id="mapart-account-status" role="status" aria-live="polite"></p>
+  <a id="mapart-sign-in" href="/auth/login/?returnTo=/mapart/create/" target="_blank" rel="noopener">Sign in with Discord</a>
+  <button id="mapart-refresh" type="button">Refresh mapart and permissions</button>
+  <noscript><p>Sign in and enable JavaScript to select images, preview alignment, and manage your mapart.</p></noscript>
+  <section id="mapart-member" hidden>
+    <h2>Create mapart</h2>
+    <p id="mapart-storage-label"></p>
+    <meter id="mapart-storage" min="0" max="1" value="0" aria-labelledby="mapart-storage-label"></meter>
+    <p id="mapart-availability"></p>
+    <form id="mapart-form">
+      <fieldset id="mapart-settings">
+        <legend>Image and layout</legend>
+        <label for="mapart-poster">Minecraft profile</label><select id="mapart-poster" required></select>
+        <label for="mapart-title">Artwork name</label><input id="mapart-title" maxlength="80" required />
+        <label for="mapart-source">Image source</label><select id="mapart-source"><option value="temporary">Temporary upload</option><option value="library">Image library</option></select>
+        <div id="mapart-upload"><label for="mapart-file">Temporary image (up to 5 MiB)</label><input id="mapart-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" /><p>PNG, JPEG, WebP, or GIF. Animated images use their first frame. Unfinished uploads expire after 24 hours.</p></div>
+        <div id="mapart-library-picker" hidden><label for="mapart-image">Library image</label><select id="mapart-image"><option value="">Choose an image</option></select></div>
+        <div class="mapart-dimensions"><div><label for="mapart-columns">Columns</label><input id="mapart-columns" type="number" min="1" max={MAPART_SIDE_LIMIT} step="1" value="1" required aria-describedby="mapart-size-help" /></div><div><label for="mapart-rows">Rows</label><input id="mapart-rows" type="number" min="1" max={MAPART_SIDE_LIMIT} step="1" value="1" required aria-describedby="mapart-size-help" /></div></div>
+        <p id="mapart-size-help">Use up to {MAPART_TILE_LIMIT} tiles total, with 1 to {MAPART_SIDE_LIMIT} maps on each side. Examples: 16 × 16, 32 × 8, or 64 × 4.</p>
+        <label for="mapart-fit">Image fitting</label><select id="mapart-fit"><option value="fit">Fit — keep the full image, with transparent padding</option><option value="crop">Crop — fill the grid</option></select>
+        <fieldset class="mapart-alignment"><legend>Image alignment</legend><div class="mapart-align-grid">
+          {['top', 'center', 'bottom'].flatMap(vertical => ['left', 'center', 'right'].map(horizontal => {
+            const name = vertical === 'center' && horizontal === 'center' ? 'Center' : `${vertical === 'center' ? 'Middle' : vertical[0].toUpperCase() + vertical.slice(1)} ${horizontal}`;
+            const symbols = { 'top-left': '↖', 'top-center': '↑', 'top-right': '↗', 'center-left': '←', 'center-center': '•', 'center-right': '→', 'bottom-left': '↙', 'bottom-center': '↓', 'bottom-right': '↘' };
+            const value = `${vertical}-${horizontal}` as keyof typeof symbols;
+            return <label title={name}><input type="radio" name="mapart-alignment" value={value} aria-label={name} checked={value === 'center-center'} /><span aria-hidden="true">{symbols[value]}</span></label>;
+          }))}
+        </div><p>Fit positions the image within its padding. Crop chooses which edges stay visible.</p></fieldset>
+        <label class="mapart-check"><input id="mapart-dither" type="checkbox" checked /> Dither for smoother map colors</label>
+      </fieldset>
+      <label class="mapart-check"><input id="mapart-grid" type="checkbox" checked /> Show tile grid</label>
+      <div id="mapart-preview-wrap" hidden><canvas id="mapart-preview" aria-label="Image composition preview"></canvas><div id="mapart-grid-overlay" aria-hidden="true"></div></div>
+      <p>Composition preview. The finished Minecraft map-color preview appears after conversion.</p>
+      <p id="mapart-cost" aria-live="polite"></p>
+      <progress id="mapart-progress" max="100" value="0" hidden aria-label="Image upload progress"></progress>
+      <div class="mapart-actions"><button id="mapart-submit" type="submit">Create mapart</button><button id="mapart-cancel" type="button">Clear / cancel draft</button></div>
+      <p id="mapart-form-status" role="status" aria-live="polite"></p>
+    </form>
+    <h2 id="mapart-progress-heading">In progress</h2><p id="mapart-usage"></p>
+    <p>Finished artwork moves to <a href="/mapart/">your gallery</a>, where you can preview it and copy its claim command.</p>
+    <div id="mapart-completed"></div>
+    <p id="mapart-live-status" class="mapart-live-status"></p>
+    <p id="mapart-updates" class="mapart-announcement" role="status" aria-live="polite" aria-atomic="true"></p>
+    <label id="mapart-owner-controls" class="mapart-check" hidden><input id="mapart-show-all" type="checkbox" /> Show all members’ mapart (owner)</label>
+    <div id="mapart-artworks"></div>
+  </section>
+</WikiLayout>
+<script>import '../../scripts/mapart.js';</script>

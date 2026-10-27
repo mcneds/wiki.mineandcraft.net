@@ -1,0 +1,24 @@
+[Unit]
+Description=Private YouTube proof-of-origin token provider
+After=network-online.target
+
+[Service]
+User=pufferpanel
+Group=pufferpanel
+WorkingDirectory=/opt/mineandcraft-music/pot-provider/server/node_modules
+Environment=DENO_DIR=/var/lib/mineandcraft-music/pot-deno
+Environment=HOME=/var/lib/mineandcraft-music
+ExecStart=/opt/mineandcraft-music/venv/bin/deno run --allow-env --allow-net --allow-ffi=. --allow-read=. ../src/main.ts --host 127.0.0.1 --port 4416
+Restart=on-failure
+RestartSec=15
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/mineandcraft-music/pot-deno
+MemoryMax=384M
+CPUQuota=50%
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

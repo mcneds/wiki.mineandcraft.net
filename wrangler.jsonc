@@ -4,7 +4,7 @@
   "main": "worker/index.mjs",
   "compatibility_date": "2026-10-22",
   "workers_dev": true,
-  "vars": { "SITE_ORIGIN": "https://wiki.mineandcraft.net" },
+  "vars": { "SITE_ORIGIN": "https://wiki.mineandcraft.net", "MAPART_ENABLED": "true", "DISCORD_OWNER_IDS": "733429219090104340" },
   "d1_databases": [{ "binding": "DB", "database_name": "mineandcraft-wiki", "database_id": "37fccdbe-ed65-47ee-bf85-47a5486380a6", "migrations_dir": "migrations" }],
   "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "mineandcraft-wiki-media" }],
   "triggers": { "crons": ["17 * * * *"] },

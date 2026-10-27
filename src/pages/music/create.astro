@@ -1,0 +1,61 @@
+---
+import WikiLayout from '../../layouts/WikiLayout.astro';
+import '../../styles/music.css';
+---
+<WikiLayout title="Upload music" description="Upload music and follow your disc submissions." section="Music discs">
+  <header class="page-heading"><h1>Upload music</h1></header>
+  <nav class="music-navigation" aria-label="Music pages"><a href="/music/" >Gallery</a><a href="/music/create/" aria-current="page">Upload &amp; progress</a></nav>
+  <p>Upload an audio file or submit a Spotify or YouTube link. Follow your submissions and manage your music library here. Approved tracks are added to the server when it is empty.</p>
+  <p>Once a song is marked <strong>Added to server</strong>, its claim command is available in the <a href="/music/">music gallery</a>.</p>
+  <p id="music-account-status" role="status" aria-live="polite"></p>
+  <p><a id="music-sign-in" href="/auth/login/?returnTo=/music/create/">Sign in with Discord to manage your music library</a></p>
+  <button id="music-refresh" type="button">Refresh music and permissions</button>
+  <section id="music-member" hidden>
+    <h2>Your music library</h2>
+    <p id="music-usage"></p>
+    <meter id="music-storage" min="0" max="104857600" value="0" aria-label="Music storage used"></meter>
+    <p>Up to 20 MB per file, 100 MB of audio per member, and 25 tracks. Songs have no duration limit. Unapproved tracks can be removed to free space. Installed discs stay in future packs so existing items keep working.</p>
+    <details id="music-add">
+      <summary>Add music</summary>
+      <form id="music-form">
+        <fieldset id="music-metadata"><legend>Track details</legend>
+          <label for="music-poster">Posting as</label><select id="music-poster" required></select>
+          <label for="music-source-type">Source</label><select id="music-source-type"><option value="file">Audio file</option><option value="link">Spotify or YouTube link</option></select>
+          <div id="music-link-fields" hidden><label for="music-source-url">Track or video link</label><input id="music-source-url" type="url" maxlength="2048" placeholder="https://open.spotify.com/track/… or https://youtu.be/…" />
+            <p id="music-metadata-status" role="status" aria-live="polite"></p>
+            <p>Links fill in the title and artists automatically. For YouTube, the artist starts as the channel name; edit it if needed.</p>
+            <p>Choose one track or video. The server fetches the chosen YouTube recording after approval when downloading is available. You can also attach an audio file.</p>
+            <section id="music-matching" hidden aria-label="Choose a recording for Spotify">
+              <h3>Choose the audio recording</h3>
+              <p>Find possible matches, listen, and confirm the correct version for your disc. Upload an audio file instead if downloading is unavailable.</p>
+              <button id="music-find-matches" type="button">Find matching recordings</button>
+              <p id="music-match-status" role="status" aria-live="polite"></p>
+              <div id="music-match-results"></div>
+              <label for="music-audio-source">YouTube recording link</label><input id="music-audio-source" type="url" maxlength="2048" placeholder="Choose a result above or paste a YouTube video link" />
+              <button id="music-preview-match" type="button">Preview recording</button>
+              <div id="music-match-preview" hidden></div>
+              <label class="music-match-confirm"><input id="music-confirm-match" type="checkbox" /> I listened and confirm this is the recording I want.</label>
+            </section>
+          </div>
+          <label for="music-title">Track title</label><input id="music-title" required maxlength="100" />
+          <label for="music-artist">Artist (optional)</label><input id="music-artist" maxlength="100" />
+          <label for="music-cover-url">Album cover URL (optional)</label><input id="music-cover-url" type="url" maxlength="2048" placeholder="https://example.com/album-cover.jpg" aria-describedby="music-cover-help" />
+          <p id="music-cover-help">Spotify links use album artwork; YouTube links use the video thumbnail. You can replace it with a direct HTTPS image link. Covers are cropped to the centre of the disc.</p>
+          <div id="music-cover-preview" aria-label="Disc cover preview"></div>
+        </fieldset>
+        <label for="music-file">Audio file <span id="music-file-optional" hidden>(optional for a link)</span></label><input id="music-file" type="file" accept=".mp3,.wav,.ogg,.flac,.m4a,audio/*" required />
+        <p>MP3, WAV, Ogg, FLAC, or M4A. Only submit audio you have permission to share with the server.</p>
+        <audio id="music-preview" controls preload="none" hidden></audio>
+        <progress id="music-upload-progress" max="100" value="0" aria-label="Audio upload progress" hidden></progress>
+        <p id="music-form-status" role="status" aria-live="polite"></p>
+        <div class="music-actions"><button type="submit" id="music-submit">Submit for review</button><button type="button" id="music-cancel">Clear form</button></div>
+      </form>
+    </details>
+    <p id="music-owner-controls" hidden><label><input id="music-show-all" type="checkbox" /> Show all members’ music (owner)</label></p>
+    <p id="music-delivery" hidden></p>
+    <div id="music-library"></div>
+    <nav class="music-actions" aria-label="Library pages"><button id="music-library-prev" type="button" hidden>Previous library page</button><button id="music-library-next" type="button" hidden>Next library page</button></nav>
+  </section>
+  <noscript><p>Enable JavaScript to upload music and manage your library. You can browse the <a href="/music/">music gallery</a> without it.</p></noscript>
+  <script>import '../../scripts/music.js';</script>
+</WikiLayout>

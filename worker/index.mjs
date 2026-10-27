@@ -6,6 +6,11 @@ import { images, publicImage, cleanupMedia } from './media.mjs';
 import { coordinateContext, coordinateList, coordinateDetail, coordinateWrite, entryHtml, listHtml } from './coordinates.mjs';
 import { tagName } from '../shared/coordinates.mjs';
 import { commentList, commentContext, commentWrite, commentsSection } from './comments.mjs';
+import { musicList, musicContext, musicApi, musicBridge, musicListHtml, musicPaginationHtml, musicFilterOptionsHtml, musicPlayback, cleanupMusic } from './music.mjs';
+import { musicMetadata } from './music-metadata.mjs';
+import { spotifyMatches } from './music-matching.mjs';
+import { serverStatus } from './server-status.mjs';
+import { mapartContext, mapartApi, mapartBridge, cleanupMapart } from './mapart.mjs';
 
 const json = (data, status = 200) => Response.json(data, { status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
 const allPlayers = async env => (await env.DB.prepare('SELECT slug,name,image,markdown,version,updated,edition,minecraft_id FROM players ORDER BY name COLLATE NOCASE').all()).results;
@@ -49,6 +54,14 @@ async function update(env, user, player, changes, expected) {
 async function api(request, env, fetcher) {
   const path = new URL(request.url).pathname;
   const method = request.method;
+  if (path.startsWith('/api/server-status/')) return serverStatus(request, env, method === 'POST' ? await input(request) : {});
+  if (path.startsWith('/api/mapart/bridge/')) return mapartBridge(request, env, method === 'POST' && request.headers.get('Content-Type')?.startsWith('application/json') ? await input(request) : {}, fetcher);
+  if (path === '/api/mapart/context/' && method === 'GET') return mapartContext(request, env, fetcher);
+  if (path.startsWith('/api/music/bridge/')) return musicBridge(request, env, method === 'POST' && request.headers.get('Content-Type')?.startsWith('application/json') ? await input(request) : {});
+  if (path === '/api/music/' && method === 'GET') return json(await musicList(env, new URL(request.url).searchParams));
+  const playback = path.match(/^\/api\/music\/([a-f0-9-]{36})\/play\/$/);
+  if (playback && ['GET', 'HEAD'].includes(method)) return musicPlayback(request, env, playback[1]);
+  if (path === '/api/music/context/' && method === 'GET') return musicContext(request, env, fetcher);
   const comment = path.match(/^\/api\/players\/([a-z0-9_-]{1,50})\/comments\/(?:(context|[a-f0-9-]{36})\/)?$/);
   if (comment && method === 'GET') {
     if (comment[2] === 'context') return json(await commentContext(request, env, fetcher, comment[1]));
@@ -84,6 +97,13 @@ async function api(request, env, fetcher) {
     checkOrigin(request, env); checkCsrf(request, user);
     await limit(env, `write:${user.user_id}`, 30, 60);
   }
+  if (path === '/api/music/metadata/' && method === 'POST') return json(await musicMetadata(await input(request), fetcher));
+  if (path.startsWith('/api/mapart/')) return mapartApi(request, env, user, !['GET', 'HEAD', 'DELETE'].includes(method) && !path.endsWith('/source/') ? await input(request) : {});
+  if (path === '/api/music/matches/' && method === 'POST') {
+    await limit(env, `music-match:${user.user_id}`, 5, 60);
+    return json(await spotifyMatches(await input(request), fetcher));
+  }
+  if (path.startsWith('/api/music/')) return musicApi(request, env, user, !['GET', 'HEAD'].includes(method) && !(path.endsWith('/audio/') && method === 'POST') ? await input(request) : {});
   if (comment) {
     if (comment[2] === 'context') throw new HttpError(405, 'This action is not supported.');
     return json(await commentWrite(request, env, user, comment[1], comment[2], method === 'POST' ? await input(request) : {}), method === 'POST' ? 201 : 200);
@@ -195,6 +215,17 @@ async function html(request, env, template, main, title, player) {
 
 async function publicPage(request, env) {
   const path = new URL(request.url).pathname;
+  if (path === '/music/') {
+    const result = await musicList(env, new URL(request.url).searchParams);
+    const base = await env.ASSETS.fetch(request), headers = new Headers(base.headers);
+    headers.set('Cache-Control', 'no-store'); headers.delete('ETag'); headers.delete('Content-Length'); headers.delete('Content-Encoding');
+    return new HTMLRewriter().on('#music-catalogue', { element(e) { e.setInnerContent(musicListHtml(result), { html: true }); } })
+      .on('#music-search', { element(e) { e.setAttribute('value', result.query); } })
+      .on('#music-artist', { element(e) { e.setInnerContent(musicFilterOptionsHtml(result, 'artist'), { html: true }); } })
+      .on('#music-uploader', { element(e) { e.setInnerContent(musicFilterOptionsHtml(result, 'uploader'), { html: true }); } })
+      .on('#music-pagination', { element(e) { e.setInnerContent(musicPaginationHtml(result), { html: true }); } })
+      .transform(new Response(base.body, { status: base.status, headers }));
+  }
   const coordinatePage = path.match(/^\/coordinates\/(?:([a-f0-9-]{36})\/)?$/);
   if (coordinatePage) {
     const params = new URL(request.url).searchParams;
@@ -268,7 +299,7 @@ export function createHandler(fetcher = (...args) => fetch(...args)) {
     const url = new URL(request.url);
     try {
       const path = url.pathname;
-      const publicApi = request.method === 'GET' && (path === '/api/players/' || path === '/api/coordinates/' || /^\/api\/coordinates\/[a-f0-9-]{36}\/$/.test(path) || /^\/api\/players\/[a-z0-9_-]{1,50}\/comments\/$/.test(path));
+      const publicApi = (['GET', 'HEAD'].includes(request.method) && /^\/api\/music\/[a-f0-9-]{36}\/play\/$/.test(path)) || (request.method === 'GET' && (path === '/api/server-status/' || path === '/api/music/' || path === '/api/players/' || path === '/api/coordinates/' || /^\/api\/coordinates\/[a-f0-9-]{36}\/$/.test(path) || /^\/api\/players\/[a-z0-9_-]{1,50}\/comments\/$/.test(path)));
       if ((path.startsWith('/auth/') || (path.startsWith('/api/') && !publicApi)) && url.origin !== env.SITE_ORIGIN) throw new HttpError(403, 'Use the wiki’s main address to sign in and edit.');
       if (path === '/auth/login/' && request.method === 'GET') return await login(request, env);
       if (path === '/auth/callback/' && request.method === 'GET') return await callback(request, env, fetcher);
@@ -284,6 +315,10 @@ export function createHandler(fetcher = (...args) => fetch(...args)) {
       // Match the existing trailing-slash convention for database-backed pages too.
       if (/^\/wiki\/players\/[^/.]+$/.test(path)) return Response.redirect(new URL(path + '/', request.url).href, 308);
       if (/^\/coordinates(?:\/[a-f0-9-]{36})?$/.test(path)) return Response.redirect(new URL(path + '/', request.url).href, 308);
+      if (path === '/music') return Response.redirect(new URL('/music/', request.url).href, 308);
+      if (path === '/music/create') return Response.redirect(new URL('/music/create/', request.url).href, 308);
+      if (path === '/mapart') return Response.redirect(new URL('/mapart/', request.url).href, 308);
+      if (path === '/mapart/create') return Response.redirect(new URL('/mapart/create/', request.url).href, 308);
       const response = await publicPage(request, env);
       if (request.method === 'HEAD') return new Response(null, { status: response.status, headers: response.headers });
       return response;
@@ -301,4 +336,4 @@ export function createHandler(fetcher = (...args) => fetch(...args)) {
     }
   };
 }
-export default { fetch: createHandler(), scheduled: (_event, env, context) => context.waitUntil(cleanupMedia(env)) };
+export default { fetch: createHandler(), scheduled: (_event, env, context) => context.waitUntil(Promise.all([cleanupMedia(env), cleanupMusic(env), cleanupMapart(env)])) };

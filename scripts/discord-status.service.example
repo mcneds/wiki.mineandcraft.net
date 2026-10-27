@@ -1,0 +1,27 @@
+[Unit]
+Description=MineAndCraft Discord presence and chat bridge
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+DynamicUser=true
+StateDirectory=mineandcraft-discord
+EnvironmentFile=/etc/mineandcraft-discord/status.env
+ExecStart=/opt/mineandcraft-discord/venv/bin/python /opt/mineandcraft-discord/discord-status.py
+Restart=on-failure
+RestartSec=30
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+MemoryMax=128M
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

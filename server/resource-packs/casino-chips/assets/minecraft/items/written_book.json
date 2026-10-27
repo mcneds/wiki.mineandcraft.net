@@ -1,0 +1,115 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:component",
+    "component": "minecraft:written_book_content",
+    "cases": [
+      {
+        "when": {
+          "pages": [
+            {
+              "text": ""
+            }
+          ],
+          "title": "5 Chip",
+          "author": "APokeFish",
+          "generation": 1,
+          "resolved": true
+        },
+        "model": {
+          "type": "minecraft:model",
+          "model": "casino:item/5_chip"
+        }
+      },
+      {
+        "when": {
+          "pages": [
+            {
+              "text": ""
+            }
+          ],
+          "title": "25 Chip",
+          "author": "APokeFish",
+          "generation": 1,
+          "resolved": true
+        },
+        "model": {
+          "type": "minecraft:model",
+          "model": "casino:item/25_chip"
+        }
+      },
+      {
+        "when": {
+          "pages": [
+            {
+              "text": ""
+            }
+          ],
+          "title": "100 Chip",
+          "author": "APokeFish",
+          "generation": 1,
+          "resolved": true
+        },
+        "model": {
+          "type": "minecraft:model",
+          "model": "casino:item/100_chip"
+        }
+      },
+      {
+        "when": {
+          "pages": [
+            {
+              "text": ""
+            }
+          ],
+          "title": "500 Chip",
+          "author": "APokeFish",
+          "generation": 1,
+          "resolved": true
+        },
+        "model": {
+          "type": "minecraft:model",
+          "model": "casino:item/500_chip"
+        }
+      },
+      {
+        "when": {
+          "pages": [
+            {
+              "text": ""
+            }
+          ],
+          "title": "2500 Chip",
+          "author": "APokeFish",
+          "generation": 1,
+          "resolved": true
+        },
+        "model": {
+          "type": "minecraft:model",
+          "model": "casino:item/2500_chip"
+        }
+      },
+      {
+        "when": {
+          "pages": [
+            {
+              "text": ""
+            }
+          ],
+          "title": "10000 Chip",
+          "author": "APokeFish",
+          "generation": 1,
+          "resolved": true
+        },
+        "model": {
+          "type": "minecraft:model",
+          "model": "casino:item/10000_chip"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/written_book"
+    }
+  }
+}

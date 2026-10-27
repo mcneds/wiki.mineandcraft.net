@@ -93,9 +93,13 @@ export async function authorize(request, env, fetcher) {
     credentials = await tokenRequest(env, fetcher, { grant_type: 'refresh_token', refresh_token: credentials.refresh });
     await env.DB.prepare('UPDATE sessions SET credentials=? WHERE token_hash=?').bind(await seal(credentials, env), current.token_hash).run();
   }
-  // Fresh membership and role names on every privileged request: role removal takes effect on the next save.
+  const ownerIds = [env.DISCORD_OWNER_ID, ...(env.DISCORD_OWNER_IDS || '').split(/[\s,]+/)];
+  return { ...current, owner: ownerIds.includes(current.user_id), roles: await memberRoles(env, current.user_id, fetcher) };
+}
+// In-game claims use fresh Discord membership without requiring a browser session.
+export async function memberRoles(env, userId, fetcher) {
   const [member, roles] = await Promise.all([
-    provider(fetcher, `https://discord.com/api/v10/guilds/${env.DISCORD_GUILD_ID}/members/${current.user_id}`, { headers: { Authorization: `Bot ${env.DISCORD_BOT_TOKEN}` } }),
+    provider(fetcher, `https://discord.com/api/v10/guilds/${env.DISCORD_GUILD_ID}/members/${userId}`, { headers: { Authorization: `Bot ${env.DISCORD_BOT_TOKEN}` } }),
     provider(fetcher, `https://discord.com/api/v10/guilds/${env.DISCORD_GUILD_ID}/roles`, { headers: { Authorization: `Bot ${env.DISCORD_BOT_TOKEN}` } }),
   ]);
   if (member.status === 404) {
@@ -106,16 +110,16 @@ export async function authorize(request, env, fetcher) {
   if (!member.ok || !roles.ok) throw new HttpError(503, 'Discord permission checks are temporarily unavailable. Please try again shortly.', { code: 'DISCORD_UNAVAILABLE' });
   let membership, guildRoles;
   try { membership = await member.json(); guildRoles = await roles.json(); } catch { /* Fail closed on malformed upstream responses. */ }
-  if (membership?.user?.id !== current.user_id || !Array.isArray(membership?.roles) || !membership.roles.every(id => typeof id === 'string') || !Array.isArray(guildRoles) || !guildRoles.every(role => typeof role.id === 'string' && typeof role.name === 'string')) throw new HttpError(503, 'Discord returned an unreadable permission check. Please try again shortly.', { code: 'DISCORD_UNAVAILABLE' });
+  if (membership?.user?.id !== userId || !Array.isArray(membership?.roles) || !membership.roles.every(id => typeof id === 'string') || !Array.isArray(guildRoles) || !guildRoles.every(role => typeof role.id === 'string' && typeof role.name === 'string')) throw new HttpError(503, 'Discord returned an unreadable permission check. Please try again shortly.', { code: 'DISCORD_UNAVAILABLE' });
   const ids = new Set(membership.roles);
   const names = guildRoles.filter(role => role.id !== env.DISCORD_GUILD_ID && ids.has(role.id)).map(role => role.name);
-  return { ...current, owner: current.user_id === env.DISCORD_OWNER_ID, roles: names };
+  return names;
 }
 export const mayEdit = (user, player) => user.owner || user.roles.some(role => role.toLowerCase() === player.name.toLowerCase());
 export function checkCsrf(request, user) {
   if (request.headers.get('X-CSRF-Token') !== user.csrf) throw new HttpError(403, 'Reload the editor and try again.');
 }
-const returnPath = value => value === '/coordinates/' || /^\/wiki\/players\/[a-z0-9_-]{1,50}\/$/.test(value || '') ? value : '/account/';
+const returnPath = value => ['/coordinates/', '/music/', '/music/create/', '/mapart/', '/mapart/create/'].includes(value) || /^\/wiki\/players\/[a-z0-9_-]{1,50}\/$/.test(value || '') ? value : '/account/';
 
 export async function login(request, env) {
   if (!configured(env)) throw new HttpError(503, 'Discord editing is not configured yet.');

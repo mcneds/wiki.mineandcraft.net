@@ -1,0 +1,8 @@
+.server-status { position: relative; }
+.server-status button { white-space: nowrap; font: inherit; font-size: .8rem; border: 1px solid var(--line); border-radius: 5px; padding: .35rem .5rem; background: var(--paper); color: inherit; cursor: pointer; }
+.server-status-panel { position: absolute; right: 0; top: 100%; z-index: 50; width: min(280px, calc(100vw - 24px)); max-height: 60vh; overflow: auto; padding: 1rem; background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 4px 18px #0003; }
+.server-status-panel ul { margin: .6rem 0 0; padding-left: 1.1rem; overflow-wrap: anywhere; }
+.topbar-right { display: flex; align-items: center; gap: .5rem; }
+@media (max-width: 480px) { .server-status button { font-size: .7rem; padding: .3rem; } .site-brand { font-size: .9rem; } .topbar-right { gap: .25rem; } }
+
+@media (max-width: 480px) { .topbar { gap: 8px; } .site-brand { min-width: 0; gap: 6px; } .site-brand>span { font-size: 16px; } .site-brand img { width: 26px; } .theme-toggle { flex-shrink: 0; } }

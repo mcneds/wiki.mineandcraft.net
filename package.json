@@ -12,6 +12,8 @@
     "dev:worker": "wrangler d1 migrations apply mineandcraft-wiki --local && wrangler dev --ip 127.0.0.1 --port 8787 --var SITE_ORIGIN:http://127.0.0.1:8787",
     "preview:worker": "wrangler d1 migrations apply mineandcraft-wiki --local && wrangler dev --ip 127.0.0.1 --port 4321 --var SITE_ORIGIN:http://127.0.0.1:4321",
     "test:worker": "node --test tests-worker/*.test.mjs",
+    "test:music-server": "python -m unittest discover -s tests-worker -p music_server_test.py",
+    "test:mapart-server": "node scripts/build-mapart.mjs",
     "setup:discord": "node scripts/configure-discord.mjs"
   },
   "dependencies": {
