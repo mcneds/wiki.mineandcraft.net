@@ -1,0 +1,142 @@
+{
+  "method": "Minecraft JOrbisAudioStream; full readAll once versus 1-second read chunks for one/eight independent streams; no playback, GPU or server; JVM thread CPU, not native mixer CPU",
+  "status": "complete",
+  "java": "25.0.5",
+  "trials": [
+    {
+      "threadAllocatedBytes": 1253864,
+      "decodedBytes": 28854230,
+      "wallMs": 751.9264,
+      "sources": 1,
+      "repetition": 0,
+      "threadCpuMs": 703.125,
+      "mode": "buffered-one"
+    },
+    {
+      "threadAllocatedBytes": 1048840,
+      "decodedBytes": 28854230,
+      "wallMs": 717.318,
+      "sources": 1,
+      "repetition": 0,
+      "threadCpuMs": 656.25,
+      "mode": "streamed-one"
+    },
+    {
+      "threadAllocatedBytes": 8389600,
+      "decodedBytes": 230833840,
+      "wallMs": 5826.1859,
+      "sources": 8,
+      "repetition": 0,
+      "threadCpuMs": 5484.375,
+      "mode": "streamed-eight"
+    },
+    {
+      "threadAllocatedBytes": 8389264,
+      "decodedBytes": 230833840,
+      "wallMs": 5757.5667,
+      "sources": 8,
+      "repetition": 1,
+      "threadCpuMs": 5390.625,
+      "mode": "streamed-eight"
+    },
+    {
+      "threadAllocatedBytes": 1048952,
+      "decodedBytes": 28854230,
+      "wallMs": 725.9734,
+      "sources": 1,
+      "repetition": 1,
+      "threadCpuMs": 687.5,
+      "mode": "streamed-one"
+    },
+    {
+      "threadAllocatedBytes": 1253488,
+      "decodedBytes": 28854230,
+      "wallMs": 719.5562,
+      "sources": 1,
+      "repetition": 1,
+      "threadCpuMs": 703.125,
+      "mode": "buffered-one"
+    },
+    {
+      "threadAllocatedBytes": 1253488,
+      "decodedBytes": 28854230,
+      "wallMs": 750.6882,
+      "sources": 1,
+      "repetition": 2,
+      "threadCpuMs": 687.5,
+      "mode": "buffered-one"
+    },
+    {
+      "threadAllocatedBytes": 1048840,
+      "decodedBytes": 28854230,
+      "wallMs": 733.3868,
+      "sources": 1,
+      "repetition": 2,
+      "threadCpuMs": 671.875,
+      "mode": "streamed-one"
+    },
+    {
+      "threadAllocatedBytes": 8389264,
+      "decodedBytes": 230833840,
+      "wallMs": 5756.1745,
+      "sources": 8,
+      "repetition": 2,
+      "threadCpuMs": 5421.875,
+      "mode": "streamed-eight"
+    },
+    {
+      "threadAllocatedBytes": 8389264,
+      "decodedBytes": 230833840,
+      "wallMs": 5767.4494,
+      "sources": 8,
+      "repetition": 3,
+      "threadCpuMs": 5406.25,
+      "mode": "streamed-eight"
+    },
+    {
+      "threadAllocatedBytes": 1048840,
+      "decodedBytes": 28854230,
+      "wallMs": 724.6819,
+      "sources": 1,
+      "repetition": 3,
+      "threadCpuMs": 687.5,
+      "mode": "streamed-one"
+    },
+    {
+      "threadAllocatedBytes": 1253488,
+      "decodedBytes": 28854230,
+      "wallMs": 721.8924,
+      "sources": 1,
+      "repetition": 3,
+      "threadCpuMs": 703.125,
+      "mode": "buffered-one"
+    },
+    {
+      "threadAllocatedBytes": 1253488,
+      "decodedBytes": 28854230,
+      "wallMs": 726.2314,
+      "sources": 1,
+      "repetition": 4,
+      "threadCpuMs": 671.875,
+      "mode": "buffered-one"
+    },
+    {
+      "threadAllocatedBytes": 1048840,
+      "decodedBytes": 28854230,
+      "wallMs": 709.3394,
+      "sources": 1,
+      "repetition": 4,
+      "threadCpuMs": 687.5,
+      "mode": "streamed-one"
+    },
+    {
+      "threadAllocatedBytes": 8389264,
+      "decodedBytes": 230833840,
+      "wallMs": 5708.7159,
+      "sources": 8,
+      "repetition": 4,
+      "threadCpuMs": 5250.0,
+      "mode": "streamed-eight"
+    }
+  ]
+}

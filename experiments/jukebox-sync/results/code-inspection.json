@@ -1,0 +1,53 @@
+{
+  "minecraft": "26.3",
+  "inspectedJarSha256": "0aaad4debab376ba8ec2b36baeb6ccab4b961ed72fd5825637bcc3377e4a5586",
+  "method": "Local javap inspection of the exact cached game binary used by the experiment.",
+  "findings": [
+    {
+      "class": "net.minecraft.world.item.JukeboxSongPlayer",
+      "methods": [
+        "play",
+        "stop",
+        "tick"
+      ],
+      "finding": "Play sends level event 1010 with position and song registry ID. Stop sends event 1011. tick calls stop when song.hasFinished(ticksSinceSongStarted)."
+    },
+    {
+      "class": "net.minecraft.world.item.JukeboxSong",
+      "methods": [
+        "hasFinished"
+      ],
+      "finding": "Returns true at lengthInTicks() + 20 ticks. At nominal 20 TPS this is one second of grace beyond the declared song duration."
+    },
+    {
+      "class": "net.minecraft.client.sounds.SoundBufferLibrary",
+      "methods": [
+        "getCompleteBuffer",
+        "getStream",
+        "clear"
+      ],
+      "finding": "Complete buffers are cached by sound resource identifier using computeIfAbsent. Streams open independent audio decoders. clear disposes cached buffers and clears the map."
+    },
+    {
+      "class": "net.minecraft.client.sounds.SoundEngine",
+      "methods": [
+        "stopAll",
+        "destroy",
+        "reload"
+      ],
+      "finding": "stopAll does not clear the decoded buffer library. destroy clears it, and reload calls destroy before reloading the library. Buffered tracks can accumulate across ordinary playback stops."
+    },
+    {
+      "class": "com.mojang.blaze3d.audio.Channel",
+      "methods": [
+        "attachBufferStream",
+        "pumpBuffers",
+        "removeProcessedBuffers"
+      ],
+      "finding": "Streaming queues four chunks initially and removes processed buffers during pumping. Long-run source offset measurements must include the durations of removed buffers."
+    }
+  ],
+  "limits": [
+    "Code inspection establishes behavior in this binary; it is not a runtime test of automatic end-of-song stopping or resource-pack delivery to an unmodified client."
+  ]
+}

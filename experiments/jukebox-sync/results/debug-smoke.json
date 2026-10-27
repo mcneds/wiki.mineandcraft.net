@@ -1,0 +1,2774 @@
+{
+  "started": "2026-10-26T11:22:32.013059300Z",
+  "minecraft": "26.3",
+  "java": "25.0.4.1",
+  "os": "Windows 11",
+  "device": "OpenAL Soft on Speakers (G733 Gaming Headset)",
+  "sampleRate": 44100,
+  "rounds": 3,
+  "stressThreads": 0,
+  "mods": [
+    "fabric-advancement-api-v1\u003d1.0.1+38c7a2d55d",
+    "fabric-api-base\u003d2.0.6+fcdff87f5d",
+    "fabric-api-lookup-api-v1\u003d2.0.24+3434d6d95d",
+    "fabric-api\u003d0.163.0+26.3",
+    "fabric-biome-api-v1\u003d20.1.0+c6aa69a85d",
+    "fabric-block-api-v1\u003d3.1.0+0ae6f9115d",
+    "fabric-block-getter-api-v2\u003d2.0.9+3434d6d95d",
+    "fabric-client-gametest-api-v1\u003d6.0.9+4be74c3f5d",
+    "fabric-command-api-v2\u003d3.1.2+fcdff87f5d",
+    "fabric-content-registries-v0\u003d15.0.5+74ed1ea55d",
+    "fabric-convention-tags-v2\u003d4.10.3+6b5b47fd5d",
+    "fabric-crash-report-info-v1\u003d1.0.7+fcdff87f5d",
+    "fabric-creative-tab-api-v1\u003d5.0.22+fcdff87f5d",
+    "fabric-data-attachment-api-v1\u003d2.2.32+b9b88df45d",
+    "fabric-data-generation-api-v1\u003d27.4.0+e985c3605d",
+    "fabric-debug-api-v1\u003d1.0.5+5af7744b5d",
+    "fabric-dimensions-v1\u003d5.1.20+5af7744b5d",
+    "fabric-entity-events-v1\u003d6.0.4+3434d6d95d",
+    "fabric-events-interaction-v0\u003d5.3.8+b9b88df45d",
+    "fabric-game-rule-api-v1\u003d4.0.10+3434d6d95d",
+    "fabric-gametest-api-v1\u003d4.0.34+3434d6d95d",
+    "fabric-item-api-v1\u003d14.7.1+5af7744b5d",
+    "fabric-key-mapping-api-v1\u003d2.0.8+3434d6d95d",
+    "fabric-lifecycle-events-v1\u003d4.1.9+ffef5f675d",
+    "fabric-loot-api-v3\u003d4.0.9+4068fd645d",
+    "fabric-menu-api-v1\u003d2.0.29+ed66f0a35d",
+    "fabric-message-api-v1\u003d7.0.10+3434d6d95d",
+    "fabric-model-loading-api-v1\u003d8.0.36+fcdff87f5d",
+    "fabric-networking-api-v1\u003d6.3.10+5c1fee4d5d",
+    "fabric-object-builder-api-v1\u003d24.1.11+e2f63d3e5d",
+    "fabric-particles-v1\u003d5.0.26+3434d6d95d",
+    "fabric-permission-api-v1\u003d1.0.8+fcdff87f5d",
+    "fabric-recipe-api-v1\u003d10.0.10+b9b88df45d",
+    "fabric-registry-sync-v0\u003d8.0.3+1ca9f6365d",
+    "fabric-renderer-api-v1\u003d17.0.16+79385d0b5d",
+    "fabric-renderer-indigo\u003d9.1.24+b9d63e335d",
+    "fabric-rendering-fluids-v1\u003d6.0.6+3434d6d95d",
+    "fabric-rendering-v1\u003d27.1.0+5af7744b5d",
+    "fabric-resource-conditions-api-v1\u003d6.2.0+0d124ae85d",
+    "fabric-resource-loader-v0\u003d3.3.27+4fc5413f5d",
+    "fabric-resource-loader-v1\u003d3.1.0+5af7744b5d",
+    "fabric-screen-api-v1\u003d5.2.4+48607d035d",
+    "fabric-serialization-api-v1\u003d2.0.7+74ed1ea55d",
+    "fabric-sound-api-v1\u003d2.0.7+3434d6d95d",
+    "fabric-tag-api-v1\u003d2.1.11+fcdff87f5d",
+    "fabric-transfer-api-v1\u003d8.0.25+fcdff87f5d",
+    "fabric-transitive-access-wideners-v1\u003d8.1.17+e2f63d3e5d",
+    "fabricloader\u003d0.19.5",
+    "java\u003d25",
+    "jukebox_sync_lab\u003d0.1.0",
+    "jukebox_sync_lab_tests\u003d0.1.0",
+    "minecraft\u003d26.3",
+    "mixinextras\u003d0.5.5"
+  ],
+  "method": "Vanilla SoundManager.play -\u003e SoundEngine -\u003e Channel; AL_SEC_OFFSET_CLOCK_SOFT observations on sound thread",
+  "scope": "One client, same client task; no server/network, no physical output recording",
+  "trials": [
+    {
+      "mode": "streamed",
+      "seconds": 12,
+      "speakers": 2,
+      "repetition": 2,
+      "submitGapMs": 0,
+      "submitMs": 2.7517,
+      "readyMs": 62.9228,
+      "initialSpreadMs": 9.999966783588388,
+      "laterSpreadMs": 9.999966783588388,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.039999867134353745,
+          "deviceClockSeconds": 3.292,
+          "inferredStartSeconds": 3.2520001328656463,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 3.292,
+          "inferredStartSeconds": 3.2620000996492347,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.23999920280612244,
+          "deviceClockSeconds": 3.492,
+          "inferredStartSeconds": 3.2520007971938774,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 3.492,
+          "inferredStartSeconds": 3.2620007639774657,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "streamed",
+      "seconds": 12,
+      "speakers": 4,
+      "repetition": 2,
+      "submitGapMs": 0,
+      "submitMs": 1.4484,
+      "readyMs": 77.2434,
+      "initialSpreadMs": 29.9999003507736,
+      "laterSpreadMs": 29.99990035075939,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.05999980070153061,
+          "deviceClockSeconds": 127.002,
+          "inferredStartSeconds": 126.94200019929846,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.049999833917942174,
+          "deviceClockSeconds": 127.002,
+          "inferredStartSeconds": 126.95200016608206,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.039999867134353745,
+          "deviceClockSeconds": 127.002,
+          "inferredStartSeconds": 126.96200013286564,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 127.002,
+          "inferredStartSeconds": 126.97200009964924,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.2599991363732993,
+          "deviceClockSeconds": 127.202,
+          "inferredStartSeconds": 126.9420008636267,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.24999916958971088,
+          "deviceClockSeconds": 127.202,
+          "inferredStartSeconds": 126.95200083041028,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.23999920280612244,
+          "deviceClockSeconds": 127.202,
+          "inferredStartSeconds": 126.96200079719388,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 127.202,
+          "inferredStartSeconds": 126.97200076397746,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "streamed",
+      "seconds": 12,
+      "speakers": 4,
+      "repetition": 0,
+      "submitGapMs": 0,
+      "submitMs": 0.5485,
+      "readyMs": 57.65,
+      "initialSpreadMs": 19.999933567177663,
+      "laterSpreadMs": 19.999933567177663,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.049999833917942174,
+          "deviceClockSeconds": 127.272,
+          "inferredStartSeconds": 127.22200016608207,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.039999867134353745,
+          "deviceClockSeconds": 127.272,
+          "inferredStartSeconds": 127.23200013286565,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.049999833917942174,
+          "deviceClockSeconds": 127.272,
+          "inferredStartSeconds": 127.22200016608207,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 127.272,
+          "inferredStartSeconds": 127.24200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.24999916958971088,
+          "deviceClockSeconds": 127.472,
+          "inferredStartSeconds": 127.22200083041028,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.23999920280612244,
+          "deviceClockSeconds": 127.472,
+          "inferredStartSeconds": 127.23200079719388,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.24999916958971088,
+          "deviceClockSeconds": 127.472,
+          "inferredStartSeconds": 127.22200083041028,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 127.472,
+          "inferredStartSeconds": 127.24200076397746,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "preloaded",
+      "seconds": 12,
+      "speakers": 8,
+      "repetition": 0,
+      "submitGapMs": 0,
+      "submitMs": 1.9366,
+      "readyMs": 27.1422,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 127.522,
+          "inferredStartSeconds": 127.49200009964925,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 127.522,
+          "inferredStartSeconds": 127.49200009964925,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 127.522,
+          "inferredStartSeconds": 127.49200009964925,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 127.522,
+          "inferredStartSeconds": 127.49200009964925,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 127.522,
+          "inferredStartSeconds": 127.49200009964925,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 127.522,
+          "inferredStartSeconds": 127.49200009964925,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 127.522,
+          "inferredStartSeconds": 127.49200009964925,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 127.522,
+          "inferredStartSeconds": 127.49200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 127.722,
+          "inferredStartSeconds": 127.49200076397746,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 127.722,
+          "inferredStartSeconds": 127.49200076397746,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 127.722,
+          "inferredStartSeconds": 127.49200076397746,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 127.722,
+          "inferredStartSeconds": 127.49200076397746,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 127.722,
+          "inferredStartSeconds": 127.49200076397746,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 127.722,
+          "inferredStartSeconds": 127.49200076397746,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 127.722,
+          "inferredStartSeconds": 127.49200076397746,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 127.722,
+          "inferredStartSeconds": 127.49200076397746,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "streamed",
+      "seconds": 12,
+      "speakers": 2,
+      "repetition": 1,
+      "submitGapMs": 0,
+      "submitMs": 0.3521,
+      "readyMs": 43.5915,
+      "initialSpreadMs": 9.999966783595937,
+      "laterSpreadMs": 9.999966783581726,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.039999867134353745,
+          "deviceClockSeconds": 127.772,
+          "inferredStartSeconds": 127.73200013286565,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 127.772,
+          "inferredStartSeconds": 127.74200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.23999920280612244,
+          "deviceClockSeconds": 127.972,
+          "inferredStartSeconds": 127.73200079719388,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 127.972,
+          "inferredStartSeconds": 127.74200076397746,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "streamed",
+      "seconds": 12,
+      "speakers": 8,
+      "repetition": 2,
+      "submitGapMs": 0,
+      "submitMs": 1.8432,
+      "readyMs": 83.6182,
+      "initialSpreadMs": 39.99986713435533,
+      "laterSpreadMs": 39.99986713435533,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.06999976748511905,
+          "deviceClockSeconds": 128.062,
+          "inferredStartSeconds": 127.9920002325149,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.05999980070153061,
+          "deviceClockSeconds": 128.062,
+          "inferredStartSeconds": 128.0020001992985,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.05999980070153061,
+          "deviceClockSeconds": 128.062,
+          "inferredStartSeconds": 128.0020001992985,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.06999976748511905,
+          "deviceClockSeconds": 128.062,
+          "inferredStartSeconds": 127.9920002325149,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.049999833917942174,
+          "deviceClockSeconds": 128.062,
+          "inferredStartSeconds": 128.01200016608206,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.039999867134353745,
+          "deviceClockSeconds": 128.062,
+          "inferredStartSeconds": 128.02200013286566,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.039999867134353745,
+          "deviceClockSeconds": 128.062,
+          "inferredStartSeconds": 128.02200013286566,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 128.062,
+          "inferredStartSeconds": 128.03200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.26999910315688774,
+          "deviceClockSeconds": 128.262,
+          "inferredStartSeconds": 127.99200089684311,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.2599991363732993,
+          "deviceClockSeconds": 128.262,
+          "inferredStartSeconds": 128.0020008636267,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.2599991363732993,
+          "deviceClockSeconds": 128.262,
+          "inferredStartSeconds": 128.0020008636267,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.26999910315688774,
+          "deviceClockSeconds": 128.262,
+          "inferredStartSeconds": 127.99200089684311,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.24999916958971088,
+          "deviceClockSeconds": 128.262,
+          "inferredStartSeconds": 128.0120008304103,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.23999920280612244,
+          "deviceClockSeconds": 128.262,
+          "inferredStartSeconds": 128.02200079719387,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.23999920280612244,
+          "deviceClockSeconds": 128.262,
+          "inferredStartSeconds": 128.02200079719387,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 128.262,
+          "inferredStartSeconds": 128.03200076397746,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "streamed",
+      "seconds": 12,
+      "speakers": 8,
+      "repetition": 1,
+      "submitGapMs": 0,
+      "submitMs": 0.9141,
+      "readyMs": 91.7085,
+      "initialSpreadMs": 49.999833917951264,
+      "laterSpreadMs": 49.999833917951264,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.07999973426870749,
+          "deviceClockSeconds": 128.362,
+          "inferredStartSeconds": 128.28200026573128,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.06999976748511905,
+          "deviceClockSeconds": 128.362,
+          "inferredStartSeconds": 128.29200023251488,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.06999976748511905,
+          "deviceClockSeconds": 128.362,
+          "inferredStartSeconds": 128.29200023251488,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.049999833917942174,
+          "deviceClockSeconds": 128.362,
+          "inferredStartSeconds": 128.31200016608204,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.05999980070153061,
+          "deviceClockSeconds": 128.362,
+          "inferredStartSeconds": 128.30200019929848,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 128.362,
+          "inferredStartSeconds": 128.33200009964924,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.049999833917942174,
+          "deviceClockSeconds": 128.362,
+          "inferredStartSeconds": 128.31200016608204,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.039999867134353745,
+          "deviceClockSeconds": 128.362,
+          "inferredStartSeconds": 128.32200013286564,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.2799990699404762,
+          "deviceClockSeconds": 128.562,
+          "inferredStartSeconds": 128.28200093005952,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.26999910315688774,
+          "deviceClockSeconds": 128.562,
+          "inferredStartSeconds": 128.29200089684312,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.26999910315688774,
+          "deviceClockSeconds": 128.562,
+          "inferredStartSeconds": 128.29200089684312,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.24999916958971088,
+          "deviceClockSeconds": 128.562,
+          "inferredStartSeconds": 128.3120008304103,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.2599991363732993,
+          "deviceClockSeconds": 128.562,
+          "inferredStartSeconds": 128.30200086362672,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 128.562,
+          "inferredStartSeconds": 128.33200076397748,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.24999916958971088,
+          "deviceClockSeconds": 128.562,
+          "inferredStartSeconds": 128.3120008304103,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.23999920280612244,
+          "deviceClockSeconds": 128.562,
+          "inferredStartSeconds": 128.32200079719388,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "streamed",
+      "seconds": 12,
+      "speakers": 4,
+      "repetition": 1,
+      "submitGapMs": 0,
+      "submitMs": 1.1074,
+      "readyMs": 62.3436,
+      "initialSpreadMs": 19.999933567191874,
+      "laterSpreadMs": 19.999933567163453,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.039999867134353745,
+          "deviceClockSeconds": 128.632,
+          "inferredStartSeconds": 128.59200013286565,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.049999833917942174,
+          "deviceClockSeconds": 128.632,
+          "inferredStartSeconds": 128.58200016608205,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.049999833917942174,
+          "deviceClockSeconds": 128.632,
+          "inferredStartSeconds": 128.58200016608205,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 128.632,
+          "inferredStartSeconds": 128.60200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.23999920280612244,
+          "deviceClockSeconds": 128.832,
+          "inferredStartSeconds": 128.59200079719386,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.24999916958971088,
+          "deviceClockSeconds": 128.832,
+          "inferredStartSeconds": 128.5820008304103,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.24999916958971088,
+          "deviceClockSeconds": 128.832,
+          "inferredStartSeconds": 128.5820008304103,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 128.832,
+          "inferredStartSeconds": 128.60200076397746,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "preloaded",
+      "seconds": 12,
+      "speakers": 2,
+      "repetition": 0,
+      "submitGapMs": 20,
+      "submitMs": 20.7361,
+      "readyMs": 56.7552,
+      "initialSpreadMs": 19.999933567191874,
+      "laterSpreadMs": 19.999933567163453,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.049999833917942174,
+          "deviceClockSeconds": 128.912,
+          "inferredStartSeconds": 128.86200016608205,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 128.912,
+          "inferredStartSeconds": 128.88200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.24999916958971088,
+          "deviceClockSeconds": 129.112,
+          "inferredStartSeconds": 128.8620008304103,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 129.112,
+          "inferredStartSeconds": 128.88200076397746,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "buffered-cold",
+      "seconds": 12,
+      "speakers": 2,
+      "repetition": 1,
+      "submitGapMs": 0,
+      "submitMs": 0.3094,
+      "readyMs": 48.8636,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 129.172,
+          "inferredStartSeconds": 129.14200009964924,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 129.172,
+          "inferredStartSeconds": 129.14200009964924,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 129.372,
+          "inferredStartSeconds": 129.14200076397748,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 129.372,
+          "inferredStartSeconds": 129.14200076397748,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "preloaded",
+      "seconds": 12,
+      "speakers": 2,
+      "repetition": 2,
+      "submitGapMs": 20,
+      "submitMs": 20.8139,
+      "readyMs": 50.8154,
+      "initialSpreadMs": 19.999933567191874,
+      "laterSpreadMs": 19.999933567163453,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.049999833917942174,
+          "deviceClockSeconds": 129.452,
+          "inferredStartSeconds": 129.40200016608205,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 129.452,
+          "inferredStartSeconds": 129.42200009964924,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.24999916958971088,
+          "deviceClockSeconds": 129.652,
+          "inferredStartSeconds": 129.4020008304103,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 129.652,
+          "inferredStartSeconds": 129.42200076397745,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "preloaded",
+      "seconds": 12,
+      "speakers": 8,
+      "repetition": 1,
+      "submitGapMs": 0,
+      "submitMs": 1.4152,
+      "readyMs": 37.1041,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 129.712,
+          "inferredStartSeconds": 129.68200009964923,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 129.712,
+          "inferredStartSeconds": 129.68200009964923,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 129.712,
+          "inferredStartSeconds": 129.68200009964923,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 129.712,
+          "inferredStartSeconds": 129.68200009964923,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 129.712,
+          "inferredStartSeconds": 129.68200009964923,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 129.712,
+          "inferredStartSeconds": 129.68200009964923,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 129.712,
+          "inferredStartSeconds": 129.68200009964923,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 129.712,
+          "inferredStartSeconds": 129.68200009964923,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 129.912,
+          "inferredStartSeconds": 129.68200076397747,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 129.912,
+          "inferredStartSeconds": 129.68200076397747,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 129.912,
+          "inferredStartSeconds": 129.68200076397747,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 129.912,
+          "inferredStartSeconds": 129.68200076397747,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 129.912,
+          "inferredStartSeconds": 129.68200076397747,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 129.912,
+          "inferredStartSeconds": 129.68200076397747,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 129.912,
+          "inferredStartSeconds": 129.68200076397747,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 129.912,
+          "inferredStartSeconds": 129.68200076397747,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "buffered-cold",
+      "seconds": 12,
+      "speakers": 4,
+      "repetition": 1,
+      "submitGapMs": 0,
+      "submitMs": 0.5207,
+      "readyMs": 41.3279,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 129.962,
+          "inferredStartSeconds": 129.93200009964923,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 129.962,
+          "inferredStartSeconds": 129.93200009964923,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 129.962,
+          "inferredStartSeconds": 129.93200009964923,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 129.962,
+          "inferredStartSeconds": 129.93200009964923,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 130.162,
+          "inferredStartSeconds": 129.93200076397747,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 130.162,
+          "inferredStartSeconds": 129.93200076397747,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 130.162,
+          "inferredStartSeconds": 129.93200076397747,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 130.162,
+          "inferredStartSeconds": 129.93200076397747,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "preloaded",
+      "seconds": 12,
+      "speakers": 2,
+      "repetition": 0,
+      "submitGapMs": 0,
+      "submitMs": 0.8577,
+      "readyMs": 24.7882,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 130.212,
+          "inferredStartSeconds": 130.18200009964923,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 130.212,
+          "inferredStartSeconds": 130.18200009964923,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 130.412,
+          "inferredStartSeconds": 130.18200076397747,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 130.412,
+          "inferredStartSeconds": 130.18200076397747,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "preloaded",
+      "seconds": 12,
+      "speakers": 2,
+      "repetition": 0,
+      "submitGapMs": 50,
+      "submitMs": 51.3234,
+      "readyMs": 82.438,
+      "initialSpreadMs": 49.999833917951264,
+      "laterSpreadMs": 49.999833917951264,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.07999973426870749,
+          "deviceClockSeconds": 130.522,
+          "inferredStartSeconds": 130.44200026573128,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 130.522,
+          "inferredStartSeconds": 130.49200009964923,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.2799990699404762,
+          "deviceClockSeconds": 130.722,
+          "inferredStartSeconds": 130.44200093005952,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 130.722,
+          "inferredStartSeconds": 130.49200076397747,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "buffered-cold",
+      "seconds": 12,
+      "speakers": 8,
+      "repetition": 0,
+      "submitGapMs": 0,
+      "submitMs": 0.8217,
+      "readyMs": 56.2898,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 130.782,
+          "inferredStartSeconds": 130.75200009964925,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 130.782,
+          "inferredStartSeconds": 130.75200009964925,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 130.782,
+          "inferredStartSeconds": 130.75200009964925,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 130.782,
+          "inferredStartSeconds": 130.75200009964925,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 130.782,
+          "inferredStartSeconds": 130.75200009964925,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 130.782,
+          "inferredStartSeconds": 130.75200009964925,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 130.782,
+          "inferredStartSeconds": 130.75200009964925,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 130.782,
+          "inferredStartSeconds": 130.75200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 130.982,
+          "inferredStartSeconds": 130.75200076397746,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 130.982,
+          "inferredStartSeconds": 130.75200076397746,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 130.982,
+          "inferredStartSeconds": 130.75200076397746,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 130.982,
+          "inferredStartSeconds": 130.75200076397746,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 130.982,
+          "inferredStartSeconds": 130.75200076397746,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 130.982,
+          "inferredStartSeconds": 130.75200076397746,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 130.982,
+          "inferredStartSeconds": 130.75200076397746,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 130.982,
+          "inferredStartSeconds": 130.75200076397746,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "buffered-cold",
+      "seconds": 12,
+      "speakers": 8,
+      "repetition": 2,
+      "submitGapMs": 0,
+      "submitMs": 0.9358,
+      "readyMs": 48.8713,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 131.042,
+          "inferredStartSeconds": 131.01200009964924,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 131.042,
+          "inferredStartSeconds": 131.01200009964924,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 131.042,
+          "inferredStartSeconds": 131.01200009964924,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 131.042,
+          "inferredStartSeconds": 131.01200009964924,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 131.042,
+          "inferredStartSeconds": 131.01200009964924,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 131.042,
+          "inferredStartSeconds": 131.01200009964924,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 131.042,
+          "inferredStartSeconds": 131.01200009964924,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 131.042,
+          "inferredStartSeconds": 131.01200009964924,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 131.242,
+          "inferredStartSeconds": 131.01200076397745,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 131.242,
+          "inferredStartSeconds": 131.01200076397745,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 131.242,
+          "inferredStartSeconds": 131.01200076397745,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 131.242,
+          "inferredStartSeconds": 131.01200076397745,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 131.242,
+          "inferredStartSeconds": 131.01200076397745,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 131.242,
+          "inferredStartSeconds": 131.01200076397745,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 131.242,
+          "inferredStartSeconds": 131.01200076397745,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 131.242,
+          "inferredStartSeconds": 131.01200076397745,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "streamed",
+      "seconds": 12,
+      "speakers": 8,
+      "repetition": 0,
+      "submitGapMs": 0,
+      "submitMs": 1.7334,
+      "readyMs": 91.9822,
+      "initialSpreadMs": 59.9998007015472,
+      "laterSpreadMs": 59.99980070151878,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.049999833917942174,
+          "deviceClockSeconds": 131.342,
+          "inferredStartSeconds": 131.29200016608206,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.08999970105229592,
+          "deviceClockSeconds": 131.342,
+          "inferredStartSeconds": 131.2520002989477,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.07999973426870749,
+          "deviceClockSeconds": 131.342,
+          "inferredStartSeconds": 131.2620002657313,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.06999976748511905,
+          "deviceClockSeconds": 131.342,
+          "inferredStartSeconds": 131.2720002325149,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.05999980070153061,
+          "deviceClockSeconds": 131.342,
+          "inferredStartSeconds": 131.2820001992985,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.049999833917942174,
+          "deviceClockSeconds": 131.342,
+          "inferredStartSeconds": 131.29200016608206,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.039999867134353745,
+          "deviceClockSeconds": 131.342,
+          "inferredStartSeconds": 131.30200013286566,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 131.342,
+          "inferredStartSeconds": 131.31200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.24999916958971088,
+          "deviceClockSeconds": 131.542,
+          "inferredStartSeconds": 131.2920008304103,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.28999903672406463,
+          "deviceClockSeconds": 131.542,
+          "inferredStartSeconds": 131.25200096327595,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.2799990699404762,
+          "deviceClockSeconds": 131.542,
+          "inferredStartSeconds": 131.26200093005951,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.26999910315688774,
+          "deviceClockSeconds": 131.542,
+          "inferredStartSeconds": 131.2720008968431,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.2599991363732993,
+          "deviceClockSeconds": 131.542,
+          "inferredStartSeconds": 131.2820008636267,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.24999916958971088,
+          "deviceClockSeconds": 131.542,
+          "inferredStartSeconds": 131.2920008304103,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.23999920280612244,
+          "deviceClockSeconds": 131.542,
+          "inferredStartSeconds": 131.30200079719387,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 131.542,
+          "inferredStartSeconds": 131.31200076397747,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "streamed",
+      "seconds": 12,
+      "speakers": 2,
+      "repetition": 0,
+      "submitGapMs": 0,
+      "submitMs": 0.3875,
+      "readyMs": 43.9461,
+      "initialSpreadMs": 9.999966783595937,
+      "laterSpreadMs": 9.999966783595937,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.039999867134353745,
+          "deviceClockSeconds": 131.592,
+          "inferredStartSeconds": 131.55200013286566,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 131.592,
+          "inferredStartSeconds": 131.56200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.23999920280612244,
+          "deviceClockSeconds": 131.792,
+          "inferredStartSeconds": 131.55200079719387,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 131.792,
+          "inferredStartSeconds": 131.56200076397747,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "preloaded",
+      "seconds": 12,
+      "speakers": 2,
+      "repetition": 1,
+      "submitGapMs": 20,
+      "submitMs": 21.7885,
+      "readyMs": 51.8405,
+      "initialSpreadMs": 19.999933567191874,
+      "laterSpreadMs": 19.999933567163453,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.049999833917942174,
+          "deviceClockSeconds": 131.872,
+          "inferredStartSeconds": 131.82200016608206,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 131.872,
+          "inferredStartSeconds": 131.84200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.24999916958971088,
+          "deviceClockSeconds": 132.072,
+          "inferredStartSeconds": 131.8220008304103,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 132.072,
+          "inferredStartSeconds": 131.84200076397747,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "preloaded",
+      "seconds": 12,
+      "speakers": 4,
+      "repetition": 1,
+      "submitGapMs": 0,
+      "submitMs": 1.3287,
+      "readyMs": 24.5452,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 132.132,
+          "inferredStartSeconds": 132.10200009964925,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 132.132,
+          "inferredStartSeconds": 132.10200009964925,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 132.132,
+          "inferredStartSeconds": 132.10200009964925,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 132.132,
+          "inferredStartSeconds": 132.10200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 132.332,
+          "inferredStartSeconds": 132.10200076397746,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 132.332,
+          "inferredStartSeconds": 132.10200076397746,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 132.332,
+          "inferredStartSeconds": 132.10200076397746,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 132.332,
+          "inferredStartSeconds": 132.10200076397746,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "buffered-cold",
+      "seconds": 12,
+      "speakers": 2,
+      "repetition": 0,
+      "submitGapMs": 0,
+      "submitMs": 0.4539,
+      "readyMs": 45.0438,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 132.382,
+          "inferredStartSeconds": 132.35200009964925,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 132.382,
+          "inferredStartSeconds": 132.35200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 132.582,
+          "inferredStartSeconds": 132.35200076397746,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 132.582,
+          "inferredStartSeconds": 132.35200076397746,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "preloaded",
+      "seconds": 12,
+      "speakers": 4,
+      "repetition": 2,
+      "submitGapMs": 0,
+      "submitMs": 1.0357,
+      "readyMs": 25.7031,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 132.632,
+          "inferredStartSeconds": 132.60200009964925,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 132.632,
+          "inferredStartSeconds": 132.60200009964925,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 132.632,
+          "inferredStartSeconds": 132.60200009964925,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 132.632,
+          "inferredStartSeconds": 132.60200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 132.832,
+          "inferredStartSeconds": 132.60200076397746,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 132.832,
+          "inferredStartSeconds": 132.60200076397746,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 132.832,
+          "inferredStartSeconds": 132.60200076397746,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 132.832,
+          "inferredStartSeconds": 132.60200076397746,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "buffered-cold",
+      "seconds": 12,
+      "speakers": 2,
+      "repetition": 2,
+      "submitGapMs": 0,
+      "submitMs": 0.3848,
+      "readyMs": 56.5218,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 132.892,
+          "inferredStartSeconds": 132.86200009964924,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 132.892,
+          "inferredStartSeconds": 132.86200009964924,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 133.092,
+          "inferredStartSeconds": 132.86200076397748,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 133.092,
+          "inferredStartSeconds": 132.86200076397748,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "preloaded",
+      "seconds": 12,
+      "speakers": 2,
+      "repetition": 2,
+      "submitGapMs": 0,
+      "submitMs": 0.8181,
+      "readyMs": 31.1179,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 133.152,
+          "inferredStartSeconds": 133.12200009964923,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 133.152,
+          "inferredStartSeconds": 133.12200009964923,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 133.352,
+          "inferredStartSeconds": 133.12200076397747,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 133.352,
+          "inferredStartSeconds": 133.12200076397747,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "preloaded",
+      "seconds": 12,
+      "speakers": 2,
+      "repetition": 1,
+      "submitGapMs": 50,
+      "submitMs": 50.7693,
+      "readyMs": 76.3207,
+      "initialSpreadMs": 49.999833917951264,
+      "laterSpreadMs": 49.999833917951264,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.07999973426870749,
+          "deviceClockSeconds": 133.452,
+          "inferredStartSeconds": 133.3720002657313,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 133.452,
+          "inferredStartSeconds": 133.42200009964924,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.2799990699404762,
+          "deviceClockSeconds": 133.652,
+          "inferredStartSeconds": 133.3720009300595,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 133.652,
+          "inferredStartSeconds": 133.42200076397745,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "buffered-cold",
+      "seconds": 12,
+      "speakers": 8,
+      "repetition": 1,
+      "submitGapMs": 0,
+      "submitMs": 0.6207,
+      "readyMs": 54.7909,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 133.712,
+          "inferredStartSeconds": 133.68200009964923,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 133.712,
+          "inferredStartSeconds": 133.68200009964923,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 133.712,
+          "inferredStartSeconds": 133.68200009964923,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 133.712,
+          "inferredStartSeconds": 133.68200009964923,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 133.712,
+          "inferredStartSeconds": 133.68200009964923,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 133.712,
+          "inferredStartSeconds": 133.68200009964923,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 133.712,
+          "inferredStartSeconds": 133.68200009964923,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 133.712,
+          "inferredStartSeconds": 133.68200009964923,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 133.912,
+          "inferredStartSeconds": 133.68200076397747,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 133.912,
+          "inferredStartSeconds": 133.68200076397747,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 133.912,
+          "inferredStartSeconds": 133.68200076397747,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 133.912,
+          "inferredStartSeconds": 133.68200076397747,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 133.912,
+          "inferredStartSeconds": 133.68200076397747,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 133.912,
+          "inferredStartSeconds": 133.68200076397747,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 133.912,
+          "inferredStartSeconds": 133.68200076397747,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 133.912,
+          "inferredStartSeconds": 133.68200076397747,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "preloaded",
+      "seconds": 12,
+      "speakers": 4,
+      "repetition": 0,
+      "submitGapMs": 0,
+      "submitMs": 0.9014,
+      "readyMs": 29.0019,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 133.972,
+          "inferredStartSeconds": 133.94200009964925,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 133.972,
+          "inferredStartSeconds": 133.94200009964925,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 133.972,
+          "inferredStartSeconds": 133.94200009964925,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 133.972,
+          "inferredStartSeconds": 133.94200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.172,
+          "inferredStartSeconds": 133.94200076397746,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.172,
+          "inferredStartSeconds": 133.94200076397746,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.172,
+          "inferredStartSeconds": 133.94200076397746,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.172,
+          "inferredStartSeconds": 133.94200076397746,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "buffered-cold",
+      "seconds": 12,
+      "speakers": 4,
+      "repetition": 2,
+      "submitGapMs": 0,
+      "submitMs": 0.4699,
+      "readyMs": 45.2201,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 134.222,
+          "inferredStartSeconds": 134.19200009964925,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 134.222,
+          "inferredStartSeconds": 134.19200009964925,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 134.222,
+          "inferredStartSeconds": 134.19200009964925,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 134.222,
+          "inferredStartSeconds": 134.19200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.422,
+          "inferredStartSeconds": 134.19200076397746,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.422,
+          "inferredStartSeconds": 134.19200076397746,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.422,
+          "inferredStartSeconds": 134.19200076397746,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.422,
+          "inferredStartSeconds": 134.19200076397746,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "preloaded",
+      "seconds": 12,
+      "speakers": 2,
+      "repetition": 2,
+      "submitGapMs": 50,
+      "submitMs": 50.4585,
+      "readyMs": 79.3786,
+      "initialSpreadMs": 49.999833917951264,
+      "laterSpreadMs": 49.999833917951264,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.07999973426870749,
+          "deviceClockSeconds": 134.532,
+          "inferredStartSeconds": 134.4520002657313,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 134.532,
+          "inferredStartSeconds": 134.50200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.2799990699404762,
+          "deviceClockSeconds": 134.732,
+          "inferredStartSeconds": 134.4520009300595,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.732,
+          "inferredStartSeconds": 134.50200076397746,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "preloaded",
+      "seconds": 12,
+      "speakers": 8,
+      "repetition": 2,
+      "submitGapMs": 0,
+      "submitMs": 1.4304,
+      "readyMs": 25.3181,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 134.782,
+          "inferredStartSeconds": 134.75200009964925,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 134.782,
+          "inferredStartSeconds": 134.75200009964925,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 134.782,
+          "inferredStartSeconds": 134.75200009964925,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 134.782,
+          "inferredStartSeconds": 134.75200009964925,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 134.782,
+          "inferredStartSeconds": 134.75200009964925,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 134.782,
+          "inferredStartSeconds": 134.75200009964925,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 134.782,
+          "inferredStartSeconds": 134.75200009964925,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 134.782,
+          "inferredStartSeconds": 134.75200009964925,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.982,
+          "inferredStartSeconds": 134.75200076397746,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.982,
+          "inferredStartSeconds": 134.75200076397746,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.982,
+          "inferredStartSeconds": 134.75200076397746,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.982,
+          "inferredStartSeconds": 134.75200076397746,
+          "error": 0
+        },
+        {
+          "source": 5,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.982,
+          "inferredStartSeconds": 134.75200076397746,
+          "error": 0
+        },
+        {
+          "source": 6,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.982,
+          "inferredStartSeconds": 134.75200076397746,
+          "error": 0
+        },
+        {
+          "source": 7,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.982,
+          "inferredStartSeconds": 134.75200076397746,
+          "error": 0
+        },
+        {
+          "source": 8,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 134.982,
+          "inferredStartSeconds": 134.75200076397746,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "buffered-cold",
+      "seconds": 12,
+      "speakers": 4,
+      "repetition": 0,
+      "submitGapMs": 0,
+      "submitMs": 0.4474,
+      "readyMs": 53.8373,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 135.042,
+          "inferredStartSeconds": 135.01200009964924,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 135.042,
+          "inferredStartSeconds": 135.01200009964924,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 135.042,
+          "inferredStartSeconds": 135.01200009964924,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 135.042,
+          "inferredStartSeconds": 135.01200009964924,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 135.242,
+          "inferredStartSeconds": 135.01200076397745,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 135.242,
+          "inferredStartSeconds": 135.01200076397745,
+          "error": 0
+        },
+        {
+          "source": 3,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 135.242,
+          "inferredStartSeconds": 135.01200076397745,
+          "error": 0
+        },
+        {
+          "source": 4,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 135.242,
+          "inferredStartSeconds": 135.01200076397745,
+          "error": 0
+        }
+      ]
+    },
+    {
+      "mode": "preloaded",
+      "seconds": 12,
+      "speakers": 2,
+      "repetition": 1,
+      "submitGapMs": 0,
+      "submitMs": 0.9217,
+      "readyMs": 30.0499,
+      "initialSpreadMs": 0.0,
+      "laterSpreadMs": 0.0,
+      "initial": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 135.302,
+          "inferredStartSeconds": 135.27200009964923,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.029999900350765305,
+          "deviceClockSeconds": 135.302,
+          "inferredStartSeconds": 135.27200009964923,
+          "error": 0
+        }
+      ],
+      "later": [
+        {
+          "source": 1,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 135.502,
+          "inferredStartSeconds": 135.27200076397747,
+          "error": 0
+        },
+        {
+          "source": 2,
+          "state": 4114,
+          "offsetSeconds": 0.22999923602253403,
+          "deviceClockSeconds": 135.502,
+          "inferredStartSeconds": 135.27200076397747,
+          "error": 0
+        }
+      ]
+    }
+  ],
+  "completed": "2026-10-26T11:24:44.312544500Z",
+  "status": "complete"
+}

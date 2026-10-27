@@ -1,0 +1,79 @@
+plugins { id 'net.fabricmc.fabric-loom' version '1.16.3' }
+group = 'net.mineandcraft.experiments'
+version = '0.1.0'
+base { archivesName = 'jukebox-sync-lab' }
+repositories { mavenCentral(); maven { url = 'https://api.modrinth.com/maven' } }
+dependencies {
+    minecraft 'com.mojang:minecraft:26.3'
+    implementation 'net.fabricmc:fabric-loader:0.19.5'
+    implementation 'net.fabricmc.fabric-api:fabric-api:0.163.0+26.3'
+    if (!providers.gradleProperty('baseline').isPresent()) {
+        runtimeOnly 'maven.modrinth:sodium:bAZQdGpg'
+        if (!providers.gradleProperty('sodiumOnly').isPresent()) {
+        runtimeOnly 'maven.modrinth:lithium:xS0Q8LSi'
+        runtimeOnly 'maven.modrinth:polymer:G0fTdl8M'
+        }
+    }
+}
+java { toolchain { languageVersion = JavaLanguageVersion.of(25) } }
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = 'jukebox_sync_lab_tests'
+        enableGameTests = false
+        enableClientGameTests = true
+        eula = true
+    }
+}
+
+// Private, user-supplied listening material is generated locally and belongs
+// only to the test runtime, never to the distributable fixture mod.
+sourceSets.gametest.resources.srcDir('build/music-fixture')
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8'; options.release = 25 }
+
+// Export Loom's exact launch settings for an IDEA Application configuration.
+// This attaches the debugger to Minecraft itself, not to the Gradle daemon.
+tasks.register('prepareLabClient') {
+    dependsOn 'gametestClasses', 'configureClientLaunch'
+    doLast {
+        def launch = tasks.named('runClientGameTest').get()
+        // Match the EULA setting already configured for Fabric's isolated test server.
+        file('eula.txt').text = 'eula=true\n'
+        // Audio assets already come from the fixture mod. Keep the test connection
+        // free of Polymer's unrelated resource-pack consent screen.
+        def autoHost = file('config/polymer/auto-host.json')
+        autoHost.parentFile.mkdirs()
+        def autoHostSettings = autoHost.exists() ? new groovy.json.JsonSlurper().parse(autoHost) : [:]
+        autoHostSettings.enabled = false
+        autoHost.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(autoHostSettings))
+        def quote = { String value -> '"' + value.replace('\\', '/').replace('"', '\\"') + '"' }
+        // Java argfiles cannot nest other argfiles; supply the classpath explicitly below.
+        def vmArgs = new ArrayList(launch.allJvmArgs.findAll { !it.toString().startsWith('@') })
+        vmArgs.addAll(['-classpath', launch.classpath.asPath])
+        file('build/ide-vm.args').text = vmArgs.collect { quote(it.toString()) }.join('\n') + '\n'
+        def playArgs = new ArrayList(vmArgs.findAll { !it.toString().startsWith('-Dfabric.client.gametest') })
+        file('build/ide-play-vm.args').text = playArgs.collect { quote(it.toString()) }.join('\n') + '\n'
+        file('build/ide-launch.json').text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson([
+            main: launch.mainClass.get(), args: launch.args, workingDirectory: launch.workingDir.absolutePath
+        ]))
+        // Local, generated classpath for source navigation and breakpoints in the parent wiki project.
+        def escape = { String value -> value.replace('&', '&amp;').replace('"', '&quot;') }
+        file('jukebox-sync-lab.iml').text = '''<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_25">
+    <output url="file://$MODULE_DIR$/build/classes/java/gametest" />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/gametest/java" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/build" />
+      <excludeFolder url="file://$MODULE_DIR$/.gradle" />
+      <excludeFolder url="file://$MODULE_DIR$/run" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library"><library><CLASSES>
+''' + launch.classpath.files.collect {
+            '      <root url="' + (it.name.endsWith('.jar') ? 'jar://' : 'file://') +
+                escape(it.absolutePath.replace('\\', '/')) + (it.name.endsWith('.jar') ? '!/' : '') + '" />'
+        }.join('\n') + '\n    </CLASSES><JAVADOC /><SOURCES /></library></orderEntry>\n  </component>\n</module>\n'
+    }
+}

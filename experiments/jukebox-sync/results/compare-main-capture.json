@@ -1,0 +1,158 @@
+{
+  "inputName": "11-Midnight In A Perfect World.mp3",
+  "inputSha256": "fab08290610226706b69cbe77f1e118cdafdcafb3018e0b4ec132429fd09eddf",
+  "inputMetadata": {
+    "programs": [],
+    "streams": [
+      {
+        "sample_rate": "48000",
+        "channels": 2
+      },
+      {}
+    ],
+    "format": {
+      "duration": "300.600000"
+    }
+  },
+  "assetSha256": "33e93e16457388931d3628c514c2d42634b892011d3af32dcdbc546a2c4a076d",
+  "conversion": "Full track downmixed to mono, 48000 Hz, Vorbis quality 8; identical asset in every source and reference",
+  "scope": "Windows endpoint loopback, not a microphone or analog DAC measurement; other apps on the same endpoint can contaminate it",
+  "captures": [
+    {
+      "id": "calibration-000",
+      "frames": 949920,
+      "sampleRate": 48000,
+      "peak": 0.300689697265625,
+      "callbackStatuses": []
+    },
+    {
+      "id": "reference-a",
+      "frames": 797760,
+      "sampleRate": 48000,
+      "peak": 0.300689697265625,
+      "callbackStatuses": []
+    },
+    {
+      "id": "reference-b",
+      "frames": 797280,
+      "sampleRate": 48000,
+      "peak": 0.300689697265625,
+      "callbackStatuses": []
+    },
+    {
+      "id": "streamed-001",
+      "frames": 805920,
+      "sampleRate": 48000,
+      "peak": 0.1263427734375,
+      "callbackStatuses": []
+    },
+    {
+      "id": "buffered-001",
+      "frames": 837120,
+      "sampleRate": 48000,
+      "peak": 0.300689697265625,
+      "callbackStatuses": []
+    },
+    {
+      "id": "warm-001",
+      "frames": 801120,
+      "sampleRate": 48000,
+      "peak": 0.300689697265625,
+      "callbackStatuses": []
+    },
+    {
+      "id": "buffered-002",
+      "frames": 840960,
+      "sampleRate": 48000,
+      "peak": 0.300689697265625,
+      "callbackStatuses": []
+    },
+    {
+      "id": "warm-002",
+      "frames": 799680,
+      "sampleRate": 48000,
+      "peak": 0.300689697265625,
+      "callbackStatuses": []
+    },
+    {
+      "id": "streamed-002",
+      "frames": 808320,
+      "sampleRate": 48000,
+      "peak": 0.11346435546875,
+      "callbackStatuses": []
+    },
+    {
+      "id": "streamed-003",
+      "frames": 803520,
+      "sampleRate": 48000,
+      "peak": 0.125518798828125,
+      "callbackStatuses": []
+    },
+    {
+      "id": "buffered-003",
+      "frames": 836640,
+      "sampleRate": 48000,
+      "peak": 0.300689697265625,
+      "callbackStatuses": []
+    },
+    {
+      "id": "warm-003",
+      "frames": 803040,
+      "sampleRate": 48000,
+      "peak": 0.300689697265625,
+      "callbackStatuses": []
+    },
+    {
+      "id": "buffered-004",
+      "frames": 836160,
+      "sampleRate": 48000,
+      "peak": 0.30072021484375,
+      "callbackStatuses": []
+    },
+    {
+      "id": "warm-004",
+      "frames": 799200,
+      "sampleRate": 48000,
+      "peak": 0.300689697265625,
+      "callbackStatuses": []
+    },
+    {
+      "id": "streamed-004",
+      "frames": 805920,
+      "sampleRate": 48000,
+      "peak": 0.124053955078125,
+      "callbackStatuses": []
+    },
+    {
+      "id": "streamed-999",
+      "frames": 13524480,
+      "sampleRate": 48000,
+      "peak": 0.297698974609375,
+      "callbackStatuses": []
+    },
+    {
+      "id": "buffered-999",
+      "frames": 13562400,
+      "sampleRate": 48000,
+      "peak": 0.30072021484375,
+      "callbackStatuses": []
+    }
+  ],
+  "endpoint": {
+    "index": 27,
+    "structVersion": 2,
+    "name": "Speakers (G733 Gaming Headset) [Loopback]",
+    "hostApi": 2,
+    "maxInputChannels": 2,
+    "maxOutputChannels": 0,
+    "defaultLowInputLatency": 0.002,
+    "defaultLowOutputLatency": 0.0,
+    "defaultHighInputLatency": 0.01,
+    "defaultHighOutputLatency": 0.0,
+    "defaultSampleRate": 48000.0,
+    "isLoopbackDevice": true
+  },
+  "gameDevice": "OpenAL Soft on Speakers (G733 Gaming Headset)",
+  "captureOpenedAfterGameReady": true,
+  "status": "complete"
+}

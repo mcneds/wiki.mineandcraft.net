@@ -1,0 +1,108 @@
+{
+  "inputName": "11-Midnight In A Perfect World.mp3",
+  "inputSha256": "fab08290610226706b69cbe77f1e118cdafdcafb3018e0b4ec132429fd09eddf",
+  "inputMetadata": {
+    "programs": [],
+    "streams": [
+      {
+        "sample_rate": "48000",
+        "channels": 2
+      },
+      {}
+    ],
+    "format": {
+      "duration": "300.600000"
+    }
+  },
+  "assetSha256": "bb2ea17bc2b960d8107dca86da82e93e28cba37f25416ad2c38f8cd4e33628be",
+  "conversion": "Full track downmixed to mono, 48000 Hz, Vorbis quality 8; identical asset in every source and reference",
+  "scope": "Windows endpoint loopback, not a microphone or analog DAC measurement; other apps on the same endpoint can contaminate it",
+  "captures": [
+    {
+      "id": "candidate-01",
+      "frames": 1465920,
+      "sampleRate": 48000,
+      "peak": 0.5433937311172485,
+      "callbackStatuses": []
+    },
+    {
+      "id": "reference-a",
+      "frames": 1037280,
+      "sampleRate": 48000,
+      "peak": 0.5434613227844238,
+      "callbackStatuses": []
+    },
+    {
+      "id": "reference-b",
+      "frames": 1037760,
+      "sampleRate": 48000,
+      "peak": 0.5433260202407837,
+      "callbackStatuses": []
+    },
+    {
+      "id": "delay-10ms",
+      "frames": 1040160,
+      "sampleRate": 48000,
+      "peak": 0.4146462678909302,
+      "callbackStatuses": []
+    },
+    {
+      "id": "delay-50ms",
+      "frames": 1036800,
+      "sampleRate": 48000,
+      "peak": 0.3832056522369385,
+      "callbackStatuses": []
+    },
+    {
+      "id": "candidate-02",
+      "frames": 1082880,
+      "sampleRate": 48000,
+      "peak": 0.5432860851287842,
+      "callbackStatuses": []
+    },
+    {
+      "id": "candidate-03",
+      "frames": 1076640,
+      "sampleRate": 48000,
+      "peak": 0.5433316230773926,
+      "callbackStatuses": []
+    },
+    {
+      "id": "candidate-04",
+      "frames": 1077120,
+      "sampleRate": 48000,
+      "peak": 0.5430636405944824,
+      "callbackStatuses": []
+    },
+    {
+      "id": "candidate-05",
+      "frames": 1077120,
+      "sampleRate": 48000,
+      "peak": 0.54335618019104,
+      "callbackStatuses": []
+    },
+    {
+      "id": "candidate-06",
+      "frames": 1078080,
+      "sampleRate": 48000,
+      "peak": 0.5433902740478516,
+      "callbackStatuses": []
+    }
+  ],
+  "endpoint": {
+    "index": 19,
+    "structVersion": 2,
+    "name": "Speakers (Realtek(R) Audio) [Loopback]",
+    "hostApi": 2,
+    "maxInputChannels": 2,
+    "maxOutputChannels": 0,
+    "defaultLowInputLatency": 0.003,
+    "defaultLowOutputLatency": 0.0,
+    "defaultHighInputLatency": 0.01,
+    "defaultHighOutputLatency": 0.0,
+    "defaultSampleRate": 48000.0,
+    "isLoopbackDevice": true
+  },
+  "gameDevice": "OpenAL Soft on Speakers (Realtek(R) Audio)",
+  "status": "complete"
+}

@@ -1,0 +1,56 @@
+{
+  "streamed": {
+    "sounds": [
+      {
+        "name": "synclab:probe",
+        "stream": true,
+        "preload": false
+      }
+    ]
+  },
+  "buffered": {
+    "sounds": [
+      {
+        "name": "synclab:probe",
+        "stream": false,
+        "preload": false
+      }
+    ]
+  },
+  "preloaded": {
+    "sounds": [
+      {
+        "name": "synclab:probe",
+        "stream": false,
+        "preload": true
+      }
+    ]
+  },
+  "streamed_long": {
+    "sounds": [
+      {
+        "name": "synclab:long_probe",
+        "stream": true,
+        "preload": false
+      }
+    ]
+  },
+  "buffered_long": {
+    "sounds": [
+      {
+        "name": "synclab:long_probe",
+        "stream": false,
+        "preload": false
+      }
+    ]
+  },
+  "preloaded_long": {
+    "sounds": [
+      {
+        "name": "synclab:long_probe",
+        "stream": false,
+        "preload": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Jukebox Sync Lab - Play Client" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="net.fabricmc.devlaunchinjector.Main" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="ALTERNATIVE_JRE_PATH" value="$PROJECT_DIR$/experiments/jukebox-sync/.runtime/zulu25.38.107-ca-jre25.0.5-win_x64" />
+    <module name="jukebox-sync-lab" />
+    <option name="VM_PARAMETERS" value="@&quot;$PROJECT_DIR$/experiments/jukebox-sync/build/ide-play-vm.args&quot;" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/experiments/jukebox-sync" />
+    <method v="2" />
+  </configuration>
+</component>

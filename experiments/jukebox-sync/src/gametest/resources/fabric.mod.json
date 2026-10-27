@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "jukebox_sync_lab_tests",
+  "version": "0.1.0",
+  "environment": "client",
+  "mixins": ["synclab-observation.mixins.json"],
+  "entrypoints": { "fabric-client-gametest": ["net.mineandcraft.synclab.AudioSyncTest", "net.mineandcraft.synclab.PacketSyncTest", "net.mineandcraft.synclab.MusicCaptureTest"] }
+}

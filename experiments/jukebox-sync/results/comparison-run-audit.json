@@ -1,0 +1,54 @@
+{
+  "runs": [
+    {
+      "run": "compare-main",
+      "included": true,
+      "completedTrials": 97,
+      "savedCaptures": 17,
+      "note": "Completed main comparison"
+    },
+    {
+      "run": "compare-smoke",
+      "included": false,
+      "completedTrials": 0,
+      "savedCaptures": 0,
+      "note": "Native startup failure, exit 0xc0000409; no measurement trials."
+    },
+    {
+      "run": "compare-smoke-late",
+      "included": false,
+      "completedTrials": 0,
+      "savedCaptures": 0,
+      "note": "NoClassDefFoundError after a concurrent Gradle build replaced active runtime classes; build/launch race, excluded."
+    },
+    {
+      "run": "compare-smoke-retry",
+      "included": false,
+      "completedTrials": 0,
+      "savedCaptures": 0,
+      "note": "Native startup failure, exit 0xc0000005; no measurement trials."
+    },
+    {
+      "run": "compare-smoke-sodium",
+      "included": false,
+      "completedTrials": 0,
+      "savedCaptures": 0,
+      "note": "Native startup failure, exit 0xc0000005; no measurement trials."
+    },
+    {
+      "run": "compare-stressed",
+      "included": false,
+      "completedTrials": 0,
+      "savedCaptures": 0,
+      "note": "Native startup failure, exit 0xc0000005; Windows event names jvm.dll; no measurement trials."
+    },
+    {
+      "run": "compare-stressed-retry",
+      "included": false,
+      "completedTrials": 0,
+      "savedCaptures": 0,
+      "note": "Native startup failure, exit 0xc0000005; no measurement trials."
+    }
+  ],
+  "limits": "Failed launches and incomplete setup attempts are excluded. Native startup cause remains unresolved. CPU load workers start only after world setup, which neither stress attempt reached."
+}

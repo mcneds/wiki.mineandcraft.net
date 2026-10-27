@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "jukebox_sync_lab",
+  "version": "0.1.0",
+  "name": "Jukebox Sync Lab (local experiment)",
+  "environment": "*",
+  "depends": { "fabricloader": ">=0.19.5", "minecraft": "26.3", "java": ">=25", "fabric-api": "*" }
+}

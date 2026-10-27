@@ -1,0 +1,178 @@
+[
+  {
+    "event": "music_disc.11",
+    "stream": true,
+    "rate": 44100,
+    "channels": 1,
+    "seconds": 71.11102,
+    "pcmBytes16bit": 6271992
+  },
+  {
+    "event": "music_disc.13",
+    "stream": true,
+    "rate": 44100,
+    "channels": 1,
+    "seconds": 178.085261,
+    "pcmBytes16bit": 15707120
+  },
+  {
+    "event": "music_disc.5",
+    "stream": true,
+    "rate": 48000,
+    "channels": 1,
+    "seconds": 178.239208,
+    "pcmBytes16bit": 17110964
+  },
+  {
+    "event": "music_disc.blocks",
+    "stream": true,
+    "rate": 44100,
+    "channels": 1,
+    "seconds": 345.913311,
+    "pcmBytes16bit": 30509554
+  },
+  {
+    "event": "music_disc.bounce",
+    "stream": true,
+    "rate": 48000,
+    "channels": 1,
+    "seconds": 234.626875,
+    "pcmBytes16bit": 22524180
+  },
+  {
+    "event": "music_disc.cat",
+    "stream": true,
+    "rate": 44100,
+    "channels": 1,
+    "seconds": 185.342812,
+    "pcmBytes16bit": 16347236
+  },
+  {
+    "event": "music_disc.chirp",
+    "stream": true,
+    "rate": 44100,
+    "channels": 1,
+    "seconds": 185.583243,
+    "pcmBytes16bit": 16368442
+  },
+  {
+    "event": "music_disc.creator",
+    "stream": true,
+    "rate": 48000,
+    "channels": 1,
+    "seconds": 176.388979,
+    "pcmBytes16bit": 16933342
+  },
+  {
+    "event": "music_disc.creator_music_box",
+    "stream": true,
+    "rate": 48000,
+    "channels": 1,
+    "seconds": 73.069229,
+    "pcmBytes16bit": 7014646
+  },
+  {
+    "event": "music_disc.far",
+    "stream": true,
+    "rate": 44100,
+    "channels": 1,
+    "seconds": 174.461542,
+    "pcmBytes16bit": 15387508
+  },
+  {
+    "event": "music_disc.lava_chicken",
+    "stream": true,
+    "rate": 48000,
+    "channels": 1,
+    "seconds": 134.522292,
+    "pcmBytes16bit": 12914140
+  },
+  {
+    "event": "music_disc.mall",
+    "stream": true,
+    "rate": 44100,
+    "channels": 1,
+    "seconds": 197.218322,
+    "pcmBytes16bit": 17394656
+  },
+  {
+    "event": "music_disc.mellohi",
+    "stream": true,
+    "rate": 44100,
+    "channels": 1,
+    "seconds": 96.198367,
+    "pcmBytes16bit": 8484696
+  },
+  {
+    "event": "music_disc.otherside",
+    "stream": true,
+    "rate": 48000,
+    "channels": 1,
+    "seconds": 195.652167,
+    "pcmBytes16bit": 18782608
+  },
+  {
+    "event": "music_disc.pigstep",
+    "stream": true,
+    "rate": 48000,
+    "channels": 1,
+    "seconds": 148.235313,
+    "pcmBytes16bit": 14230590
+  },
+  {
+    "event": "music_disc.precipice",
+    "stream": true,
+    "rate": 48000,
+    "channels": 1,
+    "seconds": 299.313292,
+    "pcmBytes16bit": 28734076
+  },
+  {
+    "event": "music_disc.relic",
+    "stream": true,
+    "rate": 48000,
+    "channels": 1,
+    "seconds": 218.966583,
+    "pcmBytes16bit": 21020792
+  },
+  {
+    "event": "music_disc.stal",
+    "stream": true,
+    "rate": 44100,
+    "channels": 1,
+    "seconds": 150.857143,
+    "pcmBytes16bit": 13305600
+  },
+  {
+    "event": "music_disc.strad",
+    "stream": true,
+    "rate": 44100,
+    "channels": 1,
+    "seconds": 188.167483,
+    "pcmBytes16bit": 16596372
+  },
+  {
+    "event": "music_disc.tears",
+    "stream": true,
+    "rate": 48000,
+    "channels": 1,
+    "seconds": 175.122396,
+    "pcmBytes16bit": 16811750
+  },
+  {
+    "event": "music_disc.wait",
+    "stream": true,
+    "rate": 44100,
+    "channels": 1,
+    "seconds": 237.885125,
+    "pcmBytes16bit": 20981468
+  },
+  {
+    "event": "music_disc.ward",
+    "stream": true,
+    "rate": 44100,
+    "channels": 1,
+    "seconds": 251.392562,
+    "pcmBytes16bit": 22172824
+  }
+]
