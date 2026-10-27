@@ -29,7 +29,8 @@ def build(server, source, output, javac):
     result = subprocess.run([str(javac), '--release', '21', '-cp', classpath, '-d', str(classes),
                              *map(str, sorted((source / 'src').rglob('*.java')))])
     if result.returncode: raise SystemExit(result.returncode)
-    catalogue = json.loads((server / 'config/copper-speakers/tails/catalog.json').read_text())
+    catalogue_file = server / 'config/copper-speakers/tails/catalog.json'
+    catalogue = json.loads(catalogue_file.read_text()) if catalogue_file.exists() else {'tracks': {}}
     events = []
     for original, track in sorted(catalogue['tracks'].items()):
         for entry in track['entries']:

@@ -3,6 +3,7 @@ package net.mineandcraft.bedrockspeakers;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
+import java.nio.file.Path;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.concurrent.TimeUnit;
@@ -12,6 +13,7 @@ import org.geysermc.event.subscribe.Subscribe;
 import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCommandsEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
 import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
@@ -45,6 +47,7 @@ public final class CopperBedrock implements Extension {
     private final Map<String, Recording> recordings = new ConcurrentHashMap<>();
     private final Map<GeyserSession, Listener> listeners = new ConcurrentHashMap<>();
     private boolean installed;
+    private PreparedEventCatalog liveRecordings;
     private static final int BEDROCK_26_60 = 2225;
 
     record Recording(String sound, float offset) {}
@@ -105,6 +108,9 @@ public final class CopperBedrock implements Extension {
             if (!Float.isFinite(offset) || offset < 0) throw new IOException("Invalid playback offset");
             recordings.put(key, new Recording(bufferedSound(value[0]), offset));
         }
+        liveRecordings = new PreparedEventCatalog(Path.of(System.getProperty("copperbedrock.preparedEvents",
+                "config/copper-speakers/joining/events.json")), message -> logger().warning(message));
+        liveRecordings.start();
         replace(ClientboundAddEntityPacket.class, this::addEntity);
         wrap(ClientboundEntityPositionSyncPacket.class, this::moveEntity, false);
         wrap(ClientboundRemoveEntitiesPacket.class, this::removeEntities, true);
@@ -126,6 +132,10 @@ public final class CopperBedrock implements Extension {
             Listener listener = listeners.remove(session);
             if (listener != null) listener.audio.close();
         }
+    }
+
+    @Subscribe public void shutdown(GeyserShutdownEvent event) {
+        if (liveRecordings != null) liveRecordings.close();
     }
 
     @Subscribe
@@ -228,6 +238,10 @@ public final class CopperBedrock implements Extension {
     }
 
     private Recording recording(String name) {
+        var decoded = PreparedEventCatalog.decode(name);
+        if (decoded != null) return new Recording(bufferedSound(decoded.sound()), decoded.offsetSeconds());
+        var live = liveRecordings == null ? null : liveRecordings.find(name);
+        if (live != null) return new Recording(bufferedSound(live.sound()), live.offsetSeconds());
         Recording recording = recordings.get(name);
         if (recording != null) return recording;
         if (name.startsWith("mineandcraft_music:"))

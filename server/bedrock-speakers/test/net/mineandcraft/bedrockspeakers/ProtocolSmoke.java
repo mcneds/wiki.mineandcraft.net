@@ -16,6 +16,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 /** Exercises the exact installed Bedrock codec, including the observed crash. */
 public final class ProtocolSmoke {
     public static void main(String[] args) {
+        try { PreparedEventCatalogTest.run(); } catch (Exception e) { throw new AssertionError(e); }
         CoordinatedAudioTest.run();
         if (!CopperBedrock.bufferedSound("mineandcraft_music:buffered.disc_test").equals("mineandcraft_music:buffered.disc_test"))
             throw new AssertionError("Buffered custom audio was changed back to its streaming event");
