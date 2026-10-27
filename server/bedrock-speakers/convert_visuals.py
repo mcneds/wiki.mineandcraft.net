@@ -170,8 +170,12 @@ def convert(java_pack, client_jar, output, icons):
                     overrides[state] = {'geometry': invisible_id, 'material_instances': {
                         '*': {'texture': 'copperbedrock_empty', 'render_method': 'alpha_test'}}}
                 else:
+                    # Speaker fronts are reversed in Bedrock's block renderer.
+                    # Correct that carrier only; display wires and plates use a separate path.
+                    yaw = variant.get('y', 0)
+                    if variant['model'] == 'copper_speakers:block/speaker': yaw = (yaw + 180) % 360
                     overrides[state] = {'geometry': geometry(variant['model'], model(variant['model'])),
-                                        'transformation': {'rotation': [-variant.get('x', 0), variant.get('y', 0), variant.get('z', 0)]}}
+                                        'transformation': {'rotation': [-variant.get('x', 0), yaw, variant.get('z', 0)]}}
             blocks[block] = {'name': 'copperbedrock_' + block.split(':')[1], 'only_override_states': True,
                              # An implicit full-block base retains unit-cube
                              # culling even when permutations use thin meshes.
@@ -259,8 +263,8 @@ def convert(java_pack, client_jar, output, icons):
         write('manifest.json', {'format_version': 2, 'header': {'name': 'Copper Speakers for Bedrock',
             'description': 'Copper Speakers 0.2.0 models, converted from the server pack',
             'uuid': str(uuid.uuid5(uuid.NAMESPACE_DNS, 'copper-bedrock.mineandcraft.net')),
-            'version': [1, 2, 0], 'min_engine_version': [1, 26, 60]},
-            'modules': [{'type': 'resources', 'uuid': str(uuid.uuid5(uuid.NAMESPACE_DNS, 'copper-bedrock.mineandcraft.net.resources')), 'version': [1, 2, 0]}]})
+            'version': [1, 2, 1], 'min_engine_version': [1, 26, 60]},
+            'modules': [{'type': 'resources', 'uuid': str(uuid.uuid5(uuid.NAMESPACE_DNS, 'copper-bedrock.mineandcraft.net.resources')), 'version': [1, 2, 1]}]})
         target = output / 'copper-speakers-bedrock.mcpack'
         with zipfile.ZipFile(target, 'w', compression=zipfile.ZIP_DEFLATED) as pack:
             for name, data in sorted(files.items()): pack.writestr(name, data)

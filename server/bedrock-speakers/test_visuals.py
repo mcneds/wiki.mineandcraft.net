@@ -16,6 +16,25 @@ spec_patch.loader.exec_module(display_patch)
 
 
 class VisualConversionTests(unittest.TestCase):
+    def test_speaker_front_is_corrected_in_all_four_block_orientations(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            image = Image.new('RGBA', (16, 16), (220, 40, 20, 255))
+            png = io.BytesIO(); image.save(png, format='PNG')
+            speaker = {'textures': {'front': 'copper_speakers:block/front'}, 'elements': [{
+                'from': [0, 0, 0], 'to': [16, 16, 16], 'faces': {'north': {'texture': '#front'}}}]}
+            with zipfile.ZipFile(root / 'java.zip', 'w') as z:
+                z.writestr('assets/copper_speakers/models/block/speaker.json', json.dumps(speaker))
+                z.writestr('assets/copper_speakers/textures/block/front.png', png.getvalue())
+                z.writestr('assets/minecraft/blockstates/note_block.json', json.dumps({'variants': {
+                    f'instrument=harp,note={i},powered=true': {'model': 'copper_speakers:block/speaker', 'y': yaw}
+                    for i, yaw in enumerate([0, 90, 180, 270])}}))
+            with zipfile.ZipFile(root / 'client.jar', 'w'): pass
+            converter.convert(root / 'java.zip', root / 'client.jar', root / 'output', root / 'icons')
+            states = json.loads((root / 'output/copper-speakers-blocks.json').read_text())['blocks']['minecraft:note_block']['state_overrides']
+            self.assertEqual([states[f'instrument=harp,note={i},powered=true']['transformation']['rotation']
+                              for i in range(4)], [[0, 180, 0], [0, 270, 0], [0, 0, 0], [0, 90, 0]])
+
     def test_native_display_override_preserves_other_displays_and_rebuilds_cleanly(self):
         with tempfile.TemporaryDirectory() as tmp:
             pack = Path(tmp) / 'display.mcpack'
@@ -93,7 +112,7 @@ class VisualConversionTests(unittest.TestCase):
                 self.assertEqual(native['bones'][0]['cubes'][0]['origin'], [-2, -7, -5])
                 self.assertEqual(native['bones'][0]['pivot'], [0, 0, 0])
                 manifest = json.loads(z.read('manifest.json'))
-                self.assertEqual(manifest['header']['version'], [1, 2, 0])
+                self.assertEqual(manifest['header']['version'], [1, 2, 1])
                 self.assertFalse(any(n.startswith('attachables/') for n in z.namelist()))
                 self.assertEqual(mappings['geometry'], geometry_name)
                 mesh_ids = {geo['description']['identifier'] for n in z.namelist() if n.endswith('.geo.json')

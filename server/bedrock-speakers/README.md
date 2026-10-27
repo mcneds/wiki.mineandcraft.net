@@ -4,7 +4,7 @@ Compatibility work for Copper Speakers 0.2.0 with the local socket-face patch, G
 
 ## Current support
 
-Bedrock players need to accept the server resource packs; no client mod is required. Speaker range extension, including custom music, has been confirmed in game on both Java and Bedrock. Wire, resin, wall-plate and speaker-note rendering use generated Bedrock assets and a patched display bridge. The server operator has confirmed that Bedrock functionality has reached parity with Java on this setup. This is an in-game functionality confirmation; automated startup and codec tests do not measure sample-accurate audio timing.
+Bedrock players need to accept the server resource packs; no client mod is required. Speaker range extension, including custom music, has been confirmed in game on both Java and Bedrock. Wire, resin, wall-plate and speaker-note rendering use generated Bedrock assets and a patched display bridge. The operator subsequently reported that Bedrock sources are not synchronized; relative playback timing is under investigation. Automated startup and codec tests do not measure client audio timing.
 
 | Component | Tested version |
 | --- | --- |
@@ -13,7 +13,7 @@ Bedrock players need to accept the server resource packs; no client mod is requi
 | Copper Speakers | `0.2.1+mineandcraft.1` (socket-face patch) |
 | Geyser-Fabric | `2.12.1-b1273`, commit `a24ba9c` |
 | Bedrock | 26.60, protocol 2225 |
-| Copper visual pack / display pack | 1.2.0 / 1.2.1 |
+| Copper visual pack / display pack | 1.2.1 / 1.2.1 |
 
 This is a separate server compatibility bundle. Installing the Java mod or stock GeyserDisplayEntity alone is insufficient. Both extension jars, both matching visual packs and the generated mappings are required. Keep the existing music pack for custom songs. Rebuild and retest the integration when Geyser internals, Bedrock protocol, or Polymer model/carrier allocations change.
 
@@ -77,3 +77,5 @@ Diagnostics under `tools/` use the local JVM attach API because the live server 
 The fresh client log from 21:34 local time contains no Copper display-pack or voxel errors. The outgoing trace shows riser/resin model indices 1–35, unit scale and `INVISIBLE=false`; the latest screenshots show these meshes drawing. Wall-plate spawning additionally needs coherent yaw, head rotation and body rotation. The old manual packet set only yaw, leaving the other rotations at zero. `CopperFrameEntity.spawnPacket` now sets all three; the codec regression checks all four horizontal faces. `RepairPlateRotation` applies the same correction to current actors and new spawns while the existing JVM remains running; the corrected jar is persisted for the next normal restart. Client confirmation of all plate faces is pending.
 
 At 20:59:04 UTC, the server restarted successfully with Copper Speakers `0.2.1+mineandcraft.1` and the socket-face restriction requested by the user. All 45 Minecraft tests and four graph tests passed before installation. Backup: `/home/ubuntu/copper-bedrock/socket-faces-backup-20261027-205749`; receipt: `/home/ubuntu/copper-bedrock/socket-faces-install.json`. Regenerated Polymer inputs match all 105 previous input entries semantically (95 JSON files differ only in formatting). Startup confirmed 236 block overrides, 44 items, three custom entities and 1,684 prepared sound events. The normal restart activates the persisted voxel and plate-rotation fixes and removes the temporary diagnostic hooks. After this deployment, the server operator confirmed that Bedrock functionality had reached parity with Java on the tested setup.
+
+Visual pack 1.2.1 corrects the speaker block front by 180 degrees in all four carrier orientations. Only those four speaker mappings change; wire/display and wall-plate rotations retain their own paths. Three geometry/pack regression tests pass. Installed at 21:36:17 UTC on 27 October 2026; backup: `/home/ubuntu/copper-bedrock/speaker-facing-fix/backup-20261027-213511`. The operator confirmed that the speakers now face correctly. This deployment does not change audio timing.
