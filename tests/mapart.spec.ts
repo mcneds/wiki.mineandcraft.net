@@ -5,6 +5,22 @@ const profile = { slug: 'uaiden', name: 'uaiden' };
 const context = (artworks: any[] = [], extra = {}) => ({ user: { csrf: 'mapart-csrf', owner: false }, postingPlayers: [profile], artworks, enabled: true, usage: { used: 1572864, limit: 104857600 }, limits: { pending: 5 }, ...extra });
 const file = { name: 'art.png', mimeType: 'image/png', buffer: readFileSync('public/images/players/0480.png') };
 
+test('unverified profiles explain the required owner action and recover after refreshing permissions', async ({ page }) => {
+  let verified = false;
+  await page.route('**/api/mapart/context/**', route => route.fulfill({ json: context([], { postingPlayers: verified ? [profile] : [], unverifiedPlayers: verified ? [] : [profile] }) }));
+  await page.goto('/mapart/create/');
+  await expect(page.getByLabel('Minecraft profile')).toBeDisabled();
+  await expect(page.getByLabel('Minecraft profile')).toHaveText('No verified Minecraft profile available');
+  await expect(page.locator('#mapart-availability')).toContainText('Your Discord role matches uaiden');
+  await expect(page.locator('#mapart-availability')).toContainText('Fetch name & head');
+  await expect(page.getByRole('button', { name: 'Create mapart', exact: true })).toBeDisabled();
+  verified = true;
+  await page.getByRole('button', { name: 'Refresh mapart and permissions' }).click();
+  await expect(page.getByLabel('Minecraft profile')).toBeEnabled();
+  await expect(page.getByLabel('Minecraft profile')).toHaveValue('uaiden');
+  await expect(page.getByRole('button', { name: 'Create mapart', exact: true })).toBeEnabled();
+});
+
 test('preview preserves source transparency and empty fit padding', async ({ page }) => {
   await page.route('**/api/mapart/context/**', route => route.fulfill({ json: context() }));
   await page.goto('/mapart/create/');

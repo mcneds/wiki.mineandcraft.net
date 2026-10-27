@@ -168,9 +168,12 @@ if ($('mapart-member')) {
     $('mapart-storage').max = storageLimit; $('mapart-storage').value = Math.min(used, storageLimit);
     if (creating) {
       const previous = $('mapart-poster').value;
-      $('mapart-poster').replaceChildren(...context.postingPlayers.map(player => new Option(player.name, player.slug)));
+      const hasProfiles = context.postingPlayers.length > 0;
+      $('mapart-poster').replaceChildren(...(hasProfiles ? context.postingPlayers.map(player => new Option(player.name, player.slug)) : [new Option('No verified Minecraft profile available', '')]));
+      $('mapart-poster').disabled = !hasProfiles;
       if (context.postingPlayers.some(player => player.slug === previous)) $('mapart-poster').value = previous;
-      $('mapart-availability').textContent = !context.enabled ? 'Submissions will open after the server companion and crossplay checks are complete.' : context.postingPlayers.length ? 'Select your image and inspect its composition before creating the mapart.' : 'You need a verified player page and its matching Discord IGN role.';
+      const unverified = context.unverifiedPlayers || [];
+      $('mapart-availability').textContent = !context.enabled ? 'Submissions will open after the server companion and crossplay checks are complete.' : hasProfiles ? 'Select your image and inspect its composition before creating the mapart.' : unverified.length ? `Your Discord role matches ${unverified.map(player => player.name).join(', ')}, but the Minecraft account has not been verified. Ask the wiki owner to verify the existing player page using “Fetch name & head” on the account page, then refresh permissions here. Capitalization does not matter.` : 'No player page matches your Discord IGN roles. You need a player page, a verified Minecraft account, and a matching Discord IGN role. Capitalization does not matter.';
       $('mapart-submit').disabled = busy || !context.enabled || !context.postingPlayers.length;
     }
     renderArtworks(); updateProgressTimes();

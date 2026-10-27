@@ -51,13 +51,14 @@ export async function mapartContext(request, env, fetcher) {
   const user = await authorize(request, env, fetcher);
   const players = (await env.DB.prepare('SELECT slug,name,minecraft_id FROM players ORDER BY name COLLATE NOCASE').all()).results;
   const postingPlayers = players.filter(player => player.minecraft_id && roleMatches(user.roles, player.name)).map(({ slug, name }) => ({ slug, name }));
+  const unverifiedPlayers = players.filter(player => !player.minecraft_id && roleMatches(user.roles, player.name)).map(({ slug, name }) => ({ slug, name }));
   const params = new URL(request.url).searchParams, all = params.get('scope') === 'all';
   if (all && !user.owner) throw new HttpError(403, 'Only the owner can manage all mapart.');
   const rows = (await env.DB.prepare(`${select} WHERE j.status!='deleted'${all ? '' : ' AND j.author_id=?'} ORDER BY j.created DESC`).bind(...(all ? [] : [user.user_id])).all()).results;
   await measureLegacyStorage(env, user.user_id);
   const limits = await env.DB.prepare('SELECT storage_limit_bytes,pending_limit FROM mapart_limits WHERE id=1').first();
   const used = (await env.DB.prepare('SELECT bytes FROM mapart_storage WHERE author_id=?').bind(user.user_id).first())?.bytes || 0;
-  return json({ user: { csrf: user.csrf, owner: user.owner }, postingPlayers, artworks: rows.filter(row => mayManage(user, row)).map(view), enabled: env.MAPART_ENABLED === 'true', usage: { used, limit: limits.storage_limit_bytes }, limits: { pending: limits.pending_limit, fileBytes: MAPART_FILE_LIMIT } });
+  return json({ user: { csrf: user.csrf, owner: user.owner }, postingPlayers, unverifiedPlayers, artworks: rows.filter(row => mayManage(user, row)).map(view), enabled: env.MAPART_ENABLED === 'true', usage: { used, limit: limits.storage_limit_bytes }, limits: { pending: limits.pending_limit, fileBytes: MAPART_FILE_LIMIT } });
 }
 
 export async function mapartApi(request, env, user, body = {}) {

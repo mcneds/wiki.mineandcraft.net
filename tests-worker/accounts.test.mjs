@@ -1116,6 +1116,24 @@ async function queuedMapart(f, user, extra = {}) {
   return fields;
 }
 
+test('mapart distinguishes an unverified legacy page from missing roles and accepts mixed-case roles after verification', async t => {
+  const f = mapartFixture(t), user = await f.login();
+  f.sqlite.prepare("UPDATE players SET minecraft_id=NULL,edition='unknown',version=version+1 WHERE slug='uaiden'").run();
+  let context = await (await user.call('/api/mapart/context/')).json();
+  assert.deepEqual(context.postingPlayers, []);
+  assert.deepEqual(context.unverifiedPlayers, [{ slug: 'uaiden', name: 'uaiden' }]);
+  assert.equal((await user.call('/api/mapart/', 'POST', mapartSubmission())).status, 403);
+  f.sqlite.prepare("UPDATE players SET minecraft_id=?,edition='java',version=version+1 WHERE slug='uaiden'").run(`java:${'a'.repeat(32)}`);
+  context = await (await user.call('/api/mapart/context/')).json();
+  assert.deepEqual(context.postingPlayers, [{ slug: 'uaiden', name: 'uaiden' }]);
+  assert.deepEqual(context.unverifiedPlayers, []);
+  assert.equal((await user.call('/api/mapart/', 'POST', mapartSubmission())).status, 201);
+  f.memberships.set(MEMBER, []);
+  context = await (await user.call('/api/mapart/context/')).json();
+  assert.deepEqual(context.postingPlayers, []);
+  assert.deepEqual(context.unverifiedPlayers, []);
+});
+
 test('mapart geometry handles all anchors, crop overflow, odd remainders, and validation', () => {
   for (const horizontalAlignment of ['left','center','right']) for (const verticalAlignment of ['top','center','bottom']) {
     const settings = mapartFields({ title:'Test',columns:2,rows:3,horizontalAlignment,verticalAlignment });
