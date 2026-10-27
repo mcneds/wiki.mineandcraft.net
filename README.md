@@ -123,7 +123,9 @@ When upgrading an older music bridge for buffered speaker playback, update `musi
 
 The site does not upload via a public SSH endpoint. A small Python service on the VPS polls approved work over HTTPS, converts audio with FFmpeg, writes the generated datapack and Polymer sound assets, updates Geyser's Bedrock sound pack, and runs a fixed local command to refresh the server. The site cannot supply commands, destination paths, or arbitrary URLs to that service. SSH/PuTTY is needed to install and configure it, then normal submissions run automatically without SSH sessions.
 
-The inspected live server runs **Minecraft 26.3**, Fabric Loader **0.19.5**, Polymer **0.18.4**, and Geyser **2.12.0** on Ubuntu 22.04 ARM64. The example uses its data `[121,0]` and resource `[97,1]` formats. Recheck these values before installing on another server or upgrading Minecraft. Java and Bedrock playback still require an in-game check with the first approved song.
+The inspected live server runs **Minecraft 26.3**, Fabric Loader **0.19.5**, Polymer **0.18.4**, and Geyser **2.12.1-b1273** on Ubuntu 22.04 ARM64. The example uses its data `[121,0]` and resource `[97,1]` formats. Recheck these values before installing on another server or upgrading Minecraft. Custom music and speaker range extension have been confirmed in game on Java and Bedrock with the compatibility bundle below; check new pack releases after reconnecting.
+
+On 27 October 2026, Bedrock 26.60 joins through Geyser 2.12.1-b1273 failed while the music pack advertised version `1.3.23986718`. Changing only the header and module versions to `2.3.0`, with every sound definition and audio file unchanged, restored joining with both the music and integrated Geyser packs enabled. The generator now uses `[PACK_REVISION, first 12 release-hash bits, next 16 bits]`, preserving the previous 28-bit release fingerprint while keeping every version component at most 65535. The current working pack was repaired separately; future music publications use the corrected generator.
 
 1. Apply `0006_music.sql` and `0007_music_matching.sql` to D1 before deploying the updated Worker. Existing image/player data and earlier music submissions are preserved.
 2. Install Python 3.10+, FFmpeg/FFprobe (including the Vorbis encoder), and optionally `yt-dlp[default]` with Deno for YouTube. Run the service as the Minecraft service user, with write access only to its state directory and the configured music pack locations. The live host has these tools installed. YouTube currently rejects this host with a sign-in/bot check; affected submissions need an uploaded file.
@@ -141,6 +143,12 @@ Public API: `GET /api/music/` (optional `q`, `artist`, `uploader` player slug an
 The bridge uses a dedicated Bearer credential on `/api/music/bridge/manifest/`, `/api/music/bridge/:id/audio/`, and `/api/music/bridge/report/`. It cannot read pending originals, approve tracks, or edit other pages. Reports use catalogue checksums and transactional catalogue revisions so a changed approval cannot be acknowledged as an installed snapshot. Pending credentials, disconnected server status, and delivery errors are visible to the owner. No bot sends Discord messages.
 
 References: [Minecraft 26.3 technical changes](https://www.minecraft.net/en-us/article/minecraft-java-edition-26-3), [Polymer custom asset paths](https://polymer.pb4.eu/latest/user/resource-pack-custom-assets/), [Polymer AutoHost](https://polymer.pb4.eu/latest/user/resource-pack-hosting/), [Geyser pack delivery](https://geysermc.org/wiki/geyser/packs/), [yt-dlp options](https://github.com/yt-dlp/yt-dlp/blob/master/README.md).
+
+### Copper Speakers on Bedrock
+
+The live server supports Copper Speakers through Geyser using the companion in [server/bedrock-speakers](server/bedrock-speakers/README.md). Bedrock players accept the server resource packs; no client mod is required. Speaker range extension has been confirmed in game on both Java and Bedrock, including custom music. The companion supplies buffered playback, wire and resin geometry, wall-plate entities, and speaker-note particles through a patched GeyserDisplayEntity bridge.
+
+This integration targets Minecraft Java 26.3, Geyser-Fabric 2.12.1-b1273 and Bedrock 26.60 (protocol 2225). Copper Speakers `0.2.1+mineandcraft.1` also restricts wall-plate connections to their two socket faces for both wire branches and audio routing. The server operator has confirmed Bedrock functionality has reached parity with Java on this setup. All 45 Minecraft tests and four graph tests pass. Build, installation, version requirements and verification details are in the companion README.
 
 ## Additional server resource packs
 

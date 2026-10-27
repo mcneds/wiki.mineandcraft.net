@@ -59,8 +59,11 @@ class MusicServerTests(unittest.TestCase):
                     'name': 'mineandcraft_music:music/' + name, 'type': 'file', 'stream': False, 'preload': False}]})
                 self.assertEqual(len([p for p in pack.namelist() if p.endswith('.ogg')]), 1)
             with zipfile.ZipFile(root / 'pack' / 'mineandcraft-music.mcpack') as pack:
-                self.assertEqual(json.loads(pack.read('manifest.json'))['header']['version'],
-                                 [1, music.PACK_REVISION, int(manifest['releaseId'][:7], 16)])
+                pack_manifest = json.loads(pack.read('manifest.json'))
+                version = pack_manifest['header']['version']
+                self.assertTrue(all(0 <= component <= 65535 for component in version))
+                self.assertEqual((version[1] << 16) | version[2], int(manifest['releaseId'][:7], 16))
+                self.assertEqual(pack_manifest['modules'][0]['version'], version)
                 sounds = json.loads(pack.read('sounds/sound_definitions.json'))['sound_definitions']
                 self.assertEqual(sounds['mineandcraft_music:buffered.' + name]['sounds'],
                                  [{'name': 'sounds/music/' + name, 'stream': False}])
@@ -93,6 +96,30 @@ class MusicServerTests(unittest.TestCase):
                 with patch.object(panel.time, 'sleep'), patch.object(panel.time, 'monotonic', side_effect=range(0, 1000, 10)):
                     with self.assertRaisesRegex(RuntimeError, 'resource pack'):
                         panel.verify_music(ReadyPanel(), 0, '', manifest, invalid)
+
+    def test_bedrock_versions_fit_small_components_without_losing_release_identity(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            versions, pack_ids = set(), set()
+            # Include the live failing revision, both bounds, and adjacent releases.
+            for fingerprint in (23986718, 0, 0xfffffff, 0xffffffe):
+                with self.subTest(fingerprint=fingerprint):
+                    manifest = {'releaseId': f'{fingerprint:07x}' + '0' * 57, 'tracks': []}
+                    directory = root / str(fingerprint)
+                    music.build_packs(manifest, {}, directory,
+                                      {'data_format': [121, 0], 'resource_format': [97, 1]})
+                    with zipfile.ZipFile(directory / 'mineandcraft-music.mcpack') as pack:
+                        value = json.loads(pack.read('manifest.json'))
+                    version = value['header']['version']
+                    self.assertEqual(len(version), 3)
+                    self.assertGreaterEqual(version[0], 3)
+                    self.assertTrue(all(type(n) is int and 0 <= n <= 65535 for n in version))
+                    self.assertEqual((version[1] << 16) | version[2], fingerprint)
+                    self.assertEqual(value['modules'][0]['version'], version)
+                    versions.add(tuple(version))
+                    pack_ids.add(value['header']['uuid'])
+            self.assertEqual(len(versions), 4)
+            self.assertEqual(len(pack_ids), 1)
 
     def test_pack_upgrade_rebuilds_unchanged_catalogue_once_and_preserves_receipt_on_failure(self):
         with tempfile.TemporaryDirectory() as temporary:

@@ -355,7 +355,10 @@ def build_packs(manifest, audio, directory, config):
         commands.append(f"{label}\nHold any music disc (its base type is preserved) and use: /trigger mac_music set {code}\nOwner: /function {NAMESPACE}:give/{name}\n")
     write_json(java / 'assets' / NAMESPACE / 'sounds.json', sounds)
     write_json(bedrock / 'sounds' / 'sound_definitions.json', {'format_version': '1.14.0', 'sound_definitions': bedrock_sounds})
-    version = [1, PACK_REVISION, int(manifest['releaseId'][:7], 16)]
+    # The old oversized patch number caused Bedrock to reject pack negotiation.
+    # Keep the same release fingerprint, split into 12-bit and 16-bit parts.
+    # Revision 3 also supersedes the manifest-only 2.3.0 repair deployed live.
+    version = [PACK_REVISION, int(manifest['releaseId'][:3], 16), int(manifest['releaseId'][3:7], 16)]
     write_json(bedrock / 'manifest.json', {'format_version': 2, 'header': {'name': 'mineandcraft.net music', 'description': 'Member music discs', 'uuid': str(uuid.uuid5(uuid.NAMESPACE_DNS, 'music.mineandcraft.net')), 'version': version, 'min_engine_version': config.get('bedrock_engine', [1, 21, 0])}, 'modules': [{'type': 'resources', 'uuid': str(uuid.uuid5(uuid.NAMESPACE_DNS, 'music.mineandcraft.net.resources')), 'version': version}]})
     functions = data / 'data' / NAMESPACE / 'function'
     functions.mkdir(parents=True, exist_ok=True)

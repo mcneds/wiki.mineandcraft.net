@@ -1,0 +1,219 @@
+diff --git a/README.md b/README.md
+index 3d525ba..5a2274d 100644
+--- a/README.md
++++ b/README.md
+@@ -48,7 +48,7 @@ Collect copper and a note block to unlock the corresponding recipe-book entries.
+ 
+ ### Through walls
+ 
+-Use a wall plate on a full, solid block to fit sockets on its opposite faces. Wire in front of either face connects through the block. A speaker can sit directly against either socket without a wire segment between them; either the speaker or the plate can be placed first. Plate adjoining full blocks to extend the route through thicker walls. The plated block connects to neighboring nodes horizontally at its own height.
++Use a wall plate on a full, solid block to fit sockets on its opposite faces. Only those two socket faces connect to wire or speakers at the same height; cable beside either unsocketed face stays disconnected. A speaker can sit directly against either socket without a wire segment between them; either the speaker or the plate can be placed first. Plate adjoining full blocks to extend the route through thicker walls, with both socket pairs aligned along the connection.
+ 
+ Side clicks select the plate's direction; top or bottom clicks use the player's horizontal facing. Partial blocks, fluids, block entities and speakers cannot host plates. Punch either exposed plate to remove the pair and recover the item in survival.
+ 
+diff --git a/build.gradle b/build.gradle
+index 9107364..b2bde89 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -1,6 +1,6 @@
+ plugins { id 'net.fabricmc.fabric-loom' version '1.16.3' }
+ group = 'dev.mcneds'
+-version = '0.2.0'
++version = '0.2.1+mineandcraft.1'
+ base { archivesName = 'copper-speakers' }
+ repositories {
+     mavenCentral()
+diff --git a/src/gametest/java/dev/mcneds/copperspeakers/test/WallPlateGameTests.java b/src/gametest/java/dev/mcneds/copperspeakers/test/WallPlateGameTests.java
+index bfd7aaa..0ce23cd 100644
+--- a/src/gametest/java/dev/mcneds/copperspeakers/test/WallPlateGameTests.java
++++ b/src/gametest/java/dev/mcneds/copperspeakers/test/WallPlateGameTests.java
+@@ -211,9 +211,9 @@ public final class WallPlateGameTests {
+         var player = player(h, GameType.CREATIVE, 1);
+         check(place(h, player, HOST, Direction.NORTH), "North/south plates are supported");
+         check(player.getMainHandItem().getCount() == 1, "Creative placement keeps its item");
+-        // The host is a wire junction, not an axis-limited edge.
+-        check(AudioNetworks.get(h.getLevel()).component(h.absolutePos(MASTER)).speakers().contains(h.absolutePos(SPEAKER)),
+-                "A plated block connects all four horizontal neighbors");
++        check(AudioNetworks.get(h.getLevel()).component(h.absolutePos(MASTER)).speakers().isEmpty(),
++                "North/south sockets must not connect the east/west cable beside the host");
++        h.assertBlockProperty(new BlockPos(3, 2, 5), CopperWireBlock.PORTS[1], false);
+         plate(h).breakPlate(player, Direction.SOUTH);
+         check(plate(h) == null && drops(h) == 0, "Creative removal drops nothing");
+         h.succeed();
+diff --git a/src/gametest/java/dev/mcneds/copperspeakers/test/WallPlatePortsGameTests.java b/src/gametest/java/dev/mcneds/copperspeakers/test/WallPlatePortsGameTests.java
+new file mode 100644
+index 0000000..9ecf866
+--- /dev/null
++++ b/src/gametest/java/dev/mcneds/copperspeakers/test/WallPlatePortsGameTests.java
+@@ -0,0 +1,103 @@
++package dev.mcneds.copperspeakers.test;
++
++import dev.mcneds.copperspeakers.CopperSpeakers;
++import dev.mcneds.copperspeakers.block.CopperWireBlock;
++import dev.mcneds.copperspeakers.network.AudioNetworks;
++import dev.mcneds.copperspeakers.network.WallPlates;
++import net.fabricmc.fabric.api.gametest.v1.GameTest;
++import net.minecraft.core.BlockPos;
++import net.minecraft.core.Direction;
++import net.minecraft.gametest.framework.GameTestHelper;
++import net.minecraft.world.InteractionHand;
++import net.minecraft.world.entity.player.Player;
++import net.minecraft.world.item.ItemStack;
++import net.minecraft.world.item.Items;
++import net.minecraft.world.item.context.UseOnContext;
++import net.minecraft.world.level.GameType;
++import net.minecraft.world.level.block.Blocks;
++import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
++import net.minecraft.world.phys.BlockHitResult;
++import net.minecraft.world.phys.Vec3;
++
++public final class WallPlatePortsGameTests {
++    private static final BlockPos HOST = new BlockPos(5, 2, 5);
++    private static void check(boolean value, String message) { if (!value) throw new AssertionError(message); }
++    private static void floor(GameTestHelper h) {
++        for (int x = 1; x <= 9; x++) for (int z = 1; z <= 9; z++) h.setBlock(x, 1, z, Blocks.STONE);
++    }
++    private static Player player(GameTestHelper h) {
++        var player = h.makeMockServerPlayer(GameType.CREATIVE);
++        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(CopperSpeakers.WALL_PLATE));
++        return player;
++    }
++    private static void place(GameTestHelper h, Player player, BlockPos host, Direction face) {
++        var absolute = h.absolutePos(host);
++        check(CopperSpeakers.WALL_PLATE.useOn(new UseOnContext(h.getLevel(), player, InteractionHand.MAIN_HAND,
++                player.getMainHandItem(), new BlockHitResult(Vec3.atCenterOf(absolute).relative(face, .5), face, absolute, false)))
++                .consumesAction(), "Plate placement failed on " + face);
++    }
++    private static void reconcile(GameTestHelper h) {
++        WallPlates.get(h.getLevel()).tick(); AudioNetworks.get(h.getLevel()).tick();
++    }
++    private static int port(Direction direction) {
++        return switch (direction) { case NORTH -> 0; case EAST -> 1; case SOUTH -> 2; case WEST -> 3;
++            default -> throw new IllegalArgumentException(); };
++    }
++
++    @GameTest(structure = "copper_speakers_tests:arena")
++    public void onlySocketFacesConnectInEveryOrientationAndInsulation(GameTestHelper h) {
++        floor(h); var player = player(h); var network = AudioNetworks.get(h.getLevel());
++        for (boolean insulated : new boolean[]{false, true}) for (var facing : CopperWireBlock.DIRECTIONS) {
++            h.setBlock(HOST, Blocks.STONE);
++            for (var side : CopperWireBlock.DIRECTIONS) {
++                h.setBlock(HOST.relative(side), CopperSpeakers.WIRE.defaultBlockState().setValue(CopperWireBlock.INSULATED, insulated));
++                h.setBlock(HOST.relative(side, 2), side == facing ? Blocks.JUKEBOX : CopperSpeakers.SPEAKER);
++            }
++            place(h, player, HOST, facing); reconcile(h);
++            var master = HOST.relative(facing, 2);
++            var opposite = HOST.relative(facing.getOpposite(), 2);
++            var component = network.component(h.absolutePos(master));
++            check(component.speakers().equals(java.util.Set.of(h.absolutePos(opposite))),
++                    "Only the speaker across the sockets may join: " + facing + " insulated=" + insulated);
++            for (var side : CopperWireBlock.DIRECTIONS) {
++                boolean connected = side.getAxis() == facing.getAxis();
++                h.assertBlockProperty(HOST.relative(side), CopperWireBlock.PORTS[port(side.getOpposite())], connected);
++                if (!connected) check(!network.component(h.absolutePos(HOST.relative(side))).nodes().contains(h.absolutePos(HOST)),
++                        "A perpendicular wire must not enter the host in either direction");
++            }
++            var box = h.getBlockEntity(master, JukeboxBlockEntity.class);
++            box.setTheItem(new ItemStack(Items.MUSIC_DISC_CAT));
++            check(network.sources(h.absolutePos(master)).equals(java.util.Set.of(h.absolutePos(master), h.absolutePos(opposite))),
++                    "Actual playback must exclude perpendicular speakers");
++            box.popOutTheItem();
++            WallPlates.get(h.getLevel()).at(h.absolutePos(HOST)).breakPlate(player, facing);
++            for (var side : CopperWireBlock.DIRECTIONS) {
++                h.setBlock(HOST.relative(side), Blocks.AIR); h.setBlock(HOST.relative(side, 2), Blocks.AIR);
++            }
++            h.setBlock(HOST, Blocks.AIR); reconcile(h);
++        }
++        h.succeed();
++    }
++
++    @GameTest(structure = "copper_speakers_tests:arena")
++    public void adjacentPlatesRequireBothSocketPairsToAlign(GameTestHelper h) {
++        floor(h); var player = player(h); var network = AudioNetworks.get(h.getLevel());
++        var first = HOST.west(); var second = HOST;
++        var master = first.west(2); var speaker = second.east(2);
++        h.setBlock(master, Blocks.JUKEBOX); h.setBlock(first.west(), CopperSpeakers.WIRE);
++        h.setBlock(first, Blocks.STONE); h.setBlock(second, Blocks.STONE);
++        h.setBlock(second.east(), CopperSpeakers.WIRE); h.setBlock(speaker, CopperSpeakers.SPEAKER);
++        place(h, player, first, Direction.EAST); place(h, player, second, Direction.NORTH); reconcile(h);
++        check(network.component(h.absolutePos(master)).speakers().isEmpty(), "A mismatched second pair must block the chain");
++        h.assertBlockProperty(second.east(), CopperWireBlock.PORTS[3], false);
++        WallPlates.get(h.getLevel()).at(h.absolutePos(second)).breakPlate(player, Direction.NORTH);
++        place(h, player, second, Direction.EAST); reconcile(h);
++        check(network.component(h.absolutePos(master)).speakers().contains(h.absolutePos(speaker)), "Aligned socket pairs must relay");
++        h.assertBlockProperty(second.east(), CopperWireBlock.PORTS[3], true);
++        WallPlates.get(h.getLevel()).at(h.absolutePos(first)).breakPlate(player, Direction.EAST);
++        place(h, player, first, Direction.NORTH); reconcile(h);
++        check(network.component(h.absolutePos(master)).speakers().isEmpty(), "A mismatched first pair must also block the chain");
++        h.assertBlockProperty(first.west(), CopperWireBlock.PORTS[1], false);
++        h.succeed();
++    }
++}
+diff --git a/src/gametest/resources/fabric.mod.json b/src/gametest/resources/fabric.mod.json
+index eafbb31..7d533b2 100644
+--- a/src/gametest/resources/fabric.mod.json
++++ b/src/gametest/resources/fabric.mod.json
+@@ -2,7 +2,7 @@
+   "schemaVersion": 1, "id": "copper_speakers_tests", "version": "1.0.0",
+   "name": "Copper Speakers development tests", "environment": "*",
+   "entrypoints": {
+-    "fabric-gametest": ["dev.mcneds.copperspeakers.test.CopperGameTests", "dev.mcneds.copperspeakers.test.WallPlateGameTests", "dev.mcneds.copperspeakers.test.WireStepGameTests", "dev.mcneds.copperspeakers.test.CustomDiscGameTests"],
++    "fabric-gametest": ["dev.mcneds.copperspeakers.test.CopperGameTests", "dev.mcneds.copperspeakers.test.WallPlateGameTests", "dev.mcneds.copperspeakers.test.WallPlatePortsGameTests", "dev.mcneds.copperspeakers.test.WireStepGameTests", "dev.mcneds.copperspeakers.test.CustomDiscGameTests"],
+     "fabric-client-gametest": ["dev.mcneds.copperspeakers.test.AudioSmokeTest"]
+   }
+ }
+diff --git a/src/main/java/dev/mcneds/copperspeakers/block/CopperWireBlock.java b/src/main/java/dev/mcneds/copperspeakers/block/CopperWireBlock.java
+index 40be14a..77363bc 100644
+--- a/src/main/java/dev/mcneds/copperspeakers/block/CopperWireBlock.java
++++ b/src/main/java/dev/mcneds/copperspeakers/block/CopperWireBlock.java
+@@ -74,7 +74,7 @@ public final class CopperWireBlock extends Block implements SimpleWaterloggedBlo
+             boolean down = loaded && WireConnections.step(level, read, pos, neighbor.below());
+             if (up) climbing |= 1 << i;
+             state = state.setValue(PORTS[i], loaded && (up || down || isNode(read.apply(neighbor))
+-                    || level instanceof ServerLevel server && WallPlates.get(server).isNode(neighbor)));
++                    || level instanceof ServerLevel server && WallPlates.get(server).connects(neighbor, pos)));
+         }
+         return state.setValue(CLIMBING, climbing);
+     }
+diff --git a/src/main/java/dev/mcneds/copperspeakers/network/AudioNetworks.java b/src/main/java/dev/mcneds/copperspeakers/network/AudioNetworks.java
+index e6237cb..4eb4aa2 100644
+--- a/src/main/java/dev/mcneds/copperspeakers/network/AudioNetworks.java
++++ b/src/main/java/dev/mcneds/copperspeakers/network/AudioNetworks.java
+@@ -54,11 +54,19 @@ public final class AudioNetworks {
+         return unloaded.contains(ChunkPos.pack(pos)) ? Blocks.AIR.defaultBlockState() : LoadedBlocks.state(level, pos);
+     }
+     public NetworkGraph.Component<BlockPos> component(BlockPos root) {
+-        return NetworkGraph.find(root, p -> WireConnections.neighbors(level, this::state, p),
++        return NetworkGraph.find(root, this::connectedNeighbors,
+                 p -> CopperWireBlock.isNode(state(p)) || isWallPlate(p),
+                 p -> state(p).getBlock() instanceof CopperWireBlock || isWallPlate(p),
+                 p -> state(p).getBlock() instanceof SpeakerBlock, MAX_NODES);
+     }
++    private List<BlockPos> connectedNeighbors(BlockPos pos) {
++        var neighbors = WireConnections.neighbors(level, this::state, pos);
++        var plates = WallPlates.get(level);
++        boolean fromPlate = isWallPlate(pos);
++        neighbors.removeIf(next -> fromPlate && !plates.connects(pos, next)
++                || isWallPlate(next) && !plates.connects(next, pos));
++        return neighbors;
++    }
+     private boolean isWallPlate(BlockPos pos) {
+         return !unloaded.contains(ChunkPos.pack(pos)) && LoadedBlocks.available(level, pos) && WallPlates.get(level).isNode(pos);
+     }
+diff --git a/src/main/java/dev/mcneds/copperspeakers/network/WallPlates.java b/src/main/java/dev/mcneds/copperspeakers/network/WallPlates.java
+index 09e6bdf..10a04bb 100644
+--- a/src/main/java/dev/mcneds/copperspeakers/network/WallPlates.java
++++ b/src/main/java/dev/mcneds/copperspeakers/network/WallPlates.java
+@@ -31,6 +31,12 @@ public final class WallPlates {
+         var plate = plates.get(pos);
+         return plate != null && !plate.isRemoved() && eligible(level, pos);
+     }
++    /** Only the two sockets expose horizontal ports on a plated block. */
++    public boolean connects(BlockPos host, BlockPos neighbor) {
++        if (!isNode(host)) return false;
++        var facing = plates.get(host).facing();
++        return neighbor.equals(host.relative(facing)) || neighbor.equals(host.relative(facing.getOpposite()));
++    }
+     public void add(WallPlateEntity plate) {
+         var previous = plates.putIfAbsent(plate.host(), plate);
+         if (previous != null && previous != plate) { plate.discard(); return; }

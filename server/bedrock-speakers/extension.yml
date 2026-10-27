@@ -1,0 +1,6 @@
+id: copperbedrock
+name: CopperBedrock
+main: net.mineandcraft.bedrockspeakers.CopperBedrock
+api: 2.9.0
+version: 0.1.0
+authors: [mineandcraft.net]
