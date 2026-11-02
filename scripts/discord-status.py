@@ -73,9 +73,12 @@ def make_client(origin):
     class StatusClient(discord.Client):
         def __init__(self):
             bridge_enabled = bool(os.environ.get('CHAT_BRIDGE_CHANNEL_ID'))
+            frame_guild_id = os.environ.get('FRAME_GUILD_ID') or os.environ.get('CHAT_BRIDGE_GUILD_ID')
+            frame_enabled = bool(frame_guild_id) and os.environ.get('FRAME_ENABLED', '1') == '1'
             intents = discord.Intents.none()
-            if bridge_enabled:
+            if bridge_enabled or frame_enabled:
                 intents.guilds = intents.guild_messages = intents.message_content = True
+            if bridge_enabled:
                 intents.members = os.environ.get('CHAT_MEMBER_AUTOCOMPLETE', '1') == '1'
             super().__init__(intents=intents,
                              activity=discord.CustomActivity('Status unavailable'),
@@ -85,6 +88,10 @@ def make_client(origin):
             self.page = 0
             self.updater = None
             self.bridge = None
+            self.frame = None
+            if frame_enabled:
+                from discord_frame import FrameCommand
+                self.frame = FrameCommand(int(frame_guild_id))
             if bridge_enabled:
                 from discord_bridge import Bridge
                 self.bridge = Bridge(self, int(os.environ['CHAT_BRIDGE_GUILD_ID']),
@@ -97,6 +104,9 @@ def make_client(origin):
                 await self.bridge.start()
 
         async def on_message(self, message):
+            # Handle image commands before Minecraft relay, even in bridged channels.
+            if self.frame and await self.frame.handle(message):
+                return
             if self.bridge:
                 await self.bridge.on_message(message)
 
