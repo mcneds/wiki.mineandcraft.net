@@ -249,8 +249,9 @@ The frame is loaded once from the owner's public
 [`kuemmerle.dev` asset](https://github.com/mcneds/kuemmerle.dev/blob/main/assets/images/frame_transparent_straightened.png).
 Optionally configure `FRAME_ASSET=/opt/mineandcraft-discord/frame.png` to use a local copy instead.
 
-The feature enables automatically when `CHAT_BRIDGE_GUILD_ID` is configured. If the bot runs in
-status-only mode, set `FRAME_GUILD_ID=<Discord guild ID>` in
+The feature enables automatically when `CHAT_BRIDGE_GUILD_ID` or `DISCORD_GUILD_ID`
+is configured. If the bot runs in status-only mode without either one, set
+`FRAME_GUILD_ID=<Discord guild ID>` in
 `/etc/mineandcraft-discord/status.env` to enable reply handling in that guild. Set
 `FRAME_ENABLED=0` to disable the command. Enable **Message Content Intent** for the existing
 bot in Discord's Developer Portal; the bot also needs View Channel, Read Message History, Send
