@@ -69,7 +69,7 @@ def media_source(message):
             part = getattr(embed, slot, None)
             if not part:
                 continue
-            for attr in ('proxy_url', 'url'):
+            for attr in (('url', 'proxy_url') if slot == 'video' else ('proxy_url', 'url')):
                 url = getattr(part, attr, None)
                 if allowed_media_url(url):
                     return url
@@ -192,7 +192,7 @@ class FrameCommand:
         self.guild_id = guild_id
         self._frame = None
         self._frame_lock = asyncio.Lock()
-        self._active = asyncio.Semaphore(2)
+        self._active = asyncio.Semaphore(1)
         self._recent = {}
 
     async def get_frame(self, session):
