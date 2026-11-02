@@ -20,7 +20,7 @@ PrivateDevices=true
 ProtectKernelTunables=true
 ProtectControlGroups=true
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
-MemoryMax=128M
+MemoryMax=384M
 UMask=0077
 
 [Install]
