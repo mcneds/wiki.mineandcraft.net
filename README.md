@@ -237,6 +237,39 @@ If separately configured by the owner, `youtube_cookies` may point to an absolut
 
 Startup receipts prefer Minecraft's `Done` feedback and can also confirm readiness through the private management API when PufferPanel's incremental console misses that line. Music installation still verifies the expected datapack release and generated pack before publishing claim commands. The one-time status activation timer is disabled after completion.
 
+### Discord reply-to-image frame command
+
+The **same wiki Discord bot** handles `-frame` when sent as a reply to a message containing an
+image or GIF. It composites the supplied media into the gold carved frame, preserves animated GIF
+frames/timing, and returns the result as an attachment. GIF embeds with MP4/WebM previews are
+decoded with FFmpeg. The command is consumed before the Minecraft chat bridge, so `-frame`
+is never forwarded to the game. No second Discord application, token, or process is needed.
+
+The frame is loaded once from the owner's public
+[`kuemmerle.dev` asset](https://github.com/mcneds/kuemmerle.dev/blob/main/assets/images/frame_transparent_straightened.png).
+Optionally configure `FRAME_ASSET=/opt/mineandcraft-discord/frame.png` to use a local copy instead.
+
+The feature enables automatically when `CHAT_BRIDGE_GUILD_ID` is configured. If the bot runs in
+status-only mode, set `FRAME_GUILD_ID=<Discord guild ID>` in
+`/etc/mineandcraft-discord/status.env` to enable reply handling in that guild. Set
+`FRAME_ENABLED=0` to disable the command. Enable **Message Content Intent** for the existing
+bot in Discord's Developer Portal; the bot also needs View Channel, Read Message History, Send
+Messages, and Attach Files in the channels where `-frame` will be used.
+
+Deploy both `scripts/discord-status.py` and `scripts/discord_frame.py` to
+`/opt/mineandcraft-discord/`, update the existing venv from
+`scripts/discord-status.requirements.txt` (adds Pillow), and install the updated
+`scripts/discord-status.service.example` with its 384 MB memory limit. Install
+`ffmpeg` on the host for GIF embeds with video previews, then restart
+`mineandcraft-discord-status.service`. As before, use only one running presence bot process.
+No Minecraft restart is required.
+
+Safety limits: 20 MB input download; 24 megapixel images; 120-frame, 12-second GIFs; 8 MB output;
+7-second per-user cooldown. Media fetches accept only approved HTTPS media hosts, reject redirects,
+and do not accept arbitrary URLs in the command. Render work runs in a thread to keep the bot
+responsive. Test with `python -m unittest discover -s tests-worker -p discord_frame_test.py`.
+
+
 ### YouTube connection testing and private relay
 
 On 2026-10-24, the VPS's direct connection failed playback with yt-dlp 2026.10.21, Lavalink 4.2.2 + youtube-source 1.18.2, BgUtils tokens, and browser-generated WebPoClient tokens. A fresh browser on the VPS also received the sign-in challenge. Metadata loading alone was successful and is not a playback check.
