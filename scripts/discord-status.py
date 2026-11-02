@@ -73,7 +73,8 @@ def make_client(origin):
     class StatusClient(discord.Client):
         def __init__(self):
             bridge_enabled = bool(os.environ.get('CHAT_BRIDGE_CHANNEL_ID'))
-            frame_guild_id = os.environ.get('FRAME_GUILD_ID') or os.environ.get('CHAT_BRIDGE_GUILD_ID')
+            frame_guild_id = (os.environ.get('FRAME_GUILD_ID') or os.environ.get('CHAT_BRIDGE_GUILD_ID')
+                              or os.environ.get('DISCORD_GUILD_ID'))
             frame_enabled = bool(frame_guild_id) and os.environ.get('FRAME_ENABLED', '1') == '1'
             intents = discord.Intents.none()
             if bridge_enabled or frame_enabled:
