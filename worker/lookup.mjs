@@ -36,7 +36,7 @@ export function png(bytes) {
 export async function lookup(input, fetcher) {
   const edition = input.edition;
   const query = String(input.name || '').trim();
-  let name, id, headId;
+  let name, id, headId, texture;
   if (edition === 'java') {
     if (!/^[A-Za-z0-9_]{3,16}$/.test(query)) throw new HttpError(400, 'Enter a Java username with 3–16 letters, numbers, or underscores.');
     const profile = await javaProfile(query, fetcher);
@@ -53,11 +53,13 @@ export async function lookup(input, fetcher) {
     const skin = await json(fetcher, `https://api.geysermc.org/v2/skin/${id}`);
     if (!skin.texture_id) throw new HttpError(404, 'No Bedrock skin is available yet. Ask the player to join through Geyser first, then retry.');
     headId = BigInt(id).toString(16).padStart(32, '0');
+    if (!/^[a-f0-9]{32,64}$/i.test(skin.texture_id)) throw new HttpError(503, 'The Bedrock skin could not be verified.');
+    texture = btoa(JSON.stringify({ textures: { SKIN: { url: `https://textures.minecraft.net/texture/${skin.texture_id}` } } }));
   } else throw new HttpError(400, 'Choose Java or Bedrock.');
   let head;
   try { head = await fetcher(`https://mc-heads.net/head/${headId}/256`, { signal: AbortSignal.timeout(10000) }); }
   catch { throw new HttpError(503, 'The player head could not be fetched. Please try again shortly.'); }
   if (!head.ok || !head.headers.get('Content-Type')?.includes('image/png')) throw new HttpError(503, 'The player head could not be fetched.');
   const image = png(new Uint8Array(await head.arrayBuffer()));
-  return { name, edition, minecraft_id: `${edition}:${id}`, head_png: image, preview: `data:image/png;base64,${image}` };
+  return { name, edition, ...(texture ? { texture } : {}), minecraft_id: `${edition}:${id}`, head_png: image, preview: `data:image/png;base64,${image}` };
 }

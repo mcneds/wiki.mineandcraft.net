@@ -28,3 +28,8 @@ server/plan-tools/.gradle/
 server/plan-tools/build/
 server/plan-tools/run/
 server/plan-tools/*.log
+
+server/head-sounds/.gradle/
+server/head-sounds/build/
+server/head-sounds/run/
+server/head-sounds/*.log

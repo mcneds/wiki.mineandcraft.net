@@ -40,6 +40,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.Clie
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundEntityPositionSyncPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundRemoveEntitiesPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundSoundEntityPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundSoundPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
 
 /** Compatibility for Copper Speakers 0.2.0 on Geyser 2.12.1-b1273 / Bedrock 26.60. */
@@ -115,6 +116,7 @@ public final class CopperBedrock implements Extension {
         wrap(ClientboundEntityPositionSyncPacket.class, this::moveEntity, false);
         wrap(ClientboundRemoveEntitiesPacket.class, this::removeEntities, true);
         replace(ClientboundSoundEntityPacket.class, this::soundEntity);
+        replace(ClientboundSoundPacket.class, this::headSound);
         replace(ClientboundLevelEventPacket.class, this::levelEvent);
         var key = GeyserEntityType.ofVanilla(EntityType.ITEM_FRAME);
         @SuppressWarnings("unchecked")
@@ -266,6 +268,24 @@ public final class CopperBedrock implements Extension {
         listener.audio.start(voiceHandle(packet.getEntityId()), recording.sound(), position,
                 packet.getVolume(), packet.getPitch(), voice.clock, voice.playing);
         return true;
+    }
+
+    private boolean headSound(GeyserSession session, ClientboundSoundPacket packet) {
+        var translated = translateHeadSound(packet);
+        if (translated == null) return false;
+        session.sendUpstreamPacket(translated);
+        return true;
+    }
+
+    static PlaySoundPacket translateHeadSound(ClientboundSoundPacket packet) {
+        String sound = packet.getSound().getName();
+        if (sound == null || !sound.matches("mineandcraft_music:head_[a-f0-9]{32}")) return null;
+        var translated = new PlaySoundPacket();
+        translated.setSound(sound);
+        translated.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
+        translated.setVolume(packet.getVolume());
+        translated.setPitch(packet.getPitch());
+        return translated;
     }
 
     private boolean levelEvent(GeyserSession session, ClientboundLevelEventPacket packet) {

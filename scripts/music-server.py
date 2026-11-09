@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import struct
 import subprocess
 import tempfile
 import time
@@ -27,7 +28,7 @@ import zlib
 FILE_LIMIT = 20 * 1024 * 1024
 NAMESPACE = 'mineandcraft_music'
 # Rebuild installed catalogues once when the generated pack contract changes.
-PACK_REVISION = 3
+PACK_REVISION = 4
 
 
 class ToolFailure(RuntimeError):
@@ -170,6 +171,89 @@ def convert(source, target):
     if abs(duration - expected_duration) > max(1, expected_duration * 0.01):
         raise ToolFailure('Audio is incomplete; converted duration differs from the source.', 'invalid_audio')
     return duration
+
+
+def head_duration(path):
+    """Measure decoded samples, not untrusted container duration metadata."""
+    probe(path)
+    # Decode only enough to prove the file exceeds the cap. One extra sample
+    # distinguishes exactly ten seconds from an overlong or misleading input.
+    pcm = run(['ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-xerror',
+               '-protocol_whitelist', 'file,pipe', '-i', str(path), '-map', '0:a:0',
+               '-vn', '-ac', '1', '-ar', '48000', '-t', '10.001', '-f', 's16le', 'pipe:1'])
+    samples = len(pcm) // 2
+    if not samples or samples > 480000 or len(pcm) % 2:
+        raise ValueError('Head effects must contain at most 10 seconds of audio.')
+    return samples / 48000
+
+
+def sync_head_permissions(config, wiki):
+    if not config.get('heads_enabled', False):
+        return
+    path = Path(config['whitelist_file'])
+    if not path.is_absolute():
+        raise ValueError('whitelist_file must be an absolute server path.')
+    players = json.loads(path.read_text(encoding='utf-8'))
+    if not isinstance(players, list):
+        raise ValueError('The server whitelist is unreadable.')
+    snapshot = [{'uuid': str(uuid.UUID(p['uuid'])), 'name': p['name']} for p in players]
+    wiki.request('/api/music/bridge/heads/whitelist/', json.dumps({'players': snapshot}).encode())
+
+
+def validate_head_uploads(config, wiki):
+    if not config.get('heads_enabled', False):
+        return
+    queue = json.loads(wiki.request('/api/music/bridge/heads/validation/'))
+    for item in queue['submissions']:
+        track_id = str(uuid.UUID(item['id']))
+        if item['audio'] != f'/api/music/bridge/heads/{track_id}/audio/':
+            raise ValueError('Invalid head validation endpoint.')
+        original = wiki.request(item['audio'])
+        if digest(original) != item['sha256']:
+            raise ValueError('Head audio failed checksum validation.')
+        result = {key: item[key] for key in ('fileId', 'sha256', 'version')}
+        with tempfile.TemporaryDirectory(prefix='head-validation-') as temporary:
+            source = Path(temporary) / 'source.audio'
+            source.write_bytes(original)
+            try:
+                result.update(valid=True, durationMs=head_duration(source) * 1000)
+            except (ValueError, ToolFailure):
+                result.update(valid=False)
+        wiki.request(f'/api/music/bridge/heads/{track_id}/validation/', json.dumps(result).encode())
+
+
+def add_head_to_pack(track, source, duration, java, data, bedrock, sounds, bedrock_sounds, mappings, claims, codes):
+    head = track['head']
+    if str(uuid.UUID(head['uuid'])) != head['uuid'] or str(uuid.UUID(head['id'])) != head['id']:
+        raise ValueError('Invalid head identity.')
+    if duration <= 0 or duration > 10:
+        raise ValueError('Head effects must be no longer than 10 seconds.')
+    name = 'head_' + head['id'].replace('-', '')
+    sound = f'{NAMESPACE}:{name}'
+    for root, relative in ((java, f'assets/{NAMESPACE}/sounds/music'), (bedrock, 'sounds/music')):
+        target = root / relative / (name + '.ogg')
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+    sounds[name] = {'sounds': [{'name': f'{NAMESPACE}:music/{name}', 'stream': False}]}
+    bedrock_sounds[sound] = {'category': 'record', 'sounds': [{'name': 'sounds/music/' + name, 'stream': False}]}
+    mappings.append({'uuid': head['uuid'], 'sound': sound, 'owned': head['owned']})
+    code = track_code(head['id'])
+    if code in codes:
+        raise ValueError('Two heads have the same claim code.')
+    codes.add(code)
+    # All profile fields are serialized as data, never interpolated as commands.
+    profile = head['profile']
+    if profile.get('id') != head['uuid']:
+        raise ValueError('Head profile identity does not match.')
+    profile_fields = {key: value for key, value in profile.items() if key != 'id'}
+    profile_snbt = '{"id":[I;' + ','.join(map(str, struct.unpack('>iiii', uuid.UUID(head['uuid']).bytes))) + ']' + (',' + json.dumps(profile_fields, ensure_ascii=True)[1:] if profile_fields else '}')
+    item = 'minecraft:player_head[minecraft:profile=' + profile_snbt + ',minecraft:note_block_sound=' + json.dumps(sound) + ']'
+    function = data / 'data' / NAMESPACE / 'function' / 'heads' / (name + '.mcfunction')
+    function.parent.mkdir(parents=True, exist_ok=True)
+    function.write_text(f'give @s {item}\nscoreboard players set @s mac_head_wait 100\n', encoding='utf-8')
+    # The companion writes this per-identity allow flag from the LIVE whitelist.
+    # Claims therefore cannot bypass newly protected heads between releases.
+    claims.append(f'execute if score @s mac_heads matches {code} if data storage {NAMESPACE}:heads allowed.{name} run function {NAMESPACE}:heads/{name}')
 
 
 def youtube_audio(track, directory, options=None):
@@ -316,7 +400,12 @@ def build_packs(manifest, audio, directory, config):
     write_json(java / 'pack.mcmeta', pack_metadata(config['resource_format']))
     write_json(data / 'pack.mcmeta', pack_metadata(config['data_format']))
     sounds, bedrock_sounds, commands, claims, codes = {}, {}, [], [], set()
+    head_mappings, head_claims, head_codes = [], [], set()
     for track in manifest['tracks']:
+        if track.get('kind') == 'head':
+            source, duration = audio[track['id']]
+            add_head_to_pack(track, source, duration, java, data, bedrock, sounds, bedrock_sounds, head_mappings, head_claims, head_codes)
+            continue
         name = 'disc_' + track['id'].replace('-', '')
         source, duration = audio[track['id']]
         sound_id = f'{NAMESPACE}:{name}'
@@ -365,6 +454,16 @@ def build_packs(manifest, audio, directory, config):
     (functions / 'load.mcfunction').write_text('scoreboard objectives add mac_music trigger\n' + f'data modify storage {NAMESPACE}:delivery release set value {json.dumps(manifest["releaseId"])}\ndata modify storage {NAMESPACE}:delivery claim_format set value 2\ndata modify storage {NAMESPACE}:delivery pack_revision set value {PACK_REVISION}\n', encoding='utf-8')
     (functions / 'tick.mcfunction').write_text(f'scoreboard players enable @a mac_music\nexecute as @a[scores={{mac_music=1..}}] run function {NAMESPACE}:claim\n', encoding='utf-8')
     (functions / 'claim.mcfunction').write_text('\n'.join(claims + ['scoreboard players reset @s mac_music']) + '\n', encoding='utf-8')
+    write_json(data / 'data' / NAMESPACE / 'head_sounds' / 'catalog.json', {'release': manifest['releaseId'], 'heads': head_mappings})
+    with (functions / 'load.mcfunction').open('a', encoding='utf-8') as output:
+        output.write('scoreboard objectives add mac_heads trigger\nscoreboard objectives add mac_head_wait dummy\n')
+    with (functions / 'tick.mcfunction').open('a', encoding='utf-8') as output:
+        output.write('scoreboard players add @a mac_head_wait 0\nscoreboard players remove @a[scores={mac_head_wait=1..}] mac_head_wait 1\n'
+                     'scoreboard players enable @a[scores={mac_head_wait=0}] mac_heads\n'
+                     f'execute as @a[scores={{mac_heads=1..,mac_head_wait=0}}] run function {NAMESPACE}:heads/claim\n'
+                     'scoreboard players reset @a[scores={mac_heads=1..}] mac_heads\n')
+    (functions / 'heads').mkdir(exist_ok=True)
+    (functions / 'heads' / 'claim.mcfunction').write_text('\n'.join(head_claims) + '\n', encoding='utf-8')
     for event in ('load', 'tick'):
         write_json(data / 'data' / 'minecraft' / 'tags' / 'function' / (event + '.json'), {'values': [f'{NAMESPACE}:{event}']})
     (directory / 'disc-commands.txt').write_text('\n'.join(commands), encoding='utf-8')
@@ -394,7 +493,11 @@ def progress(wiki, manifest, phase, track=None, reason=''):
 def sync(config, wiki):
     wiki.attempt = None
     wiki.track_id = None
+    sync_head_permissions(config, wiki)
+    validate_head_uploads(config, wiki)
     manifest = wiki.manifest()
+    if any(track.get('kind') == 'head' for track in manifest['tracks']) and not config.get('heads_enabled', False):
+        raise ValueError('Enable heads and install the head companion before publishing head sounds.')
     wiki.attempt = json.loads(json.dumps(manifest))
     progress(wiki, manifest, 'queued')
     state = Path(config['state_dir']).resolve()
@@ -436,15 +539,20 @@ def sync(config, wiki):
                     raise ValueError('An audio source failed checksum validation.')
                 source = work / 'source.audio'
                 source.write_bytes(original)
+                if track.get('kind') == 'head':
+                    head_duration(source)
                 pending = work / 'converted.ogg'
                 duration = convert(source, pending)
                 os.replace(pending, converted)
             else:
                 duration = probe(converted)
+            if track.get('kind') == 'head':
+                duration = head_duration(converted)
             audio[track['id']] = (converted, duration)
         build_packs(manifest, audio, work, config)
         if (work / 'music-resource-pack.zip').stat().st_size > int(config.get('pack_limit_bytes', 100 * 1024 * 1024)):
             raise ValueError('The music pack exceeds the configured download limit. The server was not changed.')
+        sync_head_permissions(config, wiki)
         if wiki.manifest()['releaseId'] != manifest['releaseId']:
             raise RuntimeError('The approved collection changed while building. The server was not changed.')
         if config.get('preflight_command'):
@@ -511,6 +619,7 @@ def main():
         while not stopped.is_set():
             try:
                 heartbeat_client.heartbeat()
+                sync_head_permissions(config, heartbeat_client)
             except Exception:
                 pass
             stopped.wait(15)

@@ -18,6 +18,17 @@ public final class ProtocolSmoke {
     public static void main(String[] args) {
         try { PreparedEventCatalogTest.run(); } catch (Exception e) { throw new AssertionError(e); }
         CoordinatedAudioTest.run();
+        String headEffect = "mineandcraft_music:head_11111111111141118111111111111111";
+        var headPacket = new org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundSoundPacket(
+                new org.geysermc.mcprotocollib.protocol.data.game.level.sound.CustomSound(headEffect, false, 48),
+                org.geysermc.mcprotocollib.protocol.data.game.level.sound.SoundCategory.RECORD, 1.5, 64.5, -12.5, 3, 1, 0);
+        var translatedHead = CopperBedrock.translateHeadSound(headPacket);
+        if (translatedHead == null || !translatedHead.getSound().equals(headEffect)
+                || !translatedHead.getPosition().equals(Vector3f.from(1.5, 64.5, -12.5))
+                || translatedHead.getVolume() != 3 || translatedHead.getPitch() != 1)
+            throw new AssertionError("Head sound translation must preserve the sound, origin, volume and pitch");
+        if (CopperBedrock.translateHeadSound(headPacket.withSound(new org.geysermc.mcprotocollib.protocol.data.game.level.sound.CustomSound("minecraft:block.note_block.harp", false, 48))) != null)
+            throw new AssertionError("Unrelated sounds must use the ordinary Geyser translator");
         if (!CopperBedrock.bufferedSound("mineandcraft_music:buffered.disc_test").equals("mineandcraft_music:buffered.disc_test"))
             throw new AssertionError("Buffered custom audio was changed back to its streaming event");
         if (!CopperBedrock.bufferedSound("mineandcraft_music:disc_test").equals("mineandcraft_music:buffered.disc_test"))

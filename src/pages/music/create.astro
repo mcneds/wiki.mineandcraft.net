@@ -4,7 +4,7 @@ import '../../styles/music.css';
 ---
 <WikiLayout title="Upload music" description="Upload music and follow your disc submissions." section="Music discs">
   <header class="page-heading"><h1>Upload music</h1></header>
-  <nav class="music-navigation" aria-label="Music pages"><a href="/music/" >Gallery</a><a href="/music/create/" aria-current="page">Upload &amp; progress</a></nav>
+  <nav class="music-navigation" aria-label="Music pages"><a href="/music/" >Gallery</a><a href="/music/create/" aria-current="page">Upload &amp; progress</a><a href="/heads/">Player-head sounds</a></nav>
   <p>Upload an audio file or submit a Spotify or YouTube link. Follow your submissions and manage your music library here. Approved tracks are added to the server when it is empty.</p>
   <p>Once a song is marked <strong>Added to server</strong>, its claim command is available in the <a href="/music/">music gallery</a>.</p>
   <p id="music-account-status" role="status" aria-live="polite"></p>
@@ -14,7 +14,7 @@ import '../../styles/music.css';
     <h2>Your music library</h2>
     <p id="music-usage"></p>
     <meter id="music-storage" min="0" max="104857600" value="0" aria-label="Music storage used"></meter>
-    <p>Up to 20 MB per file, 100 MB of audio per member, and 25 tracks. Songs have no duration limit. Unapproved tracks can be removed to free space. Installed discs stay in future packs so existing items keep working.</p>
+    <p>Up to 20 MB per file, 100 MB of audio and 25 submission slots per member, shared with head sounds. Songs have no duration limit. Unapproved tracks can be removed to free space. Installed discs stay in future packs so existing items keep working.</p>
     <details id="music-add">
       <summary>Add music</summary>
       <form id="music-form">

@@ -119,7 +119,7 @@ export const mayEdit = (user, player) => user.owner || user.roles.some(role => r
 export function checkCsrf(request, user) {
   if (request.headers.get('X-CSRF-Token') !== user.csrf) throw new HttpError(403, 'Reload the editor and try again.');
 }
-const returnPath = value => ['/coordinates/', '/music/', '/music/create/', '/mapart/', '/mapart/create/'].includes(value) || /^\/wiki\/players\/[a-z0-9_-]{1,50}\/$/.test(value || '') ? value : '/account/';
+const returnPath = value => ['/coordinates/', '/music/', '/music/create/', '/heads/', '/heads/create/', '/mapart/', '/mapart/create/'].includes(value) || /^\/wiki\/players\/[a-z0-9_-]{1,50}\/$/.test(value || '') ? value : '/account/';
 
 export async function login(request, env) {
   if (!configured(env)) throw new HttpError(503, 'Discord editing is not configured yet.');

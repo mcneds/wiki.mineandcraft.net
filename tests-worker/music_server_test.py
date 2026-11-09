@@ -35,6 +35,71 @@ class FakeWiki:
 
 
 class MusicServerTests(unittest.TestCase):
+    def head_track(self, owned=True):
+        return {'id': 'a1111111-1111-4111-8111-111111111111', 'kind': 'head', 'title': 'Hello', 'artist': '',
+                'head': {'id': '11111111-1111-4111-8111-111111111111', 'uuid': '069a79f4-44e9-4726-a5be-fca90e38aaf5',
+                         'owned': owned, 'profile': {'id': '069a79f4-44e9-4726-a5be-fca90e38aaf5', 'name': 'Notch'}}}
+
+    def test_head_packs_have_native_claims_cooldowns_identity_mapping_and_no_jukebox_songs(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / 'source.ogg'; source.write_bytes(b'audio')
+            track = self.head_track()
+            manifest = {'releaseId': 'a' * 64, 'tracks': [track]}
+            music.build_packs(manifest, {track['id']: (source, 10)}, root / 'pack', {'resource_format': [97, 1], 'data_format': [121, 0]})
+            with zipfile.ZipFile(root / 'pack/mineandcraft-music.zip') as pack:
+                mapping = json.loads(pack.read('data/mineandcraft_music/head_sounds/catalog.json'))
+                self.assertEqual(mapping['heads'][0]['uuid'], track['head']['uuid'])
+                self.assertTrue(mapping['heads'][0]['owned'])
+                self.assertFalse(any('jukebox_song' in name for name in pack.namelist()))
+                claim = pack.read('data/mineandcraft_music/function/heads/head_11111111111141118111111111111111.mcfunction').decode()
+                self.assertIn('minecraft:profile={"id":[I;110787060,1156138790,-1514210135,238594805]', claim)
+                self.assertIn('minecraft:note_block_sound="mineandcraft_music:head_', claim)
+                self.assertIn('scoreboard players set @s mac_head_wait 100', claim)
+                self.assertIn('if data storage mineandcraft_music:heads allowed.head_', pack.read('data/mineandcraft_music/function/heads/claim.mcfunction').decode())
+                self.assertIn('mac_head_wait=0', pack.read('data/mineandcraft_music/function/tick.mcfunction').decode())
+            with zipfile.ZipFile(root / 'pack/music-resource-pack.zip') as pack:
+                sounds = json.loads(pack.read('assets/mineandcraft_music/sounds.json'))
+                self.assertEqual(len(sounds), 1)
+                self.assertFalse(next(iter(sounds.values()))['sounds'][0]['stream'])
+            with zipfile.ZipFile(root / 'pack/mineandcraft-music.mcpack') as pack:
+                sounds = json.loads(pack.read('sounds/sound_definitions.json'))['sound_definitions']
+                self.assertIn(mapping['heads'][0]['sound'], sounds)
+            with self.assertRaises(ValueError):
+                music.build_packs(manifest, {track['id']: (source, 10.001)}, root / 'bad', {'resource_format': [97, 1], 'data_format': [121, 0]})
+
+    @unittest.skipUnless(shutil.which('ffmpeg') and shutil.which('ffprobe'), 'Requires ffmpeg and ffprobe')
+    def test_head_duration_decodes_exact_limit_overlong_and_malformed_audio(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for samples in (1, 48000, 480000, 480001, 600000):
+                path = root / f'{samples}.wav'
+                with wave.open(str(path), 'wb') as output:
+                    output.setnchannels(1); output.setsampwidth(2); output.setframerate(48000)
+                    output.writeframes(b'\0\0' * samples)
+                if samples <= 480000:
+                    self.assertAlmostEqual(music.head_duration(path), samples / 48000)
+                else:
+                    with self.assertRaises(ValueError): music.head_duration(path)
+            bad = root / 'bad.wav'; bad.write_bytes(b'RIFF' + b'\0' * 100)
+            with self.assertRaises((ValueError, music.ToolFailure)): music.head_duration(bad)
+
+    def test_head_validation_queue_reports_only_checksum_bound_results(self):
+        track_id = self.head_track()['id']
+        data = b'fake-audio'
+        item = {'id': track_id, 'version': 2, 'fileId': str(uuid.uuid4()), 'sha256': music.digest(data), 'audio': f'/api/music/bridge/heads/{track_id}/audio/'}
+        class Queue:
+            def __init__(self): self.results = []
+            def request(self, path, body=None):
+                if body is not None: self.results.append(json.loads(body)); return b'{}'
+                return data if path.endswith('/audio/') else json.dumps({'submissions': [item]}).encode()
+        queue = Queue()
+        with patch.object(music, 'head_duration', return_value=10): music.validate_head_uploads({'heads_enabled': True}, queue)
+        self.assertEqual(queue.results[0], {'fileId': item['fileId'], 'sha256': item['sha256'], 'version': 2, 'valid': True, 'durationMs': 10000})
+        queue.results.clear()
+        with patch.object(music, 'head_duration', side_effect=ValueError('Too long')): music.validate_head_uploads({'heads_enabled': True}, queue)
+        self.assertFalse(queue.results[0]['valid'])
+
     def test_speaker_aliases_preserve_songs_and_share_the_existing_audio(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

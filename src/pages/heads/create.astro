@@ -1,0 +1,40 @@
+---
+import WikiLayout from '../../layouts/WikiLayout.astro';
+import '../../styles/music.css';
+---
+<WikiLayout title="Upload a head sound" description="Associate a player head with a short sound effect." section="Player heads">
+  <header class="page-heading"><h1>Upload a head sound</h1></header>
+  <nav class="music-navigation" aria-label="Head sound pages"><a href="/heads/">Gallery</a><a href="/heads/create/" aria-current="page">Upload &amp; progress</a><a href="/music/create/">Music library</a></nav>
+  <p>Choose an IGN and upload a sound effect up to <strong>10 seconds</strong> long. You can use your own whitelisted accounts or non-whitelisted accounts. Other members’ heads are protected. Skin uploads are not supported.</p>
+  <p>Sounds need owner approval and install when the server is empty. A replacement keeps the current sound playing until the new version is installed.</p>
+  <p><a id="heads-sign-in" href="/auth/login/?returnTo=/heads/create/">Sign in with Discord</a></p>
+  <button id="heads-refresh" type="button">Refresh sounds and permissions</button>
+  <p id="heads-status" role="status" aria-live="polite"></p>
+  <section id="heads-member" hidden>
+    <h2>Your shared audio storage</h2><p id="heads-usage"></p><meter id="heads-storage" min="0" max="104857600" value="0" aria-label="Shared music storage used"></meter>
+    <p>Music discs and head sounds share 100 MB of storage and 25 submission slots. Files may be up to 20 MB. Replacements use the same head slot; both files occupy storage until installation.</p>
+    <h2>Add or replace a head sound</h2>
+    <form id="heads-form">
+      <fieldset id="heads-fields"><legend>Head and sound</legend>
+        <label for="heads-poster">Posting as</label><select id="heads-poster" required></select>
+        <label for="heads-edition">Account edition</label><select id="heads-edition"><option value="java">Java</option><option value="bedrock">Bedrock</option></select>
+        <label for="heads-name">IGN (Bedrock: Xbox gamertag without the server prefix)</label><input id="heads-name" required maxlength="16" />
+        <button id="heads-lookup" type="button">Look up head</button>
+        <div id="heads-target" aria-live="polite"></div>
+        <label for="heads-title">Sound effect title</label><input id="heads-title" required maxlength="100" />
+      </fieldset>
+      <label for="heads-file">Audio file, up to 10 seconds</label><input id="heads-file" type="file" required accept=".mp3,.wav,.ogg,.flac,.m4a,audio/*" />
+      <p>MP3, WAV, Ogg, FLAC, or M4A. Only upload audio you have permission to share. Longer files must be trimmed before uploading.</p>
+      <audio id="heads-preview" controls preload="metadata" hidden></audio>
+      <progress id="heads-progress" max="100" value="0" hidden aria-label="Audio upload progress"></progress>
+      <p id="heads-form-status" role="status" aria-live="polite"></p>
+      <button type="submit">Submit for review</button><button id="heads-clear" type="button">Clear form</button>
+    </form>
+    <h2>Your submissions</h2>
+    <p id="heads-owner" hidden><label><input id="heads-all" type="checkbox" /> Show all head sounds for review</label></p>
+    <div id="heads-library"></div>
+    <nav aria-label="Head library pages"><button id="heads-prev" type="button" hidden>Previous</button><button id="heads-next" type="button" hidden>Next</button></nav>
+  </section>
+  <noscript><p>Enable JavaScript to upload. The <a href="/heads/">head gallery</a> works without it.</p></noscript>
+  <script>import '../../scripts/heads.js';</script>
+</WikiLayout>

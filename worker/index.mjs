@@ -1,3 +1,5 @@
+import { headsList, headContext, headsApi } from './heads.mjs';
+import { headsListHtml, headsPaginationHtml, headsUploaderHtml } from '../shared/heads-render.mjs';
 import catalog from './catalog.generated.json' with { type: 'json' };
 import { HttpError, configured, session, authorize, mayEdit, checkOrigin, checkCsrf, login, callback, cookie, limit } from './auth.mjs';
 import { lookup, png } from './lookup.mjs';
@@ -57,7 +59,9 @@ async function api(request, env, fetcher) {
   if (path.startsWith('/api/server-status/')) return serverStatus(request, env, method === 'POST' ? await input(request) : {});
   if (path.startsWith('/api/mapart/bridge/')) return mapartBridge(request, env, method === 'POST' && request.headers.get('Content-Type')?.startsWith('application/json') ? await input(request) : {}, fetcher);
   if (path === '/api/mapart/context/' && method === 'GET') return mapartContext(request, env, fetcher);
-  if (path.startsWith('/api/music/bridge/')) return musicBridge(request, env, method === 'POST' && request.headers.get('Content-Type')?.startsWith('application/json') ? await input(request) : {});
+  if (path.startsWith('/api/music/bridge/')) return musicBridge(request, env, method === 'POST' && request.headers.get('Content-Type')?.startsWith('application/json') ? await input(request) : {}, fetcher);
+  if (path === '/api/heads/' && method === 'GET') return json(await headsList(env, new URL(request.url).searchParams));
+  if (path === '/api/heads/context/' && method === 'GET') return headContext(request, env, fetcher);
   if (path === '/api/music/' && method === 'GET') return json(await musicList(env, new URL(request.url).searchParams));
   const playback = path.match(/^\/api\/music\/([a-f0-9-]{36})\/play\/$/);
   if (playback && ['GET', 'HEAD'].includes(method)) return musicPlayback(request, env, playback[1]);
@@ -97,13 +101,14 @@ async function api(request, env, fetcher) {
     checkOrigin(request, env); checkCsrf(request, user);
     await limit(env, `write:${user.user_id}`, 30, 60);
   }
+  if (path.startsWith('/api/heads/')) return headsApi(request, env, user, method === 'POST' ? await input(request) : {}, fetcher);
   if (path === '/api/music/metadata/' && method === 'POST') return json(await musicMetadata(await input(request), fetcher));
   if (path.startsWith('/api/mapart/')) return mapartApi(request, env, user, !['GET', 'HEAD', 'DELETE'].includes(method) && !path.endsWith('/source/') ? await input(request) : {});
   if (path === '/api/music/matches/' && method === 'POST') {
     await limit(env, `music-match:${user.user_id}`, 5, 60);
     return json(await spotifyMatches(await input(request), fetcher));
   }
-  if (path.startsWith('/api/music/')) return musicApi(request, env, user, !['GET', 'HEAD'].includes(method) && !(path.endsWith('/audio/') && method === 'POST') ? await input(request) : {});
+  if (path.startsWith('/api/music/')) return musicApi(request, env, user, !['GET', 'HEAD'].includes(method) && !(path.endsWith('/audio/') && method === 'POST') ? await input(request) : {}, fetcher);
   if (comment) {
     if (comment[2] === 'context') throw new HttpError(405, 'This action is not supported.');
     return json(await commentWrite(request, env, user, comment[1], comment[2], method === 'POST' ? await input(request) : {}), method === 'POST' ? 201 : 200);
@@ -215,6 +220,23 @@ async function html(request, env, template, main, title, player) {
 
 async function publicPage(request, env) {
   const path = new URL(request.url).pathname;
+  const headImage = path.match(/^\/heads\/image\/([a-f0-9-]{36})\.png$/);
+  if (headImage) {
+    const head = await env.DB.prepare('SELECT head_png FROM sound_heads WHERE id=?').bind(headImage[1]).first();
+    if (!head) throw new HttpError(404, 'Head image not found.');
+    return new Response(Uint8Array.from(atob(head.head_png), c => c.charCodeAt(0)), { headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=60', 'X-Content-Type-Options': 'nosniff' } });
+  }
+  if (path === '/heads/') {
+    const params = new URL(request.url).searchParams, result = await headsList(env, params);
+    const base = await env.ASSETS.fetch(request), headers = new Headers(base.headers);
+    headers.set('Cache-Control', 'no-store'); headers.delete('ETag'); headers.delete('Content-Length'); headers.delete('Content-Encoding');
+    return new HTMLRewriter()
+      .on('#heads-catalogue', { element(e) { e.setInnerContent(headsListHtml(result), { html: true }); } })
+      .on('#heads-pagination', { element(e) { e.setInnerContent(headsPaginationHtml(result), { html: true }); } })
+      .on('#heads-search', { element(e) { e.setAttribute('value', result.query); } })
+      .on('#heads-uploader', { element(e) { e.setInnerContent(headsUploaderHtml(result), { html: true }); } })
+      .transform(new Response(base.body, { status: base.status, headers }));
+  }
   if (path === '/music/') {
     const result = await musicList(env, new URL(request.url).searchParams);
     const base = await env.ASSETS.fetch(request), headers = new Headers(base.headers);
@@ -299,7 +321,7 @@ export function createHandler(fetcher = (...args) => fetch(...args)) {
     const url = new URL(request.url);
     try {
       const path = url.pathname;
-      const publicApi = (['GET', 'HEAD'].includes(request.method) && /^\/api\/music\/[a-f0-9-]{36}\/play\/$/.test(path)) || (request.method === 'GET' && (path === '/api/server-status/' || path === '/api/music/' || path === '/api/players/' || path === '/api/coordinates/' || /^\/api\/coordinates\/[a-f0-9-]{36}\/$/.test(path) || /^\/api\/players\/[a-z0-9_-]{1,50}\/comments\/$/.test(path)));
+      const publicApi = (['GET', 'HEAD'].includes(request.method) && /^\/api\/music\/[a-f0-9-]{36}\/play\/$/.test(path)) || (request.method === 'GET' && (path === '/api/server-status/' || path === '/api/music/' || path === '/api/heads/' || path === '/api/players/' || path === '/api/coordinates/' || /^\/api\/coordinates\/[a-f0-9-]{36}\/$/.test(path) || /^\/api\/players\/[a-z0-9_-]{1,50}\/comments\/$/.test(path)));
       if ((path.startsWith('/auth/') || (path.startsWith('/api/') && !publicApi)) && url.origin !== env.SITE_ORIGIN) throw new HttpError(403, 'Use the wiki’s main address to sign in and edit.');
       if (path === '/auth/login/' && request.method === 'GET') return await login(request, env);
       if (path === '/auth/callback/' && request.method === 'GET') return await callback(request, env, fetcher);

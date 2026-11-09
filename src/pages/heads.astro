@@ -1,0 +1,21 @@
+---
+import WikiLayout from '../layouts/WikiLayout.astro';
+import '../styles/music.css';
+---
+<WikiLayout title="Player-head sounds" description="Browse and claim player heads with custom sound effects." section="Player heads">
+  <header class="page-heading"><h1>Player-head sounds</h1></header>
+  <nav class="music-navigation" aria-label="Head sound pages"><a href="/heads/" aria-current="page">Gallery</a><a href="/heads/create/">Upload &amp; progress</a><a href="/music/">Music discs</a></nav>
+  <p>Give a player head its own sound effect. Every matching head uses the installed sound, including heads already placed in the world.</p>
+  <h2>Use a head in game</h2>
+  <ol><li>Choose a sound marked <strong>Added to server</strong> and run its claim command in Minecraft.</li><li>Place the head on top of a note block.</li><li>Activate the note block by hand or with redstone to play the effect.</li></ol>
+  <p>Anyone can claim an installed head, once every five seconds. Reconnect and accept the server sound pack after an update. Effects are at most 10 seconds long.</p>
+  <form action="/heads/" method="get" role="search">
+    <label for="heads-search">Search by effect, IGN or uploader</label><input id="heads-search" name="q" type="search" maxlength="120" />
+    <label for="heads-uploader">Uploader</label><select id="heads-uploader" name="uploader"><option value="">All uploaders</option></select>
+    <button type="submit">Search</button>
+  </form>
+  <div id="heads-catalogue"><p>No matching approved head sounds yet. <a href="/heads/create/">Submit a sound effect</a>.</p></div>
+  <nav id="heads-pagination" aria-label="Head sound gallery pages"></nav>
+  <p id="heads-status" role="status" aria-live="polite"></p>
+  <script>import '../scripts/head-claims.js'; import '../scripts/music-playback.js';</script>
+</WikiLayout>

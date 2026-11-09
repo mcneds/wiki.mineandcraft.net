@@ -12,7 +12,7 @@ from urllib.parse import urlencode, urlparse
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 import zipfile
 
-PACK_REVISION = 3  # Must match the generated datapack contract in music-server.py.
+PACK_REVISION = 4  # Must match the generated datapack contract in music-server.py.
 
 class Waiting(RuntimeError):
     pass
@@ -145,7 +145,8 @@ def verify_music(panel, cursor, logs, manifest, pack_path):
         time.sleep(1)
         cursor, output = panel.console(cursor)
         if (release in output and 'following contents' in output
-                and re.search(r'pack_revision:\s*' + str(PACK_REVISION) + r'\b', output)):
+                and re.search(r'pack_revision:\s*' + str(PACK_REVISION) + r'\b', output)
+                and (not any(t.get('kind') == 'head' for t in manifest['tracks']) or ('head_release: \"' + release + '\"') in output)):
             break
     else:
         raise RuntimeError('Minecraft did not confirm the expected music datapack release.')
@@ -154,12 +155,13 @@ def verify_music(panel, cursor, logs, manifest, pack_path):
         try:
             with zipfile.ZipFile(pack_path) as pack:
                 sounds = json.loads(pack.read('assets/mineandcraft_music/sounds.json'))
-                names = {'disc_' + track['id'].replace('-', '') for track in manifest['tracks']}
-                expected = names | {'buffered.' + name for name in names}
+                names = {'disc_' + track['id'].replace('-', '') for track in manifest['tracks'] if track.get('kind') != 'head'}
+                heads = {'head_' + track['head']['id'].replace('-', '') for track in manifest['tracks'] if track.get('kind') == 'head'}
+                expected = names | heads | {'buffered.' + name for name in names}
                 buffered = all(sounds.get('buffered.' + name) == {'sounds': [{
                     'name': 'mineandcraft_music:music/' + name, 'type': 'file', 'stream': False, 'preload': False
                 }]} for name in names)
-                audio_present = all('assets/mineandcraft_music/sounds/music/' + name + '.ogg' in pack.namelist() for name in names)
+                audio_present = all('assets/mineandcraft_music/sounds/music/' + name + '.ogg' in pack.namelist() for name in names | heads)
                 if set(sounds) == expected and buffered and audio_present and pack.testzip() is None:
                     return
         except (OSError, KeyError, zipfile.BadZipFile, json.JSONDecodeError):

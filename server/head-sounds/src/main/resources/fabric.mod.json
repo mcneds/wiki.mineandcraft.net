@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "mineandcraft_head_sounds",
+  "version": "${version}",
+  "name": "Mine and Craft Head Sounds",
+  "environment": "server",
+  "entrypoints": { "main": ["net.mineandcraft.heads.HeadSounds"] },
+  "mixins": ["mineandcraft-heads.mixins.json"],
+  "depends": { "fabricloader": ">=0.19.5", "minecraft": "26.3", "java": ">=25", "fabric-api": "*" }
+}

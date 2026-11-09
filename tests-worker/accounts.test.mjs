@@ -10,6 +10,7 @@ import { commentsSection } from '../worker/comments.mjs';
 import { musicSource, audioType } from '../shared/music.mjs';
 import { musicListHtml, musicFilterOptionsHtml, musicPaginationHtml } from '../shared/music-render.mjs';
 import { cleanupMusic } from '../worker/music.mjs';
+import { headsListHtml } from '../shared/heads-render.mjs';
 import { cleanupMapart } from '../worker/mapart.mjs';
 import { mapartFields, mapartLayout } from '../shared/mapart.mjs';
 
@@ -28,6 +29,7 @@ function fixture(t) {
   sqlite.exec(readFileSync('migrations/0009_server_status.sql', 'utf8'));
   sqlite.exec(readFileSync('migrations/0010_music_covers.sql', 'utf8'));
   sqlite.exec(readFileSync('migrations/0011_mapart_storage.sql', 'utf8'));
+  sqlite.exec(readFileSync('migrations/0013_head_sounds.sql', 'utf8'));
   t.after(() => sqlite.close());
   class Statement {
     constructor(sql, values = []) { this.sql = sql; this.values = values; }
@@ -368,7 +370,7 @@ test('Bedrock lookup uses the canonical Xbox name, XUID, and a stored Geyser ski
     const url = new URL(address);
     if (url.pathname.includes('/xuid/')) return Response.json({ xuid: Number(xuid) });
     if (url.pathname.includes('/gamertag/')) return Response.json({ gamertag: 'Poke Fish' });
-    if (url.pathname.includes('/skin/')) return Response.json({ texture_id: 'a-valid-texture' });
+    if (url.pathname.includes('/skin/')) return Response.json({ texture_id: 'a'.repeat(64) });
     assert.equal(url.pathname, `/head/${BigInt(xuid).toString(16).padStart(32, '0')}/256`);
     return new Response(readFileSync('public/images/players/0480.png'), { headers: { 'Content-Type': 'image/png' } });
   };
@@ -664,6 +666,165 @@ test('comment limits and pagination bound public responses, with HTML escaped as
 });
 
 const trackData = (extra = {}) => ({ id: crypto.randomUUID(), title: 'My song', artist: 'A player', posterSlug: 'uaiden', sourceUrl: '', ...extra });
+const notchUuid = '069a79f4-44e9-4726-a5be-fca90e38aaf5';
+const headData = (extra = {}) => ({ id: crypto.randomUUID(), name: 'Notch', edition: 'java', title: 'Hello', posterSlug: 'uaiden', ...extra });
+async function headWhitelist(f, players = []) {
+  assert.equal((await bridge(f, 'heads/whitelist/', { players })).status, 200);
+}
+async function validateHead(f, id, durationMs = 10000) {
+  const queue = await (await bridge(f, 'heads/validation/')).json();
+  const item = queue.submissions.find(value => value.id === id);
+  assert.ok(item);
+  const response = await bridge(f, `heads/${id}/validation/`, { ...item, valid: true, durationMs });
+  assert.equal(response.status, 200, JSON.stringify(await response.json()));
+}
+async function installHeads(f) {
+  const response = await bridge(f, 'manifest/');
+  assert.equal(response.status, 200, await response.clone().text());
+  const manifest = await response.json();
+  const report = await bridge(f, 'report/', { releaseId: manifest.releaseId, catalogueVersion: manifest.catalogueVersion, status: 'installed' });
+  assert.equal(report.status, 200, await report.clone().text());
+  return manifest;
+}
+test('head lookup protects whitelist accounts, fails closed when stale, and shares current Discord ownership', async t => {
+  const f = fixture(t), user = await f.login(), other = await f.login(OTHER), owner = await f.login(OWNER);
+  assert.equal((await user.call('/api/heads/lookup/', 'POST', headData())).status, 503);
+  await headWhitelist(f, [{ uuid: notchUuid, name: 'Notch' }]);
+  assert.equal((await user.call('/api/heads/lookup/', 'POST', headData())).status, 200);
+  assert.equal((await other.call('/api/heads/lookup/', 'POST', headData())).status, 403);
+  assert.equal((await owner.call('/api/heads/', 'POST', headData())).status, 403);
+  f.memberships.set(MEMBER, ['role-uaiden']);
+  assert.equal((await user.call('/api/heads/', 'POST', headData())).status, 403);
+  await headWhitelist(f);
+  const created = await user.call('/api/heads/', 'POST', headData({ target_uuid: 'forged' }));
+  assert.equal(created.status, 200);
+  assert.equal(f.sqlite.prepare('SELECT target_uuid FROM sound_heads').get().target_uuid, notchUuid);
+  assert.equal((await other.call('/api/heads/', 'POST', headData({ posterSlug: 'apokefish' }))).status, 403);
+  f.sqlite.exec('UPDATE head_whitelist_snapshot SET received=0');
+  assert.equal((await user.call('/api/heads/lookup/', 'POST', headData())).status, 503);
+});
+
+test('head validation is hash/version bound, private, required before approval, and cannot approve discs', async t => {
+  const f = fixture(t), user = await f.login(), owner = await f.login(OWNER);
+  await headWhitelist(f);
+  const data = headData(), track = await (await user.call('/api/heads/', 'POST', data)).json();
+  assert.equal((await user.call('/api/heads/', 'POST', data)).status, 200);
+  assert.equal((await uploadMusic(f, user, track.id)).status, 200);
+  assert.equal((await f.request(`/api/music/${track.id}/play/`)).status, 404);
+  assert.equal((await bridge(f, `${track.id}/audio/`)).status, 404);
+  assert.equal((await bridge(f, `heads/${track.id}/audio/`)).status, 200);
+  assert.equal((await owner.call(`/api/music/${track.id}/review/`, 'POST', { status: 'approved', version: 2, note: '' })).status, 409);
+  const item = (await (await bridge(f, 'heads/validation/')).json()).submissions[0];
+  for (const values of [{ ...item, sha256: 'f'.repeat(64), valid: true, durationMs: 1000 }, { ...item, version: 1, valid: true, durationMs: 1000 }])
+    assert.equal((await bridge(f, `heads/${track.id}/validation/`, values)).status, 409);
+  assert.equal((await bridge(f, `heads/${track.id}/validation/`, { ...item, valid: true, durationMs: 10000.01 })).status, 400);
+  await validateHead(f, track.id);
+  assert.equal((await owner.call(`/api/music/${track.id}/review/`, 'POST', { status: 'approved', version: 2, note: '' })).status, 200);
+  assert.equal((await (await f.request('/api/music/')).json()).total, 0);
+  const list = await (await f.request('/api/heads/?q=Notch')).json();
+  assert.equal(list.total, 1); assert.equal(list.tracks[0].claimCode, undefined);
+  assert.equal(JSON.stringify(list).includes(MEMBER), false);
+  assert.equal((await f.request(`/api/music/${track.id}/play/`)).status, 200);
+  assert.equal((await user.call(`/api/music/${track.id}/source/`, 'POST', {})).status, 400);
+  const manifest = await installHeads(f);
+  assert.equal((await (await bridge(f, 'manifest/')).json()).releaseId, manifest.releaseId);
+  const installed = await (await f.request('/api/heads/')).json();
+  assert.ok(installed.tracks[0].claimCode);
+  assert.match(headsListHtml(installed), /trigger mac_heads set/);
+  const context = await (await user.call('/api/heads/context/')).json();
+  assert.equal(context.usage.used, wav.length);
+  assert.equal((await (await user.call('/api/music/context/')).json()).usage.used, wav.length);
+  assert.equal((await bridge(f, `heads/${track.id}/audio/`)).status, 404);
+});
+
+test('head replacement is atomic, retains installed audio while pending, retires only after successful installation', async t => {
+  const f = fixture(t), user = await f.login(), owner = await f.login(OWNER);
+  await headWhitelist(f);
+  const first = await (await user.call('/api/heads/', 'POST', headData())).json();
+  await uploadMusic(f, user, first.id); await validateHead(f, first.id);
+  await owner.call(`/api/music/${first.id}/review/`, 'POST', { status: 'approved', version: 2, note: '' });
+  await installHeads(f);
+  const lookup = await (await user.call('/api/heads/lookup/', 'POST', headData())).json();
+  const replacement = headData({ title: 'Replacement', version: lookup.association.version });
+  const second = await (await user.call('/api/heads/', 'POST', replacement)).json();
+  assert.ok(second.id);
+  assert.equal((await user.call('/api/heads/', 'POST', headData({ version: replacement.version }))).status, 409);
+  assert.equal((await (await f.request('/api/heads/')).json()).tracks[0].id, first.id);
+  await uploadMusic(f, user, second.id); await validateHead(f, second.id, 1500);
+  await owner.call(`/api/music/${second.id}/review/`, 'POST', { status: 'approved', version: 2, note: '' });
+  const pending = await (await bridge(f, 'manifest/')).json();
+  assert.deepEqual(pending.tracks.map(track => track.id), [second.id]);
+  assert.equal((await bridge(f, 'report/', { releaseId: pending.releaseId, status: 'failed' })).status, 200);
+  assert.equal((await (await f.request('/api/heads/')).json()).tracks[0].id, first.id);
+  await installHeads(f);
+  assert.equal((await (await f.request('/api/heads/')).json()).tracks[0].id, second.id);
+  assert.equal(f.sqlite.prepare('SELECT status FROM music_submissions WHERE id=?').get(first.id).status, 'deleted');
+  assert.equal(f.sqlite.prepare('SELECT state FROM music_files WHERE submission_id=?').get(first.id).state, 'deleted');
+  f.sqlite.prepare("UPDATE music_submissions SET updated='2000-01-01' WHERE id=?").run(first.id);
+  await cleanupMusic(f.env);
+  assert.equal(f.sqlite.prepare('SELECT state FROM music_files WHERE submission_id=?').get(first.id).state, 'deleted');
+  assert.equal(f.objects.size, 1);
+});
+
+test('new whitelist membership suppresses outsider audio and permits verified-owner takeover', async t => {
+  const f = fixture(t), other = await f.login(OTHER), user = await f.login(), owner = await f.login(OWNER);
+  await headWhitelist(f);
+  const first = await (await other.call('/api/heads/', 'POST', headData({ posterSlug: 'apokefish' }))).json();
+  await uploadMusic(f, other, first.id); await validateHead(f, first.id);
+  await owner.call(`/api/music/${first.id}/review/`, 'POST', { status: 'approved', version: 2, note: '' });
+  await installHeads(f);
+  await headWhitelist(f, [{ uuid: notchUuid, name: 'Notch' }]);
+  assert.equal((await (await f.request('/api/heads/')).json()).total, 0);
+  assert.equal((await f.request(`/api/music/${first.id}/play/`)).status, 404);
+  const protectedManifest = await (await bridge(f, 'manifest/')).json();
+  assert.equal(protectedManifest.tracks.length, 1);
+  assert.equal(protectedManifest.tracks[0].head.owned, false);
+  const lookup = await (await user.call('/api/heads/lookup/', 'POST', headData())).json();
+  const second = await (await user.call('/api/heads/', 'POST', headData({ version: lookup.association.version }))).json();
+  await uploadMusic(f, user, second.id); await validateHead(f, second.id);
+  await owner.call(`/api/music/${second.id}/review/`, 'POST', { status: 'approved', version: 2, note: '' });
+  await installHeads(f);
+  assert.equal((await (await f.request('/api/heads/')).json()).total, 1);
+});
+
+test('head review and installation recheck author roles; rejection remains available', async t => {
+  const f = fixture(t), user = await f.login(), owner = await f.login(OWNER);
+  await headWhitelist(f, [{ uuid: notchUuid, name: 'Notch' }]);
+  const track = await (await user.call('/api/heads/', 'POST', headData())).json();
+  await uploadMusic(f, user, track.id); await validateHead(f, track.id);
+  await owner.call(`/api/music/${track.id}/review/`, 'POST', { status: 'approved', version: 2, note: '' });
+  f.memberships.set(MEMBER, ['role-uaiden']);
+  assert.equal((await bridge(f, 'manifest/')).status, 403);
+  assert.equal((await owner.call(`/api/music/${track.id}/review/`, 'POST', { status: 'rejected', version: 3, note: 'Ownership changed' })).status, 200);
+});
+
+test('verified head owner can replace an outsider pending submission without leaving two pending revisions', async t => {
+  const f = fixture(t), other = await f.login(OTHER), user = await f.login();
+  await headWhitelist(f);
+  const first = await (await other.call('/api/heads/', 'POST', headData({ posterSlug: 'apokefish' }))).json();
+  await headWhitelist(f, [{ uuid: notchUuid, name: 'Notch' }]);
+  const lookup = await (await user.call('/api/heads/lookup/', 'POST', headData())).json();
+  assert.equal(lookup.canTakeOver, true);
+  const response = await user.call('/api/heads/', 'POST', headData({ version: lookup.association.version }));
+  assert.equal(response.status, 200, await response.clone().text());
+  const next = await response.json();
+  assert.equal(f.sqlite.prepare('SELECT status FROM music_submissions WHERE id=?').get(first.id).status, 'deleted');
+  assert.equal(f.sqlite.prepare('SELECT pending_id FROM sound_heads').get().pending_id, next.id);
+  assert.equal((await uploadMusic(f, other, first.id)).status, 404);
+});
+
+test('head replacements use the existing shared slot at the 25-submission limit', async t => {
+  const f = fixture(t), user = await f.login(), owner = await f.login(OWNER);
+  await headWhitelist(f);
+  const first = await (await user.call('/api/heads/', 'POST', headData())).json();
+  await uploadMusic(f, user, first.id); await validateHead(f, first.id);
+  await owner.call(`/api/music/${first.id}/review/`, 'POST', { version: 2, status: 'approved', note: '' });
+  await installHeads(f);
+  for (let i = 0; i < 24; i++) f.sqlite.prepare("INSERT INTO music_submissions(id,poster_slug,author_id,title,source_kind,created,updated) VALUES(?,'uaiden',?,'Song','file','now','now')").run(crypto.randomUUID(), MEMBER);
+  const lookup = await (await user.call('/api/heads/lookup/', 'POST', headData())).json();
+  assert.equal((await user.call('/api/heads/', 'POST', headData({ version: lookup.association.version }))).status, 200);
+  assert.equal((await user.call('/api/music/', 'POST', trackData())).status, 413);
+});
 test('public music search covers all pages, title, artist and player with literal matching', async t => {
   const f = fixture(t);
   const insert = f.sqlite.prepare("INSERT INTO music_submissions(id,poster_slug,author_id,title,artist,source_kind,source_url,status,created,updated) VALUES(?,?,?,?,?,'youtube','https://www.youtube.com/watch?v=dQw4w9WgXcQ',?,?,?)");
@@ -1057,7 +1218,7 @@ test('music quota reservations are atomic across player profiles and public musi
   for (let i = 0; i < 5; i++) {
     const data = trackData();
     f.sqlite.prepare('INSERT INTO music_submissions(id,poster_slug,author_id,title,source_kind,created,updated) VALUES(?,?,?,?,?,?,?)').run(data.id, 'uaiden', MEMBER, 'Reserved', 'file', 'now', 'now');
-    f.sqlite.prepare("INSERT INTO music_files VALUES(?,?,?,'source.mp3','audio/mpeg','mp3',20971520,?,'ready',?)").run(crypto.randomUUID(), data.id, MEMBER, '0'.repeat(64), Date.now());
+    f.sqlite.prepare("INSERT INTO music_files(id,submission_id,author_id,filename,mime,extension,bytes,sha256,state,created) VALUES(?,?,?,'source.mp3','audio/mpeg','mp3',20971520,?,'ready',?)").run(crypto.randomUUID(), data.id, MEMBER, '0'.repeat(64), Date.now());
   }
   assert.equal((await uploadMusic(f, user, first.track.id)).status, 413);
   assert.equal(f.sqlite.prepare("SELECT count(*) AS count FROM music_files WHERE state!='deleted'").get().count, 5);

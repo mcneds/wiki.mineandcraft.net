@@ -12,6 +12,8 @@
   "resource_format": [97, 1],
   "bedrock_engine": [1, 21, 0],
   "allow_youtube": false,
+  "heads_enabled": false,
+  "whitelist_file": "/srv/minecraft/whitelist.json",
   "youtube_pot": false,
   "youtube_proxy": null,
   "youtube_lavalink_config": null,

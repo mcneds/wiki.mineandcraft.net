@@ -144,6 +144,18 @@ The bridge uses a dedicated Bearer credential on `/api/music/bridge/manifest/`, 
 
 References: [Minecraft 26.3 technical changes](https://www.minecraft.net/en-us/article/minecraft-java-edition-26-3), [Polymer custom asset paths](https://polymer.pb4.eu/latest/user/resource-pack-custom-assets/), [Polymer AutoHost](https://polymer.pb4.eu/latest/user/resource-pack-hosting/), [Geyser pack delivery](https://geysermc.org/wiki/geyser/packs/), [yt-dlp options](https://github.com/yt-dlp/yt-dlp/blob/master/README.md).
 
+### Player-head sound effects
+
+`/heads/` provides a public, searchable gallery with audio previews and head claim commands; `/heads/create/` lets Discord members choose an IGN and upload an effect up to **10 seconds**. Java and Bedrock accounts are supported. Members may use their own whitelisted accounts or non-whitelisted accounts. Other members' whitelisted accounts are protected, including from owner upload overrides. Owner approval remains required.
+
+Head sounds reuse the disc submission, audio preview, approval, and pack delivery infrastructure. Discs and heads share 100 MiB of storage, a 20 MiB file limit, and 25 active submission slots. A head replacement uses the association's slot but both files consume bytes until installation succeeds. Superseded head files are then reclaimed, with failed deletions retained for cleanup retries; installed discs keep their existing retention rules.
+
+The bridge decodes pending head uploads and verifies their actual duration before approval. Validation is tied to the file hash and submission version; replacing audio invalidates the result. The browser provides an early duration check, but cannot bypass server validation. Uploads accept the existing MP3/WAV/Ogg/FLAC/M4A formats. There is no skin upload, link import, or audio trimming editor.
+
+`GET /api/heads/` supports `q`, `uploader`, and `page`; `GET /api/heads/context/` supports `page` and owner-only `scope=all`. `POST /api/heads/lookup/` resolves `{name,edition}` and returns a preview and current association version. `POST /api/heads/` submits `{id,name,edition,title,posterSlug,version?}`. Audio, review, and deletion reuse `/api/music/:id/` actions with head-specific permission checks. The music bridge credential also authorizes `/api/music/bridge/heads/whitelist/`, `/heads/validation/`, and `/heads/:id/audio/` or `/heads/:id/validation/` beneath the bridge prefix. Its new pending-file access is restricted to head audio validation; pending disc files stay private.
+
+Apply `0013_head_sounds.sql`, install the updated bridge and server companions, and enable `heads_enabled` with the real `whitelist_file` path. The sample config leaves it disabled until installation. See [head sound installation and verification](server/head-sounds/README.md). Existing and already placed matching heads use the installed association automatically. Gallery claims give one head every five seconds; new packs still require reconnecting. Replacements preserve the current sound until approved and installed.
+
 ### Copper Speakers on Bedrock
 
 The live server supports Copper Speakers through Geyser using the companion in [server/bedrock-speakers](server/bedrock-speakers/README.md). Bedrock players accept the server resource packs; no client mod is required. Speaker range extension has been confirmed in game on both Java and Bedrock, including custom music. The companion supplies buffered playback, wire and resin geometry, wall-plate entities, and speaker-note particles through a patched GeyserDisplayEntity bridge.
