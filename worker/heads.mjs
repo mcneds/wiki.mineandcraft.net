@@ -118,10 +118,10 @@ export async function headsBridge(request, env, body) {
   if (path === '/api/music/bridge/heads/whitelist/' && request.method === 'POST') {
     if (!Array.isArray(body.players) || body.players.length > 2000 || !body.players.every(p => uuid.test(p.uuid || '') && typeof p.name === 'string' && p.name.length > 0 && p.name.length <= 64)) throw new HttpError(400, 'Invalid whitelist snapshot.');
     await env.DB.batch([
-      env.DB.prepare('DELETE FROM head_whitelist'),
-      env.DB.prepare('INSERT INTO head_whitelist(uuid,name) SELECT json_extract(value,\'$.uuid\'),json_extract(value,\'$.name\') FROM json_each(?)').bind(JSON.stringify(body.players)),
+      env.DB.prepare("DELETE FROM head_whitelist WHERE uuid NOT IN (SELECT json_extract(value,'$.uuid') FROM json_each(?))").bind(JSON.stringify(body.players)),
+      env.DB.prepare("INSERT INTO head_whitelist(uuid,name) SELECT json_extract(value,'$.uuid'),json_extract(value,'$.name') FROM json_each(?) WHERE true ON CONFLICT(uuid) DO UPDATE SET name=excluded.name WHERE head_whitelist.name!=excluded.name").bind(JSON.stringify(body.players)),
       env.DB.prepare('UPDATE head_whitelist_snapshot SET received=? WHERE id=1').bind(Date.now()),
-      env.DB.prepare("UPDATE sound_heads SET suppressed=CASE WHEN active_id IS NOT NULL AND EXISTS(SELECT 1 FROM head_whitelist WHERE uuid=sound_heads.target_uuid) AND NOT EXISTS(SELECT 1 FROM music_submissions WHERE id=sound_heads.active_id AND head_owned=1) THEN 1 ELSE 0 END"),
+      env.DB.prepare("UPDATE sound_heads SET suppressed=CASE WHEN active_id IS NOT NULL AND EXISTS(SELECT 1 FROM head_whitelist WHERE uuid=sound_heads.target_uuid) AND NOT EXISTS(SELECT 1 FROM music_submissions WHERE id=sound_heads.active_id AND head_owned=1) THEN 1 ELSE 0 END WHERE suppressed!=CASE WHEN active_id IS NOT NULL AND EXISTS(SELECT 1 FROM head_whitelist WHERE uuid=sound_heads.target_uuid) AND NOT EXISTS(SELECT 1 FROM music_submissions WHERE id=sound_heads.active_id AND head_owned=1) THEN 1 ELSE 0 END"),
     ]);
     return json({ recorded: true });
   }

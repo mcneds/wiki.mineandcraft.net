@@ -1578,3 +1578,27 @@ test('track progress is public, does not change catalogue revisions, and rejects
   assert.equal((await bridge(f,'report/',{...body,status:'failed'})).status,409);
   assert.equal((await(await f.request('/api/music/')).json()).tracks[0].delivery,undefined);
 });
+
+
+test('unchanged whitelist polls and installed acknowledgements only write their heartbeat', async t => {
+  const f = fixture(t), user = await f.login(), owner = await f.login(OWNER);
+  const players = [{ uuid: notchUuid, name: 'Notch' }];
+  await headWhitelist(f, players);
+  const changes = () => f.sqlite.prepare('SELECT total_changes() n').get().n;
+  let before = changes();
+  await headWhitelist(f, players);
+  assert.equal(changes() - before, 1, 'unchanged whitelist only refreshes its timestamp');
+  await headWhitelist(f, [{ uuid: notchUuid, name: 'Renamed' }]);
+  assert.equal(f.sqlite.prepare('SELECT name FROM head_whitelist').get().name, 'Renamed');
+  await headWhitelist(f, []);
+  assert.equal(f.sqlite.prepare('SELECT count(*) n FROM head_whitelist').get().n, 0);
+  const { track } = await createMusic(f, user);
+  await uploadMusic(f, user, track.id);
+  assert.equal((await owner.call(`/api/music/${track.id}/review/`, 'POST', { status: 'approved', version: 2, note: '' })).status, 200);
+  const manifest = await (await bridge(f, 'manifest/')).json();
+  const report = { status: 'installed', releaseId: manifest.releaseId, catalogueVersion: manifest.catalogueVersion };
+  assert.equal((await bridge(f, 'report/', report)).status, 200);
+  before = changes();
+  assert.equal((await bridge(f, 'report/', report)).status, 200);
+  assert.equal(changes() - before, 1, 'repeat installation does not rewrite every track');
+});
