@@ -21,6 +21,9 @@ import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.network.chat.Component;
 import java.util.zip.CRC32;
 
 public class HeadPlaybackTest {
@@ -52,32 +55,67 @@ public class HeadPlaybackTest {
         test.assertTrue(parsed != null, "Generated head claim item parses on Minecraft 26.3");
         test.succeed();
     }
-    @GameTest(maxTicks = 200)
-    public void generatedClaimGivesHeadAndEnforcesFiveSecondCooldown(GameTestHelper test) {
+    @GameTest(maxTicks = 220)
+    public void generatedClaimRequiresHeldHeadPreservesCountAndEnforcesCooldown(GameTestHelper test) {
         var server = test.getLevel().getServer();
         var cookie = CommonListenerCookie.createInitial(new GameProfile(UUID.randomUUID(), "HeadClaimTest"), false);
         var player = new ServerPlayer(server, test.getLevel(), cookie.gameProfile(), cookie.clientInformation());
         var connection = new Connection(PacketFlow.SERVERBOUND);
         var channel = new EmbeddedChannel(connection);
         server.getPlayerList().placeNewPlayer(connection, player, cookie);
+        // The development test world persists scoreboard entries by player name.
+        server.getScoreboard().resetAllPlayerScores(player);
         var crc = new CRC32(); crc.update("22222222-2222-4222-8222-222222222222".getBytes(java.nio.charset.StandardCharsets.UTF_8));
         String claim = "trigger mac_heads set " + (crc.getValue() & 0x7fffffff);
+        Runnable trigger = () -> {
+            try { server.getCommands().getDispatcher().execute(claim, player.createCommandSourceStack()); }
+            catch (Exception error) { throw new RuntimeException("Expected an enabled claim trigger: " + error.getMessage() + "; scores=" + server.getScoreboard().listPlayerScores(player), error); }
+        };
         test.runAfterDelay(5, () -> {
-            server.getCommands().performPrefixedCommand(player.createCommandSourceStack(), claim);
+            trigger.run();
             test.runAfterDelay(3, () -> {
-                test.assertValueEqual(player.getInventory().countItem(Items.PLAYER_HEAD), 1, "Public trigger gives exactly one generated head");
-                for (int slot = 0; slot < 36; slot++) {
-                    var item = player.getInventory().getItem(slot);
-                    if (item.is(Items.PLAYER_HEAD)) test.assertTrue(item.get(DataComponents.PROFILE) instanceof ResolvableProfile.Dynamic, "Claim resolves the account skin instead of freezing a default skin");
-                }
-                server.getCommands().performPrefixedCommand(player.createCommandSourceStack(), claim);
+                test.assertValueEqual(player.getInventory().countItem(Items.PLAYER_HEAD), 0, "Empty hands cannot create a free head");
+                player.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE, 4));
+                trigger.run();
                 test.runAfterDelay(3, () -> {
-                    test.assertValueEqual(player.getInventory().countItem(Items.PLAYER_HEAD), 1, "Immediate repeat does not give a second head");
-                    test.runAfterDelay(100, () -> {
-                        server.getCommands().performPrefixedCommand(player.createCommandSourceStack(), claim);
+                    test.assertTrue(player.getMainHandItem().is(Items.STONE), "Other vanilla items cannot be converted");
+                    test.assertValueEqual(player.getMainHandItem().getCount(), 4, "Failed claims preserve held items");
+                    player.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+                    player.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.PLAYER_HEAD, 2));
+                    trigger.run();
+                    test.runAfterDelay(3, () -> {
+                        test.assertTrue(player.getMainHandItem().isEmpty(), "An offhand head cannot bypass the main-hand requirement");
+                        test.assertTrue(player.getOffhandItem().get(DataComponents.PROFILE) == null, "Offhand head remains unchanged");
+                        var paid = player.getOffhandItem();
+                        player.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
+                        paid.set(DataComponents.CUSTOM_NAME, Component.literal("Paid heads"));
+                        paid.set(DataComponents.PROFILE, ResolvableProfile.createResolved(new GameProfile(UUID.randomUUID(), "OldSkin")));
+                        paid.set(DataComponents.NOTE_BLOCK_SOUND, Identifier.parse("minecraft:block.note_block.harp"));
+                        player.setItemSlot(EquipmentSlot.MAINHAND, paid);
+                        trigger.run();
                         test.runAfterDelay(3, () -> {
-                            test.assertValueEqual(player.getInventory().countItem(Items.PLAYER_HEAD), 2, "Claims unlock after five seconds");
-                            server.getPlayerList().remove(player); channel.finishAndReleaseAll(); test.succeed();
+                            var converted = player.getMainHandItem();
+                            test.assertValueEqual(converted.getCount(), 2, "Conversion preserves the paid stack count");
+                            test.assertValueEqual(player.getInventory().countItem(Items.PLAYER_HEAD), 2, "No additional head is given");
+                            test.assertValueEqual(converted.get(DataComponents.CUSTOM_NAME).getString(), "Paid heads", "Unrelated components survive");
+                            var profile = converted.get(DataComponents.PROFILE);
+                            test.assertValueEqual(profile.partialProfile().id(), UUID.fromString("aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"), "Previous head identity is overwritten");
+                            test.assertTrue(profile instanceof ResolvableProfile.Dynamic, "Converted profile resolves the current account skin");
+                            test.assertValueEqual(converted.get(DataComponents.NOTE_BLOCK_SOUND), Identifier.parse("mineandcraft_music:head_22222222222242228222222222222222"), "Previous sound is overwritten");
+                            player.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.PLAYER_HEAD));
+                            server.getCommands().performPrefixedCommand(player.createCommandSourceStack(), claim);
+                            test.runAfterDelay(3, () -> {
+                                test.assertTrue(player.getMainHandItem().get(DataComponents.PROFILE) == null, "Cooldown prevents immediate conversion of another head");
+                                test.runAfterDelay(100, () -> {
+                                    trigger.run();
+                                    test.runAfterDelay(3, () -> {
+                                        test.assertValueEqual(player.getMainHandItem().getCount(), 1, "Single-head conversion preserves count");
+                                        test.assertTrue(player.getMainHandItem().get(DataComponents.PROFILE) instanceof ResolvableProfile.Dynamic, "Conversion unlocks after five seconds");
+                                        server.getScoreboard().resetAllPlayerScores(player);
+                                        server.getPlayerList().remove(player); channel.finishAndReleaseAll(); test.succeed();
+                                    });
+                                });
+                            });
                         });
                     });
                 });

@@ -12,7 +12,7 @@ from urllib.parse import urlencode, urlparse
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 import zipfile
 
-PACK_REVISION = 4  # Must match the generated datapack contract in music-server.py.
+PACK_REVISION = 5  # Must match the generated datapack contract in music-server.py.
 
 class Waiting(RuntimeError):
     pass

@@ -28,7 +28,7 @@ import zlib
 FILE_LIMIT = 20 * 1024 * 1024
 NAMESPACE = 'mineandcraft_music'
 # Rebuild installed catalogues once when the generated pack contract changes.
-PACK_REVISION = 4
+PACK_REVISION = 5
 
 
 class ToolFailure(RuntimeError):
@@ -245,12 +245,15 @@ def add_head_to_pack(track, source, duration, java, data, bedrock, sounds, bedro
     profile = head['profile']
     if profile.get('id') != head['uuid']:
         raise ValueError('Head profile identity does not match.')
-    profile_fields = {key: value for key, value in profile.items() if key != 'id'}
-    profile_snbt = '{"id":[I;' + ','.join(map(str, struct.unpack('>iiii', uuid.UUID(head['uuid']).bytes))) + ']' + (',' + json.dumps(profile_fields, ensure_ascii=True)[1:] if profile_fields else '}')
-    item = 'minecraft:player_head[minecraft:profile=' + profile_snbt + ',minecraft:note_block_sound=' + json.dumps(sound) + ']'
+    components = {'minecraft:profile': {**profile, 'id': list(struct.unpack('>iiii', uuid.UUID(head['uuid']).bytes))},
+                  'minecraft:note_block_sound': sound}
+    write_json(data / 'data' / NAMESPACE / 'item_modifier' / 'heads' / (name + '.json'),
+               {'type': 'minecraft:set_components', 'components': components})
     function = data / 'data' / NAMESPACE / 'function' / 'heads' / (name + '.mcfunction')
     function.parent.mkdir(parents=True, exist_ok=True)
-    function.write_text(f'give @s {item}\nscoreboard players set @s mac_head_wait 100\n', encoding='utf-8')
+    function.write_text('execute unless items entity @s weapon.mainhand minecraft:player_head run return fail\n'
+                        f'item modify entity @s weapon.mainhand {NAMESPACE}:heads/{name}\n'
+                        'scoreboard players set @s mac_head_wait 100\n', encoding='utf-8')
     # The companion writes this per-identity allow flag from the LIVE whitelist.
     # Claims therefore cannot bypass newly protected heads between releases.
     claims.append(f'execute if score @s mac_heads matches {code} if data storage {NAMESPACE}:heads allowed.{name} run function {NAMESPACE}:heads/{name}')
@@ -463,7 +466,10 @@ def build_packs(manifest, audio, directory, config):
                      f'execute as @a[scores={{mac_heads=1..,mac_head_wait=0}}] run function {NAMESPACE}:heads/claim\n'
                      'scoreboard players reset @a[scores={mac_heads=1..}] mac_heads\n')
     (functions / 'heads').mkdir(exist_ok=True)
-    (functions / 'heads' / 'claim.mcfunction').write_text('\n'.join(head_claims) + '\n', encoding='utf-8')
+    (functions / 'heads' / 'claim.mcfunction').write_text(
+        'execute unless items entity @s weapon.mainhand minecraft:player_head run tellraw @s {"text":"Hold a player head in your main hand to apply a head sound.","color":"yellow"}\n'
+        'execute unless items entity @s weapon.mainhand minecraft:player_head run return fail\n'
+        + '\n'.join(head_claims) + '\n', encoding='utf-8')
     for event in ('load', 'tick'):
         write_json(data / 'data' / 'minecraft' / 'tags' / 'function' / (event + '.json'), {'values': [f'{NAMESPACE}:{event}']})
     (directory / 'disc-commands.txt').write_text('\n'.join(commands), encoding='utf-8')

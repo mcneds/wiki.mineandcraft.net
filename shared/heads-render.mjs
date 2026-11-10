@@ -3,7 +3,7 @@ const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&a
 export function headClaimHtml(track) {
   if (!track.claimCode) return '';
   const command = `/trigger mac_heads set ${track.claimCode}`;
-  return `<p><code>${command}</code></p><button type="button" data-head-claim="${escape(command)}">Copy head claim command</button>`;
+  return `<p>Hold a player head in your main hand, then use <code>${command}</code>. This overwrites the held head's skin and sound. A held stack keeps its count.</p><button type="button" data-head-claim="${escape(command)}">Copy head claim command</button>`;
 }
 export function headsListHtml(result) {
   if (!result.tracks.length) return '<p>No matching approved head sounds yet. <a href="/heads/create/">Submit a sound effect</a>.</p>';

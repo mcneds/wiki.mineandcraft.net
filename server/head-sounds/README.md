@@ -6,7 +6,7 @@ The website resolves an IGN to a canonical Java UUID or Bedrock XUID/Floodgate U
 
 The live server whitelist protects heads immediately, even between bridge polls. An outsider's mapping is silent once its target becomes whitelisted. Verified-owner mappings remain allowed. Managed head items with an obsolete or unauthorized sound component cannot bypass this check. Unrelated native head sounds retain normal behavior.
 
-The generated `/trigger mac_heads set <code>` gives one head and enforces a 100-tick cooldown. Claims check live whitelist-derived allow flags maintained by the companion. Java claims use a dynamic UUID-only profile so Minecraft resolves the current skin; Bedrock claims carry the Geyser skin texture. Both use the native `minecraft:note_block_sound` component. The mapping also applies to existing heads with the same account UUID.
+The generated `/trigger mac_heads set <code>` requires a `minecraft:player_head` in the main hand and overwrites its profile and sound, preserving stack count and other components. Empty hands and other items produce no head. Successful claims enforce a 100-tick cooldown. Claims check live whitelist-derived allow flags maintained by the companion. Java claims use a dynamic UUID-only profile so Minecraft resolves the current skin; Bedrock claims carry the Geyser skin texture. Both use the native `minecraft:note_block_sound` component. The mapping also applies to existing heads with the same account UUID.
 
 ## Build and verify
 
