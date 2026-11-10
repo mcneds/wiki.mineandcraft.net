@@ -1,0 +1,6 @@
+id: mineandcraftheads
+name: MineAndCraftHeads
+main: net.mineandcraft.heads.geyser.HeadSounds
+api: 2.9.0
+version: 1.0.0
+authors: [mineandcraft.net]
